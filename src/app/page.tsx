@@ -29,6 +29,7 @@ import {
 import Link from "next/link";
 import { categoryApi } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
+import { StoreCard } from "@/components/StoreCard";
 
 const leftLinks = [
   "Trending Stores",
@@ -675,80 +676,12 @@ export default function HomePage() {
         </section>
 
         {/* Featured Stores Section */}
-        <section className="py-8 sm:py-12 bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="flex justify-between items-center mb-6 sm:mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold">
-                Featured Stores
-              </h2>
-              <Link
-                href="/stores"
-                className="text-blue-600 hover:underline flex items-center text-sm sm:text-base"
-              >
-                View All
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {featuredStores.map((store, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start mb-4">
-                    {/* Placeholder for logo */}
-                    <div className="w-10 h-10 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold text-sm mr-4">
-                      {store.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-1">
-                        {store.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">{store.desc}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center mb-4">
-                    <StarRating rating={store.rating} />
-                    <span className="ml-2 text-sm text-gray-700">
-                      {store.rating}
-                    </span>
-                    {store.verified && (
-                      <span className="ml-4 px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                        Verified
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {store.tags.map((tag, tagIndex) => (
-                      <span
-                        key={tagIndex}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                      {store.category}
-                    </span>
-                  </div>
-                  <Link
-                    href={store.link}
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    Visit Store{" "}
-                    <LinkIcon className="inline-block h-4 w-4 ml-1" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 text-center">
-              <Link
-                href="/stores"
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-              >
-                View All Stores
-              </Link>
-            </div>
+        <section className="container mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold mb-6">Featured Stores</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredStores.map((store, index) => (
+              <StoreCard key={index} store={store} />
+            ))}
           </div>
         </section>
       </main>
