@@ -4,22 +4,15 @@ import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Home as HomeIcon,
   Shirt,
   Monitor,
   Utensils,
   Sofa,
   BookOpen,
-  ShoppingCart,
   Heart,
-  Gift,
-  Camera,
   ArrowRight,
   Search,
   Store,
-  Link as LinkIcon,
-  Filter,
-  ArrowUpDown,
   Sparkles,
   Dumbbell,
   Gamepad2,
@@ -28,38 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { categoryApi } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
-import { StoreCard } from "@/components/StoreCard";
-
-const leftLinks = [
-  "Trending Stores",
-  "Editor's Picks",
-  "Seasonal Picks",
-  "Recently Viewed",
-  "Local Favorites",
-  "Hidden Gems",
-];
-const rightLinks = [
-  "New Arrivals",
-  "Top Rated",
-  "Recommended For You",
-  "On Sale Now",
-  "Local Favorites",
-  "Hidden Gems",
-];
-
-const mockSuggestions = [
-  "Amazon",
-  "eBay",
-  "Best Buy",
-  "Walmart",
-  "Target",
-  "AliExpress",
-  "Etsy",
-  "Zara",
-  "H&M",
-  "Apple Store",
-];
+import { HomeList } from "@/components/HomeList";
 
 const featuredStores = [
   {
@@ -71,7 +33,7 @@ const featuredStores = [
     rating: 4.5,
     score: 8.7,
     verified: true,
-    link: "#",
+    link: "https://storea.com",
   },
   {
     name: "Store B",
@@ -82,7 +44,7 @@ const featuredStores = [
     rating: 4.2,
     score: 8.2,
     verified: false,
-    link: "#",
+    link: "https://storeb.com",
   },
   {
     name: "Store C",
@@ -93,7 +55,7 @@ const featuredStores = [
     rating: 4.8,
     score: 9.1,
     verified: true,
-    link: "#",
+    link: "https://storec.com",
   },
   {
     name: "Store D",
@@ -104,48 +66,11 @@ const featuredStores = [
     rating: 4.0,
     score: 7.9,
     verified: false,
-    link: "#",
+    link: "https://stored.com",
   },
 ];
 
-function StarRating({ rating }: { rating: number }) {
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 >= 0.5;
-  return (
-    <span className="flex items-center gap-0.5">
-      {[...Array(fullStars)].map((_, i) => (
-        <svg
-          key={i}
-          className="w-4 h-4 text-yellow-400"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z" />
-        </svg>
-      ))}
-      {halfStar && (
-        <svg
-          className="w-4 h-4 text-yellow-400"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <defs>
-            <linearGradient id="half">
-              <stop offset="50%" stopColor="currentColor" />
-              <stop offset="50%" stopColor="transparent" />
-            </linearGradient>
-          </defs>
-          <path
-            fill="url(#half)"
-            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.175c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.175 0l-3.38 2.455c-.784.57-1.838-.196-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.175a1 1 0 00.95-.69l1.286-3.967z"
-          />
-        </svg>
-      )}
-    </span>
-  );
-}
-
-const iconMap: { [key: string]: any } = {
+const iconMap: Record<string, React.ElementType> = {
   Shirt,
   Monitor,
   Utensils,
@@ -680,7 +605,16 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold mb-6">Featured Stores</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredStores.map((store, index) => (
-              <StoreCard key={index} store={store} />
+              <HomeList
+                key={index}
+                name={store.name}
+                desc={store.desc}
+                rating={store.rating}
+                country={store.category}
+                link={store.link}
+                buttonLabel="More Info"
+                //onButtonClick={() => alert(`Book a trial for ${store.name}`)}
+              />
             ))}
           </div>
         </section>

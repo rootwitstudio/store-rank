@@ -27,9 +27,9 @@ const mockStores = [
     category: "Electronics",
     logo: null,
     rating: 4.5,
-    score: 8.7,
+    totalRating: 820,
     verified: true,
-    claimed: true,
+    claimed: false,
     country: "United States",
     link: "https://www.amazon.com",
   },
@@ -42,9 +42,9 @@ const mockStores = [
     category: "Electronics",
     logo: null,
     rating: 4.2,
-    score: 8.2,
+    totalRating: 110,
     verified: false,
-    claimed: false,
+    claimed: true,
     country: "United Kingdom",
     link: "https://www.ebay.com",
   },
@@ -57,7 +57,7 @@ const mockStores = [
     category: "Home",
     logo: null,
     rating: 4.8,
-    score: 9.1,
+    totalRating: 90,
     verified: true,
     claimed: true,
     country: "India",
@@ -72,7 +72,7 @@ const mockStores = [
     category: "Food",
     logo: null,
     rating: 4.0,
-    score: 7.9,
+    totalRating: 79,
     verified: false,
     claimed: true,
     country: "Germany",
@@ -327,9 +327,22 @@ export default function StoresPage() {
             </div>
 
             {/* Stores Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-12">
               {sortedStores.map((store) => (
-                <StoreCard key={store.id} store={store} />
+                <StoreCard
+                  key={store.id}
+                  name={store.name}
+                  desc={store.desc}
+                  tags={store.tags}
+                  logo={store.logo}
+                  rating={store.rating}
+                  totalRating={store.totalRating}
+                  country={store.country}
+                  link={store.link}
+                  verified={store.verified}
+                  claimed={store.claimed}
+                  category={store.category}
+                />
               ))}
             </div>
           </div>
