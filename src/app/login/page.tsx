@@ -10,27 +10,36 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { login, googleLogin } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
     try {
       await login(email, password);
       router.push("/");
     } catch (err) {
       setError("Invalid email or password");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async (credentialResponse: any) => {
+    setIsGoogleLoading(true);
+    setError("");
     try {
       const idToken = credentialResponse.credential;
       await googleLogin(idToken);
       router.push("/");
     } catch (err: any) {
       setError("Google login failed");
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -68,7 +77,8 @@ export default function LoginPage() {
                       type="email"
                       autoComplete="email"
                       required
-                      className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-base shadow-sm"
+                      disabled={isLoading || isGoogleLoading}
+                      className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -84,7 +94,8 @@ export default function LoginPage() {
                       type="password"
                       autoComplete="current-password"
                       required
-                      className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-base shadow-sm"
+                      disabled={isLoading || isGoogleLoading}
+                      className="appearance-none rounded-lg relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -93,25 +104,48 @@ export default function LoginPage() {
               </div>
               <button
                   type="submit"
-                  className="mt-6 group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition"
+                  disabled={isLoading || isGoogleLoading}
+                  className="mt-6 group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sign in
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing in...
+                  </div>
+                ) : (
+                  "Sign in"
+                )}
               </button>
             </form>
             {/* Google Sign In Button at Bottom */}
             <div className="mt-8 flex flex-col items-center">
               <span className="text-gray-500 text-sm mb-3">or</span>
               <div className="w-full">
-                <GoogleLogin
-                    onSuccess={handleGoogleLogin}
-                    onError={() => setError('Google login failed')}
-                    useOneTap
-                    width="100%"
-                    text="signin_with"
-                    shape="pill"
-                    theme="outline"
-                    logo_alignment="left"
-                />
+                {isGoogleLoading ? (
+                  <div className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-lg bg-gray-50">
+                    <div className="flex items-center text-gray-600">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Signing in with Google...
+                    </div>
+                  </div>
+                ) : (
+                  <GoogleLogin
+                      onSuccess={handleGoogleLogin}
+                      onError={() => setError('Google login failed')}
+                      useOneTap
+                      width="100%"
+                      text="signin_with"
+                      shape="pill"
+                      theme="outline"
+                      logo_alignment="left"
+                  />
+                )}
               </div>
             </div>
           </div>

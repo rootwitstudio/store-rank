@@ -12,12 +12,15 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { register, googleLogin } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
     try {
       await register({
         email,
@@ -28,16 +31,22 @@ export default function SignupPage() {
       router.push("/login");
     } catch (err) {
       setError("Sign up failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGoogleSignup = async (credentialResponse: any) => {
+    setIsGoogleLoading(true);
+    setError("");
     try {
       const idToken = credentialResponse.credential;
       await googleLogin(idToken);
       router.push("/");
     } catch (err: any) {
       setError("Google sign up failed");
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -57,7 +66,8 @@ export default function SignupPage() {
               <input
                 type="text"
                 placeholder="First name"
-                className="appearance-none rounded-lg block w-1/2 px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm"
+                disabled={isLoading || isGoogleLoading}
+                className="appearance-none rounded-lg block w-1/2 px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 required
@@ -65,7 +75,8 @@ export default function SignupPage() {
               <input
                 type="text"
                 placeholder="Last name"
-                className="appearance-none rounded-lg block w-1/2 px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm"
+                disabled={isLoading || isGoogleLoading}
+                className="appearance-none rounded-lg block w-1/2 px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 required
@@ -74,7 +85,8 @@ export default function SignupPage() {
             <input
               type="email"
               placeholder="Email"
-              className="appearance-none rounded-lg block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm"
+              disabled={isLoading || isGoogleLoading}
+              className="appearance-none rounded-lg block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -83,7 +95,8 @@ export default function SignupPage() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className="appearance-none rounded-lg block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm pr-12"
+                disabled={isLoading || isGoogleLoading}
+                className="appearance-none rounded-lg block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-base shadow-sm pr-12 disabled:opacity-50 disabled:cursor-not-allowed"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
@@ -91,7 +104,8 @@ export default function SignupPage() {
               <button
                 type="button"
                 tabIndex={-1}
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-700 focus:outline-none"
+                disabled={isLoading || isGoogleLoading}
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -106,9 +120,20 @@ export default function SignupPage() {
             </div>
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition"
+              disabled={isLoading || isGoogleLoading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create my profile
+              {isLoading ? (
+                <div className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating profile...
+                </div>
+              ) : (
+                "Create my profile"
+              )}
             </button>
           </form>
           <div className="flex items-center my-6">
@@ -117,15 +142,27 @@ export default function SignupPage() {
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
           <div className="w-full">
-            <GoogleLogin
-              onSuccess={handleGoogleSignup}
-              onError={() => setError('Google sign up failed')}
-              width="100%"
-              text="signup_with"
-              shape="pill"
-              theme="outline"
-              logo_alignment="left"
-            />
+            {isGoogleLoading ? (
+              <div className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-lg bg-gray-50">
+                <div className="flex items-center text-gray-600">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Signing up with Google...
+                </div>
+              </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={handleGoogleSignup}
+                onError={() => setError('Google sign up failed')}
+                width="100%"
+                text="signup_with"
+                shape="pill"
+                theme="outline"
+                logo_alignment="left"
+              />
+            )}
           </div>
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
