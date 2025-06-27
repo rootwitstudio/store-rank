@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useAuth } from "@/stores/authStore";
 import Link from "next/link";
+import {Shield} from "lucide-react";
 
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("");
@@ -54,8 +55,20 @@ export default function SignupPage() {
     <GoogleOAuthProvider clientId="1058001898765-8o2ho93b8j157ppr4jrmnuo95emch3i7.apps.googleusercontent.com">
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Sign up</h1>
-          <p className="text-gray-600 mb-6">Create a free StoreRank profile to smarter purchases and advanced reviews</p>
+        <div className="mb-8 text-center">
+        <Link href="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <div
+                      className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
+                    <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white"/>
+                  </div>
+                  <span className="text-3xl sm:text-4xl font-bold text-gray-900">StoreRankly</span>
+                </Link>
+              
+                </div>
+                <div className="mt-8 text-center">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign up</h1>
+                  </div>
+          <p className="text-gray-600 mb-6 text-center">Create a free StoreRank profile to smarter purchases and advanced reviews</p>
           {error && (
             <div className="rounded-md bg-red-50 p-4 mb-2">
               <div className="text-sm text-red-700">{error}</div>

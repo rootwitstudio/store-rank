@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useAuth } from "@/stores/authStore";
+import {Shield} from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,10 +50,23 @@ export default function LoginPage() {
           <div className="max-w-md w-full space-y-8 bg-white rounded-2xl shadow-xl p-8">
             {/* Engaging Top Section */}
             <div className="mb-8 text-center">
-              <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Read Reviews</h1>
-              <h1 className="text-3xl font-extrabold text-gray-900 mb-2">Write Reviews</h1>
-              <h1 className="text-3xl font-extrabold text-indigo-600 mb-4">Find Trusted Brands</h1>
-              <h2 className="text-xl font-semibold text-gray-800 mt-6">Sign in to your account</h2>
+                <Link href="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <div
+                      className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
+                    <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white"/>
+                  </div>
+                  <span className="text-3xl sm:text-4xl font-bold text-gray-900">StoreRankly</span>
+                </Link>
+                
+                <div className="mt-6">
+                  <div className="flex items-center justify-center gap-4 mb-1">
+                    <h1 className="text-lg font-medium text-gray-700">Read Reviews</h1>
+                    <span className="text-gray-400">•</span>
+                    <h1 className="text-lg font-medium text-gray-700">Write Reviews</h1>
+                  </div>
+                  <h1 className="text-lg font-medium text-indigo-600 mb-4">Find Trusted Brands</h1>
+                  <h2 className="text-xl font-semibold text-gray-800 mt-6">Sign in to your account</h2>
+                </div>
               <p className="mt-2 text-sm text-gray-600">
                 Or{' '}
                 <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
