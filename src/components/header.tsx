@@ -12,7 +12,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout, accessToken } = useAuth();
   const router = useRouter();
-
+  
   const handleBusinessClick = () => {
     router.push("/business/register");
   };

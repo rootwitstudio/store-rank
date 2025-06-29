@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { useAuth } from "@/stores/authStore";
-import {Shield, ArrowLeft} from "lucide-react";
+import {Shield, ArrowLeft, Mail} from "lucide-react";
+
+type AuthType = "otp" | "link";
+type Step = "email" | "otp" | "link-sent";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,20 +16,39 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [step, setStep] = useState<"email" | "otp">("email");
+  const [step, setStep] = useState<Step>("email");
+  const [authType, setAuthType] = useState<AuthType>("otp");
   const [isResending, setIsResending] = useState(false);
-  const { sendOtp, verifyOtp, googleLogin } = useAuth();
+  const { sendOtp, verifyOtp, sendLoginLink, googleLogin } = useAuth();
   const router = useRouter();
+
+  const getRandomAuthType = (): AuthType => {
+    return Math.random() < 0.5 ? "link" : "otp";
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+
+    // Randomly choose authentication type
+    const selectedAuthType = getRandomAuthType();
+    setAuthType(selectedAuthType);
+
     try {
-      await sendOtp(email);
-      setStep("otp");
+      if (selectedAuthType === "otp") {
+        await sendOtp(email);
+        setStep("otp");
+      } else {
+        await sendLoginLink(email);
+        setStep("link-sent");
+      }
     } catch (err) {
-      setError("Failed to send OTP. Please check your email address.");
+      if (selectedAuthType === "otp") {
+        setError("Failed to send OTP. Please check your email address.");
+      } else {
+        setError("Failed to send login link. Please check your email address.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -46,14 +68,22 @@ export default function LoginPage() {
     }
   };
 
-  const handleResendOtp = async () => {
+  const handleResend = async () => {
     setError("");
     setIsResending(true);
     try {
-      await sendOtp(email);
+      if (authType === "otp") {
+        await sendOtp(email);
+      } else {
+        await sendLoginLink(email);
+      }
       setError("");
     } catch (err) {
-      setError("Failed to resend OTP. Please try again.");
+      if (authType === "otp") {
+        setError("Failed to resend OTP. Please try again.");
+      } else {
+        setError("Failed to resend login link. Please try again.");
+      }
     } finally {
       setIsResending(false);
     }
@@ -79,6 +109,19 @@ export default function LoginPage() {
     }
   };
 
+  const getStepTitle = () => {
+    switch (step) {
+      case "email":
+        return "Sign in to your account";
+      case "otp":
+        return "Enter verification code";
+      case "link-sent":
+        return "Check your email";
+      default:
+        return "Sign in to your account";
+    }
+  };
+
   return (
       <GoogleOAuthProvider clientId="1058001898765-8o2ho93b8j157ppr4jrmnuo95emch3i7.apps.googleusercontent.com">
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -101,12 +144,15 @@ export default function LoginPage() {
                   </div>
                   <h1 className="text-lg font-medium text-indigo-600 mb-4">Find Trusted Brands</h1>
                   <h2 className="text-xl font-semibold text-gray-800 mt-6">
-                    {step === "email" ? "Sign in to your account" : "Enter verification code"}
+                    {getStepTitle()}
                   </h2>
                 </div>
               <p className="mt-2 text-sm text-gray-600">
                 {step === "otp" && (
                   <span>We sent a verification code to {email}</span>
+                )}
+                {step === "link-sent" && (
+                  <span>We sent a login link to {email}</span>
                 )}
               </p>
             </div>
@@ -149,7 +195,7 @@ export default function LoginPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Sending code...
+                      Sending...
                     </div>
                   ) : (
                     "Continue with Email"
@@ -219,7 +265,7 @@ export default function LoginPage() {
                 <div className="text-center">
                   <button
                       type="button"
-                      onClick={handleResendOtp}
+                      onClick={handleResend}
                       disabled={isResending}
                       className="text-sm text-indigo-600 hover:text-indigo-500 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
@@ -227,6 +273,49 @@ export default function LoginPage() {
                   </button>
                 </div>
               </form>
+            )}
+
+            {/* Link Sent Step */}
+            {step === "link-sent" && (
+              <div className="space-y-6">
+                {error && (
+                    <div className="rounded-md bg-red-50 p-4 mb-2">
+                      <div className="text-sm text-red-700">{error}</div>
+                    </div>
+                )}
+
+                <div className="text-center">
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-4">
+                    <Mail className="h-6 w-6 text-indigo-600" />
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    We've sent a secure login link to your email address. Click the link in your email to sign in.
+                  </p>
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                      type="button"
+                      onClick={handleEditEmail}
+                      disabled={isLoading}
+                      className="flex-1 group relative flex justify-center py-3 px-4 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ArrowLeft className="h-5 w-5 mr-2" />
+                    Edit Email
+                  </button>
+                </div>
+
+                <div className="text-center">
+                  <button
+                      type="button"
+                      onClick={handleResend}
+                      disabled={isResending}
+                      className="text-sm text-indigo-600 hover:text-indigo-500 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isResending ? "Resending..." : "Resend link"}
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Google Sign In Button at Bottom - Only show on email step */}
@@ -239,7 +328,7 @@ export default function LoginPage() {
                       <div className="flex items-center text-gray-600">
                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.372 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                         Signing in with Google...
                       </div>

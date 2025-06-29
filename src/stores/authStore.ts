@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { authApi } from '@/lib/api';
 
 const ACCESS_TOKEN = 'store-rank-token';
+const USER_KEY = 'store-rank-user';
 
 export type User = {
   id: string;
@@ -24,22 +25,35 @@ export type AuthState = {
   googleLogin: (idToken: string) => Promise<void>;
   sendOtp: (email: string) => Promise<void>;
   verifyOtp: (email: string, otp: string) => Promise<void>;
+  sendLoginLink: (email: string) => Promise<void>;
+  verifyLoginLink: (token: string) => Promise<void>;
   logout: () => void;
 };
 
 const cookieToken = Cookies.get(ACCESS_TOKEN);
 const initialToken = cookieToken && cookieToken !== 'undefined' ? JSON.parse(cookieToken) : '';
 
+const cookieUser = Cookies.get(USER_KEY);
+const initialUser = cookieUser && cookieUser !== 'undefined' ? JSON.parse(cookieUser) : null;
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
+  user: initialUser,
   accessToken: initialToken,
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    if (user) {
+      Cookies.set(USER_KEY, JSON.stringify(user));
+    } else {
+      Cookies.remove(USER_KEY);
+    }
+    set({ user });
+  },
   setAccessToken: (accessToken) => {
     Cookies.set(ACCESS_TOKEN, JSON.stringify(accessToken));
     set({ accessToken });
   },
   reset: () => {
     Cookies.remove(ACCESS_TOKEN);
+    Cookies.remove(USER_KEY);
     set({ user: null, accessToken: '' });
   },
   login: async (email, password) => {
@@ -47,6 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user, token } = response;
     set({ user, accessToken: token });
     Cookies.set(ACCESS_TOKEN, JSON.stringify(token));
+    Cookies.set(USER_KEY, JSON.stringify(user));
   },
   register: async (data) => {
     await authApi.register(data);
@@ -57,6 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user, token } = response;
     set({ user, accessToken: token });
     Cookies.set(ACCESS_TOKEN, JSON.stringify(token));
+    Cookies.set(USER_KEY, JSON.stringify(user));
   },
   sendOtp: async (email) => {
     await authApi.sendOtp({ email });
@@ -66,9 +82,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user, token } = response;
     set({ user, accessToken: token });
     Cookies.set(ACCESS_TOKEN, JSON.stringify(token));
+    Cookies.set(USER_KEY, JSON.stringify(user));
+  },
+  sendLoginLink: async (email) => {
+    await authApi.sendLoginLink({ email });
+  },
+  verifyLoginLink: async (token) => {
+    const response = await authApi.verifyLoginLink(token);
+    const { user, token: accessToken } = response;
+    set({ user, accessToken });
+    Cookies.set(ACCESS_TOKEN, JSON.stringify(accessToken));
+    Cookies.set(USER_KEY, JSON.stringify(user));
   },
   logout: () => {
     Cookies.remove(ACCESS_TOKEN);
+    Cookies.remove(USER_KEY);
     set({ user: null, accessToken: '' });
   },
 }));

@@ -71,6 +71,16 @@ export const authApi = {
   verifyOtp: async (data: { email: string; otp: string }) => {
     const response = await api.post("/auth/email/login-otp/verify", data);
     return response.data;
+  },
+
+  sendLoginLink: async (data: { email: string }) => {
+    const response = await api.post("/auth/email/login-link", data);
+    return response.data;
+  },
+
+  verifyLoginLink: async (token: string) => {
+    const response = await api.get(`/auth/email/login-link/verify?token=${token}`);
+    return response.data;
   }
 };
 
