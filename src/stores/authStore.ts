@@ -22,11 +22,13 @@ export type AuthState = {
   login: (email: string, password: string) => Promise<void>;
   register: (data: { email: string; password: string; name?: string; role?: string }) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
+  sendOtp: (email: string) => Promise<void>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
   logout: () => void;
 };
 
 const cookieToken = Cookies.get(ACCESS_TOKEN);
-const initialToken = cookieToken ? JSON.parse(cookieToken) : '';
+const initialToken = cookieToken && cookieToken !== 'undefined' ? JSON.parse(cookieToken) : '';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -52,6 +54,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   googleLogin: async (idToken) => {
     const response = await authApi.verifyGoogleAuth({ idToken });
     console.log('response login', response);
+    const { user, token } = response;
+    set({ user, accessToken: token });
+    Cookies.set(ACCESS_TOKEN, JSON.stringify(token));
+  },
+  sendOtp: async (email) => {
+    await authApi.sendOtp({ email });
+  },
+  verifyOtp: async (email, otp) => {
+    const response = await authApi.verifyOtp({ email, otp });
     const { user, token } = response;
     set({ user, accessToken: token });
     Cookies.set(ACCESS_TOKEN, JSON.stringify(token));

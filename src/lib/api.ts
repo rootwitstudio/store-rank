@@ -61,6 +61,16 @@ export const authApi = {
       console.error("Error in google verify", error);
       throw error;
     }
+  },
+
+  sendOtp: async (data: { email: string }) => {
+    const response = await api.post("/auth/email/login-otp", data);
+    return response.data;
+  },
+
+  verifyOtp: async (data: { email: string; otp: string }) => {
+    const response = await api.post("/auth/email/login-otp/verify", data);
+    return response.data;
   }
 };
 
