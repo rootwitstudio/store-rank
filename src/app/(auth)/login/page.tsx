@@ -22,33 +22,16 @@ export default function LoginPage() {
   const { sendOtp, verifyOtp, sendLoginLink, googleLogin } = useAuth();
   const router = useRouter();
 
-  const getRandomAuthType = (): AuthType => {
-    return Math.random() < 0.5 ? "link" : "otp";
-  };
-
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // Randomly choose authentication type
-    const selectedAuthType = getRandomAuthType();
-    setAuthType(selectedAuthType);
-
     try {
-      if (selectedAuthType === "otp") {
-        await sendOtp(email);
-        setStep("otp");
-      } else {
-        await sendLoginLink(email);
-        setStep("link-sent");
-      }
+      await sendOtp(email);
+      setStep("otp");
     } catch (err) {
-      if (selectedAuthType === "otp") {
-        setError("Failed to send OTP. Please check your email address.");
-      } else {
-        setError("Failed to send login link. Please check your email address.");
-      }
+      setError("Failed to send OTP. Please check your email address.");
     } finally {
       setIsLoading(false);
     }
