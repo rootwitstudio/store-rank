@@ -183,7 +183,6 @@ export default function CategoriesPage() {
   if (error) {
     return (
       <div className="bg-gray-50 min-h-screen flex flex-col">
-        <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-red-500 text-lg">{error}</p>
@@ -195,7 +194,6 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
-      <Header />
       
       {/* Reduced Hero Section - Clean and minimal */}
       <section className="bg-white border-b border-gray-200 py-12">
