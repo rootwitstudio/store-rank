@@ -244,14 +244,6 @@ export default function CategoriesPage() {
       </section>
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
-            <p className="text-sm text-gray-600">
-              Debug: Found {allCategories.length} total categories, {mainCategories.length} main categories
-            </p>
-          </div>
-        )}
 
         {/* Categories Grid - Clean and organized */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
