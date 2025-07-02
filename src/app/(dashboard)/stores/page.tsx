@@ -33,7 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Extended mock data with 50+ stores
+// Mock data with 10 stores as requested
 const mockStores = [
   {
     id: "1",
@@ -224,122 +224,7 @@ const mockStores = [
     founded: "1964",
     employees: "75,000",
     responseTime: "< 2 hours"
-  },
-  {
-    id: "11",
-    name: "Adidas",
-    desc: "German multinational corporation designing and manufacturing sports shoes, clothing and accessories.",
-    tags: ["Sports", "Innovation", "Sustainability"],
-    categoryId: "999f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Sports",
-    logo: null,
-    rating: 4.0,
-    totalRating: 76543,
-    verified: true,
-    claimed: true,
-    country: "Germany",
-    link: "https://www.adidas.com",
-    trustScore: 86,
-    founded: "1949",
-    employees: "60,000",
-    responseTime: "1-3 hours"
-  },
-  {
-    id: "12",
-    name: "H&M",
-    desc: "Swedish multinational clothing-retail company known for fast-fashion clothing.",
-    tags: ["Fast Fashion", "Affordable", "Trendy"],
-    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Fashion",
-    logo: null,
-    rating: 3.6,
-    totalRating: 98765,
-    verified: false,
-    claimed: true,
-    country: "Sweden",
-    link: "https://www.hm.com",
-    trustScore: 72,
-    founded: "1947",
-    employees: "120,000",
-    responseTime: "3-6 hours"
-  },
-  {
-    id: "13",
-    name: "Zara",
-    desc: "Spanish apparel retailer specializing in fast fashion and trendy clothing.",
-    tags: ["Fast Fashion", "Designer Inspired", "Quality"],
-    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Fashion",
-    logo: null,
-    rating: 4.1,
-    totalRating: 65432,
-    verified: true,
-    claimed: true,
-    country: "Spain",
-    link: "https://www.zara.com",
-    trustScore: 83,
-    founded: "1975",
-    employees: "174,000",
-    responseTime: "2-4 hours"
-  },
-  {
-    id: "14",
-    name: "IKEA",
-    desc: "Swedish furniture retailer known for ready-to-assemble furniture and home accessories.",
-    tags: ["Furniture", "Home Decor", "Affordable Design"],
-    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Home & Garden",
-    logo: null,
-    rating: 4.2,
-    totalRating: 123456,
-    verified: true,
-    claimed: true,
-    country: "Sweden",
-    link: "https://www.ikea.com",
-    trustScore: 88,
-    founded: "1943",
-    employees: "217,000",
-    responseTime: "1-2 hours"
-  },
-  {
-    id: "15",
-    name: "Home Depot",
-    desc: "American home improvement retail corporation selling tools, construction products, and services.",
-    tags: ["Home Improvement", "Tools", "Expert Advice"],
-    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Home & Garden",
-    logo: null,
-    rating: 4.0,
-    totalRating: 187654,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.homedepot.com",
-    trustScore: 82,
-    founded: "1978",
-    employees: "500,000",
-    responseTime: "1-3 hours"
-  },
-  // Add more stores to reach 50+ for pagination demo
-  ...Array.from({ length: 35 }, (_, i) => ({
-    id: `${16 + i}`,
-    name: `Store ${16 + i}`,
-    desc: `Description for Store ${16 + i} - offering quality products and excellent customer service.`,
-    tags: ["Quality", "Service", "Value"],
-    categoryId: "random",
-    category: ["E-commerce", "Fashion", "Electronics", "Home & Garden", "Sports"][i % 5],
-    logo: null,
-    rating: 3.5 + Math.random() * 1.5,
-    totalRating: Math.floor(Math.random() * 100000) + 1000,
-    verified: Math.random() > 0.5,
-    claimed: Math.random() > 0.3,
-    country: ["United States", "United Kingdom", "Germany", "Canada", "Australia"][i % 5],
-    link: `https://store${16 + i}.com`,
-    trustScore: Math.floor(Math.random() * 40) + 60,
-    founded: `${1950 + Math.floor(Math.random() * 70)}`,
-    employees: `${Math.floor(Math.random() * 50000) + 100}`,
-    responseTime: ["< 1 hour", "1-2 hours", "2-4 hours", "4-8 hours"][Math.floor(Math.random() * 4)]
-  }))
+  }
 ];
 
 const allTags = [
@@ -716,7 +601,7 @@ export default function StoresPage() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 9;
 
   useEffect(() => {
     setLoading(true);
