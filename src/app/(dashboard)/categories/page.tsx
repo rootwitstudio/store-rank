@@ -168,7 +168,6 @@ export default function CategoriesPage() {
   if (loading) {
     return (
       <div className="bg-gray-50 min-h-screen flex flex-col">
-        <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
