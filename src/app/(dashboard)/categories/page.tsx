@@ -6,7 +6,7 @@ import Link from "next/link";
 import * as LucideIcons from "lucide-react";
 import { Header } from "@/components/header";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 
 interface Category {
   id: string;
@@ -29,16 +29,16 @@ interface SearchResultItem {
 
 // Color palette for categories
 const categoryColors = [
-  { bg: "bg-blue-100", icon: "text-blue-600", hover: "hover:bg-blue-50", gradient: "from-blue-500 to-blue-600" },
-  { bg: "bg-purple-100", icon: "text-purple-600", hover: "hover:bg-purple-50", gradient: "from-purple-500 to-purple-600" },
-  { bg: "bg-green-100", icon: "text-green-600", hover: "hover:bg-green-50", gradient: "from-green-500 to-green-600" },
-  { bg: "bg-orange-100", icon: "text-orange-600", hover: "hover:bg-orange-50", gradient: "from-orange-500 to-orange-600" },
-  { bg: "bg-pink-100", icon: "text-pink-600", hover: "hover:bg-pink-50", gradient: "from-pink-500 to-pink-600" },
-  { bg: "bg-indigo-100", icon: "text-indigo-600", hover: "hover:bg-indigo-50", gradient: "from-indigo-500 to-indigo-600" },
-  { bg: "bg-red-100", icon: "text-red-600", hover: "hover:bg-red-50", gradient: "from-red-500 to-red-600" },
-  { bg: "bg-teal-100", icon: "text-teal-600", hover: "hover:bg-teal-50", gradient: "from-teal-500 to-teal-600" },
-  { bg: "bg-yellow-100", icon: "text-yellow-600", hover: "hover:bg-yellow-50", gradient: "from-yellow-500 to-yellow-600" },
-  { bg: "bg-cyan-100", icon: "text-cyan-600", hover: "hover:bg-cyan-50", gradient: "from-cyan-500 to-cyan-600" },
+  { bg: "bg-blue-50", icon: "text-blue-600", hover: "hover:bg-blue-100", gradient: "from-blue-500 to-blue-600" },
+  { bg: "bg-purple-50", icon: "text-purple-600", hover: "hover:bg-purple-100", gradient: "from-purple-500 to-purple-600" },
+  { bg: "bg-green-50", icon: "text-green-600", hover: "hover:bg-green-100", gradient: "from-green-500 to-green-600" },
+  { bg: "bg-orange-50", icon: "text-orange-600", hover: "hover:bg-orange-100", gradient: "from-orange-500 to-orange-600" },
+  { bg: "bg-pink-50", icon: "text-pink-600", hover: "hover:bg-pink-100", gradient: "from-pink-500 to-pink-600" },
+  { bg: "bg-indigo-50", icon: "text-indigo-600", hover: "hover:bg-indigo-100", gradient: "from-indigo-500 to-indigo-600" },
+  { bg: "bg-red-50", icon: "text-red-600", hover: "hover:bg-red-100", gradient: "from-red-500 to-red-600" },
+  { bg: "bg-teal-50", icon: "text-teal-600", hover: "hover:bg-teal-100", gradient: "from-teal-500 to-teal-600" },
+  { bg: "bg-yellow-50", icon: "text-yellow-600", hover: "hover:bg-yellow-100", gradient: "from-yellow-500 to-yellow-600" },
+  { bg: "bg-cyan-50", icon: "text-cyan-600", hover: "hover:bg-cyan-100", gradient: "from-cyan-500 to-cyan-600" },
 ];
 
 const highlightText = (text: string, query: string) => {
@@ -167,7 +167,7 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
+      <div className="bg-gray-50 min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
@@ -183,7 +183,7 @@ export default function CategoriesPage() {
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
+      <div className="bg-gray-50 min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="text-center">
@@ -195,26 +195,27 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen flex flex-col">
-      {/* Hero Section - Colorful Sitejabber Style */}
-      <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-20 text-white">
+    <div className="bg-gray-50 min-h-screen flex flex-col">
+      <Header />
+      
+      {/* Reduced Hero Section - Clean and minimal */}
+      <section className="bg-white border-b border-gray-200 py-12">
         <div className="container mx-auto px-4 text-center max-w-4xl">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-            Browse Businesses
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+            Browse Categories
           </h1>
-          <p className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed text-blue-100">
-            Don't wait to stumble across what you need... Find it, stat ⚡ - from the hottest 
-            in retail to must-have business tools, and beyond.
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Find trusted businesses across different categories. Discover reviews and ratings to make informed decisions.
           </p>
           
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto relative" ref={dropdownRef}>
+          <div className="max-w-xl mx-auto relative" ref={dropdownRef}>
             <div className="relative">
               <Input
                 ref={inputRef}
                 type="text"
-                placeholder="Search here..."
-                className="w-full h-16 text-lg pl-6 pr-20 rounded-full border-0 shadow-2xl bg-white text-gray-900 focus:ring-4 focus:ring-white/30 focus:outline-none"
+                placeholder="Search categories..."
+                className="w-full h-12 text-base pl-4 pr-12 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -223,19 +224,17 @@ export default function CategoriesPage() {
                 onFocus={() => setShowDropdown(true)}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 rounded-full p-4 cursor-pointer transition-all duration-200 shadow-lg">
-                  <Search className="h-6 w-6 text-white" />
-                </div>
+                <Search className="h-5 w-5 text-gray-400" />
               </div>
             </div>
 
             {/* Search Dropdown */}
             {showDropdown && dropdownResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 max-h-80 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
                 {dropdownResults.map((item) => (
                   <button
                     key={item.id + item.type}
-                    className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 border-b border-gray-100 last:border-b-0 transition-all duration-200"
+                    className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
                     onClick={() => handleDropdownItemClick(item)}
                   >
                     {highlightText(item.name, searchQuery)}
@@ -247,17 +246,17 @@ export default function CategoriesPage() {
         </div>
       </section>
 
-      <main className="flex-1 container mx-auto px-4 py-12 max-w-7xl">
+      <main className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
         {/* Debug Info */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+          <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
             <p className="text-sm text-gray-600">
               Debug: Found {allCategories.length} total categories, {mainCategories.length} main categories
             </p>
           </div>
         )}
 
-        {/* Categories Grid - Uniform card sizes with proper collapsible functionality */}
+        {/* Categories Grid - Clean and organized */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mainCategories.map((category, index) => {
             const Icon = (LucideIcons as any)[category.icon] || LucideIcons.Store;
@@ -266,19 +265,19 @@ export default function CategoriesPage() {
             const colorScheme = categoryColors[index % categoryColors.length];
 
             return (
-              <div key={category.id} className="bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-fit">
-                {/* Category Header - Always clickable if has subcategories */}
+              <div key={category.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+                {/* Category Header */}
                 <div 
                   className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover} border-b border-gray-100`}
                   onClick={() => hasSubcategories && toggleCategory(category.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 flex-1 min-w-0">
-                      <div className={`h-12 w-12 ${colorScheme.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
+                      <div className={`h-12 w-12 ${colorScheme.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
                         <Icon className={`h-6 w-6 ${colorScheme.icon}`} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{category.name}</h3>
+                        <h3 className="font-semibold text-gray-900 text-lg mb-1 truncate">{category.name}</h3>
                         {hasSubcategories && (
                           <p className="text-sm text-gray-500">
                             {category.children.length} subcategories
@@ -294,7 +293,7 @@ export default function CategoriesPage() {
                   </div>
                 </div>
 
-                {/* Subcategories - Collapsible with smooth animation */}
+                {/* Subcategories - Collapsible */}
                 {hasSubcategories && (
                   <div 
                     className={`transition-all duration-500 ease-in-out overflow-hidden ${
@@ -303,13 +302,13 @@ export default function CategoriesPage() {
                         : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+                    <div className="bg-gray-50 p-4">
                       <div className="space-y-2">
                         {category.children.map((subcategory) => (
                           <Link
                             key={subcategory.id}
                             href={`/stores?categoryId=${subcategory.id}`}
-                            className="block text-sm text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-2 rounded-lg transition-all duration-200 font-medium hover:shadow-md transform hover:scale-105"
+                            className="block text-sm text-gray-700 hover:text-blue-600 hover:bg-white px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-transparent hover:border-blue-200"
                           >
                             {subcategory.name}
                           </Link>
@@ -319,11 +318,11 @@ export default function CategoriesPage() {
                   </div>
                 )}
 
-                {/* View All Link - Always visible */}
+                {/* View All Link */}
                 <div className="p-4">
                   <Link
                     href={`/stores?categoryId=${category.id}`}
-                    className={`${colorScheme.icon} hover:text-white font-semibold text-sm flex items-center justify-center w-full py-3 hover:bg-gradient-to-r hover:${colorScheme.gradient} rounded-xl transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 border border-gray-200 hover:border-transparent`}
+                    className={`${colorScheme.icon} hover:text-white font-medium text-sm flex items-center justify-center w-full py-3 hover:bg-gradient-to-r hover:${colorScheme.gradient} rounded-lg transition-all duration-200 border border-gray-200 hover:border-transparent`}
                   >
                     View All {category.name} →
                   </Link>
