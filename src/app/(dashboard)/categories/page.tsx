@@ -173,8 +173,9 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
+      <Header />
       
-      {/* Hero Section - Similar to Sitejabber */}
+      {/* Hero Section - Sitejabber Style */}
       <section className="bg-white py-16 border-b">
         <div className="container mx-auto px-4 text-center max-w-4xl">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -225,8 +226,8 @@ export default function CategoriesPage() {
         </div>
       </section>
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
-        {/* Categories Grid - Sitejabber Style */}
+      <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
+        {/* Categories Grid - Sitejabber Style with 3 columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => {
             const Icon = (LucideIcons as any)[category.icon] || LucideIcons.Store;
@@ -234,27 +235,25 @@ export default function CategoriesPage() {
             const hasSubcategories = category.subcategories && category.subcategories.length > 0;
 
             return (
-              <div key={category.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                {/* Category Header */}
+              <div key={category.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                {/* Category Header - Clickable to expand/collapse */}
                 <div 
-                  className={`p-4 flex items-center justify-between ${hasSubcategories ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                  className={`p-6 flex items-center justify-between ${hasSubcategories ? 'cursor-pointer hover:bg-gray-50' : ''} transition-colors`}
                   onClick={() => hasSubcategories && toggleCategory(category.id)}
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Icon className="h-5 w-5 text-blue-600" />
+                  <div className="flex items-center space-x-4">
+                    <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Icon className="h-6 w-6 text-blue-600" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 text-lg">{category.name}</h3>
-                      {hasSubcategories && (
-                        <p className="text-sm text-gray-500">
-                          {category.subcategories.length} subcategories
-                        </p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900 text-lg mb-1">{category.name}</h3>
+                      {category.description && (
+                        <p className="text-sm text-gray-500 line-clamp-2">{category.description}</p>
                       )}
                     </div>
                   </div>
                   {hasSubcategories && (
-                    <div className="text-gray-400">
+                    <div className="text-gray-400 ml-2 flex-shrink-0">
                       {isExpanded ? (
                         <ChevronUp className="h-5 w-5" />
                       ) : (
@@ -264,10 +263,10 @@ export default function CategoriesPage() {
                   )}
                 </div>
 
-                {/* Subcategories - Expandable */}
-                {hasSubcategories && isExpanded && (
-                  <div className="border-t border-gray-100 bg-gray-50">
-                    <div className="p-4 space-y-2">
+                {/* Subcategories - Collapsible */}
+                {hasSubcategories && (
+                  <div className={`border-t border-gray-100 bg-gray-50 overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="p-4 space-y-1">
                       {category.subcategories.map((subcategory) => (
                         <Link
                           key={subcategory.id}
@@ -287,7 +286,7 @@ export default function CategoriesPage() {
                     href={`/stores?categoryId=${category.id}`}
                     className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center justify-center w-full py-2 hover:bg-blue-50 rounded transition-colors"
                   >
-                    View All {category.name} Stores
+                    View All {category.name}
                   </Link>
                 </div>
               </div>
