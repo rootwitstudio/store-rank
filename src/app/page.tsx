@@ -180,49 +180,6 @@ const howItWorks = [
   },
 ];
 
-const latestUpdates = [
-  {
-    id: "1",
-    type: "verified",
-    title: "TechMart Electronics",
-    description: "Recently verified after thorough security and authenticity checks",
-    time: "2 hours ago",
-    icon: CheckCircle,
-    iconColor: "text-green-600",
-    bgColor: "bg-green-50",
-  },
-  {
-    id: "2",
-    type: "new",
-    title: "GreenLife Organics",
-    description: "New organic food store added to our marketplace",
-    time: "4 hours ago",
-    icon: Plus,
-    iconColor: "text-blue-600",
-    bgColor: "bg-blue-50",
-  },
-  {
-    id: "3",
-    type: "flagged",
-    title: "QuickDeals Store",
-    description: "Flagged for review due to customer complaints - investigation ongoing",
-    time: "6 hours ago",
-    icon: Flag,
-    iconColor: "text-red-600",
-    bgColor: "bg-red-50",
-  },
-  {
-    id: "4",
-    type: "updated",
-    title: "FashionHub",
-    description: "Store information updated with new contact details and policies",
-    time: "8 hours ago",
-    icon: RefreshCw,
-    iconColor: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-];
-
 const industryInsights = [
   {
     title: "Holiday Shopping Trends",
@@ -441,7 +398,7 @@ export default function HomePage() {
     <div className="bg-white min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* 1. Search Section */}
         <section className="bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 sm:py-12 md:py-16">
           <div className="container mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
             <div className="mb-6 sm:mb-8">
@@ -701,157 +658,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* How It Works Section */}
-        <section className="py-8 sm:py-12 bg-white">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">How StoreRankly Works</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Making online shopping safer and smarter with verified reviews and trusted store information
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-              {howItWorks.map((step) => {
-                const Icon = step.icon;
-                return (
-                  <div key={step.step} className="text-center">
-                    <div className="relative mb-6">
-                      <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                        <Icon className="h-10 w-10 text-blue-600" />
-                      </div>
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                        {step.step}
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Latest Store Updates Section */}
-        <section className="py-8 sm:py-12 bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="flex justify-between items-center mb-6 sm:mb-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2">Latest Store Updates</h2>
-                <p className="text-gray-600">Stay informed about new stores, verifications, and important changes</p>
-              </div>
-              <Link
-                href="/updates"
-                className="text-blue-600 hover:text-blue-700 flex items-center text-sm sm:text-base font-medium"
-              >
-                View All
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {latestUpdates.map((update) => {
-                const Icon = update.icon;
-                return (
-                  <div key={update.id} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start">
-                      <div className={`p-2 rounded-lg ${update.bgColor} mr-4 flex-shrink-0`}>
-                        <Icon className={`h-5 w-5 ${update.iconColor}`} />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">{update.title}</h3>
-                        <p className="text-gray-600 text-sm mb-2">{update.description}</p>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {update.time}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Industry Insights Section */}
-        <section className="py-8 sm:py-12 bg-white">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">Industry Insights</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Stay ahead with the latest shopping trends, statistics, and market insights
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {industryInsights.map((insight, index) => {
-                const Icon = insight.icon;
-                return (
-                  <div key={index} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-100">
-                    <div className="flex items-center justify-between mb-4">
-                      <Icon className="h-8 w-8 text-blue-600" />
-                      <span className={`text-sm font-semibold ${insight.trendColor}`}>
-                        {insight.trend}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{insight.title}</h3>
-                    <div className="text-2xl font-bold text-blue-600 mb-2">{insight.value}</div>
-                    <p className="text-gray-600 text-sm">{insight.description}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Success Stories Section */}
-        <section className="py-8 sm:py-12 bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">Success Stories</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Real stories from our community about how StoreRankly helped them shop smarter and safer
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {successStories.map((story) => (
-                <div key={story.id} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
-                      {story.avatar}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center mb-1">
-                        <h3 className="font-semibold">{story.name}</h3>
-                        {story.verified && (
-                          <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500">{story.location}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <Quote className="h-5 w-5 text-gray-400 mb-2" />
-                    <p className="text-gray-700 italic">"{story.story}"</p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      <ThumbsUp className="h-3 w-3 mr-1" />
-                      {story.outcome}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Categories Section */}
+        {/* 2. Browse by Category Section */}
         <section className="py-8 sm:py-12 bg-white">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="flex justify-between items-center mb-6 sm:mb-8">
@@ -902,7 +709,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Featured Stores Section */}
+        {/* 3. Top Rated Stores Section */}
         <section className="py-8 sm:py-12 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="flex justify-between items-center mb-6 sm:mb-8">
@@ -969,8 +776,116 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Trust & Safety Section */}
+        {/* 4. Industry Insights Section */}
         <section className="py-8 sm:py-12 bg-white">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">Industry Insights</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Stay ahead with the latest shopping trends, statistics, and market insights
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {industryInsights.map((insight, index) => {
+                const Icon = insight.icon;
+                return (
+                  <div key={index} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-100">
+                    <div className="flex items-center justify-between mb-4">
+                      <Icon className="h-8 w-8 text-blue-600" />
+                      <span className={`text-sm font-semibold ${insight.trendColor}`}>
+                        {insight.trend}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">{insight.title}</h3>
+                    <div className="text-2xl font-bold text-blue-600 mb-2">{insight.value}</div>
+                    <p className="text-gray-600 text-sm">{insight.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 5. How StoreRankly Works Section */}
+        <section className="py-8 sm:py-12 bg-gray-50">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">How StoreRankly Works</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Making online shopping safer and smarter with verified reviews and trusted store information
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {howItWorks.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.step} className="text-center">
+                    <div className="relative mb-6">
+                      <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                        <Icon className="h-10 w-10 text-blue-600" />
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {step.step}
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                    <p className="text-gray-600">{step.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Success Stories Section */}
+        <section className="py-8 sm:py-12 bg-white">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">Success Stories</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Real stories from our community about how StoreRankly helped them shop smarter and safer
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {successStories.map((story) => (
+                <div key={story.id} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start mb-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
+                      {story.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center mb-1">
+                        <h3 className="font-semibold">{story.name}</h3>
+                        {story.verified && (
+                          <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">{story.location}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <Quote className="h-5 w-5 text-gray-400 mb-2" />
+                    <p className="text-gray-700 italic">"{story.story}"</p>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <ThumbsUp className="h-3 w-3 mr-1" />
+                      {story.outcome}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 7. Trust & Safety Section */}
+        <section className="py-8 sm:py-12 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold mb-4">Trust & Safety</h2>
@@ -1007,8 +922,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Platform Statistics Section */}
-        <section className="py-8 sm:py-12 bg-gray-50">
+        {/* 8. Trusted by Millions Section */}
+        <section className="py-8 sm:py-12 bg-white">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold mb-4">Trusted by Millions</h2>
