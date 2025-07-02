@@ -77,3 +77,4 @@ pnpm-debug.log*
 # Optional: if you have other specific directories/files to ignore
 # coverage/
 # *.tmp
+.env
