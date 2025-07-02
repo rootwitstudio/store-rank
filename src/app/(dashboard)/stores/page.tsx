@@ -2,7 +2,6 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Header } from "@/components/header";
 import { 
   Store, 
   Filter, 
@@ -18,7 +17,9 @@ import {
   Grid3X3,
   List,
   SlidersHorizontal,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-// Mock data for stores with more realistic data
+// Extended mock data with 50+ stores
 const mockStores = [
   {
     id: "1",
@@ -147,7 +148,198 @@ const mockStores = [
     founded: "2005",
     employees: "2,500",
     responseTime: "2-6 hours"
-  }
+  },
+  {
+    id: "7",
+    name: "Best Buy",
+    desc: "Leading electronics retailer with expert advice and competitive prices.",
+    tags: ["Electronics", "Expert Support", "Price Match"],
+    categoryId: "666f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Electronics",
+    logo: null,
+    rating: 4.3,
+    totalRating: 92341,
+    verified: true,
+    claimed: true,
+    country: "United States",
+    link: "https://www.bestbuy.com",
+    trustScore: 87,
+    founded: "1966",
+    employees: "125,000",
+    responseTime: "< 1 hour"
+  },
+  {
+    id: "8",
+    name: "Target",
+    desc: "American retail corporation offering everything from groceries to home goods.",
+    tags: ["Everyday Essentials", "Same Day Delivery", "RedCard Benefits"],
+    categoryId: "777f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Retail",
+    logo: null,
+    rating: 4.1,
+    totalRating: 156789,
+    verified: true,
+    claimed: true,
+    country: "United States",
+    link: "https://www.target.com",
+    trustScore: 84,
+    founded: "1902",
+    employees: "400,000+",
+    responseTime: "1-2 hours"
+  },
+  {
+    id: "9",
+    name: "Walmart",
+    desc: "World's largest retailer offering low prices on millions of products.",
+    tags: ["Low Prices", "Grocery Pickup", "Everyday Low Price"],
+    categoryId: "888f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Retail",
+    logo: null,
+    rating: 3.7,
+    totalRating: 234567,
+    verified: true,
+    claimed: true,
+    country: "United States",
+    link: "https://www.walmart.com",
+    trustScore: 76,
+    founded: "1962",
+    employees: "2.3M",
+    responseTime: "2-4 hours"
+  },
+  {
+    id: "10",
+    name: "Nike",
+    desc: "Global leader in athletic footwear, apparel, equipment and accessories.",
+    tags: ["Athletic Wear", "Innovation", "Premium Quality"],
+    categoryId: "999f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Sports",
+    logo: null,
+    rating: 4.2,
+    totalRating: 87654,
+    verified: true,
+    claimed: true,
+    country: "United States",
+    link: "https://www.nike.com",
+    trustScore: 89,
+    founded: "1964",
+    employees: "75,000",
+    responseTime: "< 2 hours"
+  },
+  {
+    id: "11",
+    name: "Adidas",
+    desc: "German multinational corporation designing and manufacturing sports shoes, clothing and accessories.",
+    tags: ["Sports", "Innovation", "Sustainability"],
+    categoryId: "999f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Sports",
+    logo: null,
+    rating: 4.0,
+    totalRating: 76543,
+    verified: true,
+    claimed: true,
+    country: "Germany",
+    link: "https://www.adidas.com",
+    trustScore: 86,
+    founded: "1949",
+    employees: "60,000",
+    responseTime: "1-3 hours"
+  },
+  {
+    id: "12",
+    name: "H&M",
+    desc: "Swedish multinational clothing-retail company known for fast-fashion clothing.",
+    tags: ["Fast Fashion", "Affordable", "Trendy"],
+    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Fashion",
+    logo: null,
+    rating: 3.6,
+    totalRating: 98765,
+    verified: false,
+    claimed: true,
+    country: "Sweden",
+    link: "https://www.hm.com",
+    trustScore: 72,
+    founded: "1947",
+    employees: "120,000",
+    responseTime: "3-6 hours"
+  },
+  {
+    id: "13",
+    name: "Zara",
+    desc: "Spanish apparel retailer specializing in fast fashion and trendy clothing.",
+    tags: ["Fast Fashion", "Designer Inspired", "Quality"],
+    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Fashion",
+    logo: null,
+    rating: 4.1,
+    totalRating: 65432,
+    verified: true,
+    claimed: true,
+    country: "Spain",
+    link: "https://www.zara.com",
+    trustScore: 83,
+    founded: "1975",
+    employees: "174,000",
+    responseTime: "2-4 hours"
+  },
+  {
+    id: "14",
+    name: "IKEA",
+    desc: "Swedish furniture retailer known for ready-to-assemble furniture and home accessories.",
+    tags: ["Furniture", "Home Decor", "Affordable Design"],
+    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Home & Garden",
+    logo: null,
+    rating: 4.2,
+    totalRating: 123456,
+    verified: true,
+    claimed: true,
+    country: "Sweden",
+    link: "https://www.ikea.com",
+    trustScore: 88,
+    founded: "1943",
+    employees: "217,000",
+    responseTime: "1-2 hours"
+  },
+  {
+    id: "15",
+    name: "Home Depot",
+    desc: "American home improvement retail corporation selling tools, construction products, and services.",
+    tags: ["Home Improvement", "Tools", "Expert Advice"],
+    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
+    category: "Home & Garden",
+    logo: null,
+    rating: 4.0,
+    totalRating: 187654,
+    verified: true,
+    claimed: true,
+    country: "United States",
+    link: "https://www.homedepot.com",
+    trustScore: 82,
+    founded: "1978",
+    employees: "500,000",
+    responseTime: "1-3 hours"
+  },
+  // Add more stores to reach 50+ for pagination demo
+  ...Array.from({ length: 35 }, (_, i) => ({
+    id: `${16 + i}`,
+    name: `Store ${16 + i}`,
+    desc: `Description for Store ${16 + i} - offering quality products and excellent customer service.`,
+    tags: ["Quality", "Service", "Value"],
+    categoryId: "random",
+    category: ["E-commerce", "Fashion", "Electronics", "Home & Garden", "Sports"][i % 5],
+    logo: null,
+    rating: 3.5 + Math.random() * 1.5,
+    totalRating: Math.floor(Math.random() * 100000) + 1000,
+    verified: Math.random() > 0.5,
+    claimed: Math.random() > 0.3,
+    country: ["United States", "United Kingdom", "Germany", "Canada", "Australia"][i % 5],
+    link: `https://store${16 + i}.com`,
+    trustScore: Math.floor(Math.random() * 40) + 60,
+    founded: `${1950 + Math.floor(Math.random() * 70)}`,
+    employees: `${Math.floor(Math.random() * 50000) + 100}`,
+    responseTime: ["< 1 hour", "1-2 hours", "2-4 hours", "4-8 hours"][Math.floor(Math.random() * 4)]
+  }))
 ];
 
 const allTags = [
@@ -159,7 +351,10 @@ const allTags = [
   "Local Delivery",
   "Premium Brands",
   "Handmade",
-  "Vintage"
+  "Vintage",
+  "Quality",
+  "Service",
+  "Value"
 ];
 
 const countries = [
@@ -168,7 +363,9 @@ const countries = [
   "India",
   "Germany",
   "Canada",
-  "Australia"
+  "Australia",
+  "Sweden",
+  "Spain"
 ];
 
 const categories = [
@@ -177,7 +374,9 @@ const categories = [
   "Fashion",
   "Technology",
   "Electronics",
-  "Home & Garden"
+  "Home & Garden",
+  "Sports",
+  "Retail"
 ];
 
 function StarRating({ rating, totalRating }: { rating: number; totalRating: number }) {
@@ -412,6 +611,87 @@ function StoreCard({ store, viewMode }: { store: any; viewMode: 'grid' | 'list' 
   );
 }
 
+function Pagination({ 
+  currentPage, 
+  totalPages, 
+  onPageChange 
+}: { 
+  currentPage: number; 
+  totalPages: number; 
+  onPageChange: (page: number) => void; 
+}) {
+  const getVisiblePages = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else if (totalPages > 1) {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex items-center justify-center gap-2 mt-8">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        <ChevronLeft className="w-4 h-4 mr-1" />
+        Previous
+      </Button>
+
+      <div className="flex items-center gap-1">
+        {getVisiblePages().map((page, index) => (
+          <div key={index}>
+            {page === '...' ? (
+              <span className="px-3 py-2 text-gray-500">...</span>
+            ) : (
+              <Button
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => onPageChange(page as number)}
+                className="w-10 h-10"
+              >
+                {page}
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        Next
+        <ChevronRight className="w-4 h-4 ml-1" />
+      </Button>
+    </div>
+  );
+}
+
 export default function StoresPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -433,6 +713,10 @@ export default function StoresPage() {
   const [sortBy, setSortBy] = useState<"rating" | "name" | "trustScore" | "reviews">("rating");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     setLoading(true);
@@ -482,10 +766,20 @@ export default function StoresPage() {
     filteredStores = filteredStores.sort((a, b) => b.totalRating - a.totalRating);
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredStores.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedStores = filteredStores.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [minRating, verifiedOnly, claimedOnly, selectedCountry, selectedCategory, selectedTags, search, sortBy]);
+
   if (loading) {
     return (
       <div className="bg-gray-50 min-h-screen flex flex-col">
-        <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -501,7 +795,6 @@ export default function StoresPage() {
   if (error) {
     return (
       <div className="bg-gray-50 min-h-screen flex flex-col">
-        <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-red-500 text-lg">{error}</p>
@@ -513,8 +806,6 @@ export default function StoresPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
-      <Header />
-      
       {/* Hero Section */}
       <section className="bg-white border-b border-gray-200 py-8">
         <div className="container mx-auto px-4">
@@ -653,6 +944,23 @@ export default function StoresPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Clear Filters */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setMinRating(0);
+                  setVerifiedOnly(false);
+                  setClaimedOnly(false);
+                  setSelectedCountry("all");
+                  setSelectedCategory("all");
+                  setSelectedTags([]);
+                  setSearch("");
+                }}
+              >
+                Clear All Filters
+              </Button>
             </Card>
           </div>
 
@@ -688,6 +996,11 @@ export default function StoresPage() {
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-semibold text-gray-900">
                   {filteredStores.length} stores found
+                  {currentPage > 1 && (
+                    <span className="text-sm font-normal text-gray-500 ml-2">
+                      (Page {currentPage} of {totalPages})
+                    </span>
+                  )}
                 </h2>
                 <div className="hidden lg:flex items-center gap-2">
                   <span className="text-sm text-gray-500">Sort by:</span>
@@ -729,7 +1042,7 @@ export default function StoresPage() {
                 ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
                 : "space-y-4"
             }>
-              {filteredStores.map((store) => (
+              {paginatedStores.map((store) => (
                 <StoreCard key={store.id} store={store} viewMode={viewMode} />
               ))}
             </div>
@@ -758,6 +1071,13 @@ export default function StoresPage() {
                 </Button>
               </div>
             )}
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
 
@@ -863,7 +1183,22 @@ export default function StoresPage() {
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t">
+              <div className="mt-6 pt-6 border-t space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setMinRating(0);
+                    setVerifiedOnly(false);
+                    setClaimedOnly(false);
+                    setSelectedCountry("all");
+                    setSelectedCategory("all");
+                    setSelectedTags([]);
+                    setSearch("");
+                  }}
+                >
+                  Clear All Filters
+                </Button>
                 <Button
                   className="w-full"
                   onClick={() => setShowFilters(false)}
