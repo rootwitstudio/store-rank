@@ -1,24 +1,5 @@
 import axios from "axios";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add a request interceptor to add the auth token to requests
-api.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
+import api from "./axios-client";
 
 // Store API
 export const storeApi = {
@@ -64,14 +45,43 @@ export const authApi = {
     name?: string;
     role?: "USER" | "BUSINESS" | "ADMIN";
   }) => {
-    const response = await api.post("/auth/register", data);
+    const response = await api.post("/auth/email/register", data);
     return response.data;
   },
 
   login: async (data: { email: string; password: string }) => {
-    const response = await api.post("/auth/login", data);
+    const response = await api.post("/auth/email/login", data);
     return response.data;
   },
+  verifyGoogleAuth: async (data: {idToken: string;}) => {
+    try {
+      const response = await api.post("/auth/google", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error in google verify", error);
+      throw error;
+    }
+  },
+
+  sendOtp: async (data: { email: string }) => {
+    const response = await api.post("/auth/email/login-otp", data);
+    return response.data;
+  },
+
+  verifyOtp: async (data: { email: string; otp: string }) => {
+    const response = await api.post("/auth/email/login-otp/verify", data);
+    return response.data;
+  },
+
+  sendLoginLink: async (data: { email: string }) => {
+    const response = await api.post("/auth/email/login-link", data);
+    return response.data;
+  },
+
+  verifyLoginLink: async (token: string) => {
+    const response = await api.get(`/auth/email/login-link/verify?token=${token}`);
+    return response.data;
+  }
 };
 
 // Category API
@@ -100,5 +110,3 @@ export const categoryApi = {
     }
   },
 };
-
-export default api;

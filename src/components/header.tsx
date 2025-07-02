@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Menu, X, Shield, User, Building2 } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/stores/authStore";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, accessToken } = useAuth();
   const router = useRouter();
-
+  
   const handleBusinessClick = () => {
     router.push("/business/register");
   };
@@ -50,7 +50,7 @@ export function Header() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
+            {user && accessToken ? (
               <>
                 {user?.role === "BUSINESS" && (
                   <Link
@@ -117,7 +117,7 @@ export function Header() {
                 Blogs
               </Link>
               <div className="px-6 py-3 border-b border-gray-100 space-y-2">
-                {isAuthenticated ? (
+                {user && accessToken ? (
                   <>
                     {user?.role === "BUSINESS" && (
                       <Link href="/dashboard" className="w-full justify-start">
