@@ -173,7 +173,6 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
-      <Header />
       
       {/* Hero Section - Similar to Sitejabber */}
       <section className="bg-white py-16 border-b">
