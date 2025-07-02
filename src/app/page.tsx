@@ -28,6 +28,12 @@ import {
   Globe,
   Clock,
   MessageSquare,
+  Zap,
+  Target,
+  BarChart3,
+  ThumbsUp,
+  Eye,
+  Filter,
 } from "lucide-react";
 import Link from "next/link";
 import { categoryApi } from "@/lib/api";
@@ -135,6 +141,40 @@ const trustStats = [
   { label: "User Reviews", value: "2M+", icon: MessageSquare },
   { label: "Countries", value: "180+", icon: Globe },
   { label: "Daily Visitors", value: "100K+", icon: Users },
+];
+
+const trendingStores = [
+  { name: "Shopify", category: "E-commerce Platform", growth: "+25%", reviews: 1234 },
+  { name: "Etsy", category: "Handmade & Vintage", growth: "+18%", reviews: 987 },
+  { name: "Wayfair", category: "Home & Garden", growth: "+15%", reviews: 756 },
+  { name: "ASOS", category: "Fashion", growth: "+12%", reviews: 543 },
+];
+
+const howItWorks = [
+  {
+    step: 1,
+    title: "Search & Discover",
+    description: "Find stores by category, name, or browse our curated lists",
+    icon: Search,
+  },
+  {
+    step: 2,
+    title: "Read Reviews",
+    description: "Check authentic customer reviews and trust scores",
+    icon: Eye,
+  },
+  {
+    step: 3,
+    title: "Shop Safely",
+    description: "Make informed decisions with verified store information",
+    icon: Shield,
+  },
+  {
+    step: 4,
+    title: "Share Experience",
+    description: "Help others by writing your own honest reviews",
+    icon: MessageSquare,
+  },
 ];
 
 const iconMap: Record<string, React.ElementType> = {
@@ -564,6 +604,38 @@ export default function HomePage() {
           </div>
         )}
 
+        {/* How It Works Section */}
+        <section className="py-8 sm:py-12 bg-white">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">How StoreRankly Works</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Making online shopping safer and smarter with verified reviews and trusted store information
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+              {howItWorks.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.step} className="text-center">
+                    <div className="relative mb-4">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                        <Icon className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {step.step}
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                    <p className="text-gray-600 text-sm">{step.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* Categories Section */}
         <section className="py-8 sm:py-12 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6">
@@ -682,8 +754,56 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Recent Reviews Section */}
+        {/* Trending Stores Section */}
         <section className="py-8 sm:py-12 bg-gray-50">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="flex justify-between items-center mb-6 sm:mb-8">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2">Trending This Week</h2>
+                <p className="text-gray-600">Stores gaining popularity with positive reviews</p>
+              </div>
+              <Link
+                href="/trending"
+                className="text-blue-600 hover:text-blue-700 flex items-center text-sm sm:text-base font-medium"
+              >
+                View All
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {trendingStores.map((store, index) => (
+                <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 text-sm font-bold mr-3">
+                        {store.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{store.name}</h3>
+                        <p className="text-xs text-gray-500">{store.category}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center text-green-600 bg-green-100 px-2 py-1 rounded text-xs font-semibold">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      {store.growth}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">{store.reviews} reviews</span>
+                    <Button size="sm" variant="outline">
+                      View Store
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Recent Reviews Section */}
+        <section className="py-8 sm:py-12">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="flex justify-between items-center mb-6 sm:mb-8">
               <div>
@@ -741,7 +861,7 @@ export default function HomePage() {
         </section>
 
         {/* Trust & Safety Section */}
-        <section className="py-8 sm:py-12">
+        <section className="py-8 sm:py-12 bg-gray-50">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-2xl sm:text-3xl font-bold mb-4">Trust & Safety</h2>
@@ -773,6 +893,37 @@ export default function HomePage() {
                 <p className="text-red-700 text-sm">
                   We actively monitor and flag suspicious stores to protect our community from scams.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Platform Statistics Section */}
+        <section className="py-8 sm:py-12">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">Trusted by Millions</h2>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                Join our growing community of smart shoppers making informed decisions every day
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+              <div className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-blue-600 mb-2">50K+</div>
+                <div className="text-gray-600">Verified Stores</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-green-600 mb-2">2M+</div>
+                <div className="text-gray-600">Customer Reviews</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-2">180+</div>
+                <div className="text-gray-600">Countries</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-orange-600 mb-2">100K+</div>
+                <div className="text-gray-600">Daily Visitors</div>
               </div>
             </div>
           </div>
