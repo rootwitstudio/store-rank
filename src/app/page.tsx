@@ -3,52 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Shirt,
-  Monitor,
-  Utensils,
-  Sofa,
-  BookOpen,
-  Heart,
-  ArrowRight,
-  Search,
-  Store,
-  Sparkles,
-  Dumbbell,
-  Gamepad2,
-  Car,
-  X,
-  Shield,
-  Star,
-  TrendingUp,
-  Users,
-  CheckCircle,
-  AlertTriangle,
-  Award,
-  Globe,
-  Clock,
-  MessageSquare,
-  Zap,
-  Target,
-  BarChart3,
-  ThumbsUp,
-  Eye,
-  Filter,
-  Plus,
-  Calendar,
-  Activity,
-  Quote,
-  UserCheck,
-  ShoppingBag,
-  Verified,
-  Flag,
-  RefreshCw,
-  ExternalLink,
-  MapPin,
-  ChevronDown,
-  Fire,
-  TrendingDown,
-} from "lucide-react";
+import { Shirt, Monitor, Utensils, Sofa, BookOpen, Heart, ArrowRight, Search, Store, Sparkles, Dumbbell, Gamepad2, Car, X, Shield, Star, TrendingUp, Users, CheckCircle, AlertTriangle, Award, Globe, Clock, MessageSquare, Zap, Target, BarChart3, ThumbsUp, Eye, Filter, Plus, Calendar, Activity, Quote, UserCheck, ShoppingBag, Verified, Flag, RefreshCw, ExternalLink, MapPin, ChevronDown, Siren as Fire, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { categoryApi } from "@/lib/api";
 import { HomeList } from "@/components/HomeList";
