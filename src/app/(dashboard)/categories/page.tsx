@@ -6,7 +6,7 @@ import Link from "next/link";
 import * as LucideIcons from "lucide-react";
 import { Header } from "@/components/header";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, ChevronDown, ChevronRight } from "lucide-react";
 
 interface SubCategory {
   id: string;
@@ -36,16 +36,16 @@ interface SearchResultItem {
 
 // Color palette for categories
 const categoryColors = [
-  { bg: "bg-blue-100", icon: "text-blue-600", hover: "hover:bg-blue-50" },
-  { bg: "bg-purple-100", icon: "text-purple-600", hover: "hover:bg-purple-50" },
-  { bg: "bg-green-100", icon: "text-green-600", hover: "hover:bg-green-50" },
-  { bg: "bg-orange-100", icon: "text-orange-600", hover: "hover:bg-orange-50" },
-  { bg: "bg-pink-100", icon: "text-pink-600", hover: "hover:bg-pink-50" },
-  { bg: "bg-indigo-100", icon: "text-indigo-600", hover: "hover:bg-indigo-50" },
-  { bg: "bg-red-100", icon: "text-red-600", hover: "hover:bg-red-50" },
-  { bg: "bg-teal-100", icon: "text-teal-600", hover: "hover:bg-teal-50" },
-  { bg: "bg-yellow-100", icon: "text-yellow-600", hover: "hover:bg-yellow-50" },
-  { bg: "bg-cyan-100", icon: "text-cyan-600", hover: "hover:bg-cyan-50" },
+  { bg: "bg-blue-100", icon: "text-blue-600", hover: "hover:bg-blue-50", gradient: "from-blue-500 to-blue-600" },
+  { bg: "bg-purple-100", icon: "text-purple-600", hover: "hover:bg-purple-50", gradient: "from-purple-500 to-purple-600" },
+  { bg: "bg-green-100", icon: "text-green-600", hover: "hover:bg-green-50", gradient: "from-green-500 to-green-600" },
+  { bg: "bg-orange-100", icon: "text-orange-600", hover: "hover:bg-orange-50", gradient: "from-orange-500 to-orange-600" },
+  { bg: "bg-pink-100", icon: "text-pink-600", hover: "hover:bg-pink-50", gradient: "from-pink-500 to-pink-600" },
+  { bg: "bg-indigo-100", icon: "text-indigo-600", hover: "hover:bg-indigo-50", gradient: "from-indigo-500 to-indigo-600" },
+  { bg: "bg-red-100", icon: "text-red-600", hover: "hover:bg-red-50", gradient: "from-red-500 to-red-600" },
+  { bg: "bg-teal-100", icon: "text-teal-600", hover: "hover:bg-teal-50", gradient: "from-teal-500 to-teal-600" },
+  { bg: "bg-yellow-100", icon: "text-yellow-600", hover: "hover:bg-yellow-50", gradient: "from-yellow-500 to-yellow-600" },
+  { bg: "bg-cyan-100", icon: "text-cyan-600", hover: "hover:bg-cyan-50", gradient: "from-cyan-500 to-cyan-600" },
 ];
 
 const highlightText = (text: string, query: string) => {
@@ -125,10 +125,7 @@ export default function CategoriesPage() {
     });
   }
 
-  const toggleCategory = (categoryId: string, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    
+  const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
       if (newSet.has(categoryId)) {
@@ -245,9 +242,9 @@ export default function CategoriesPage() {
         </div>
       </section>
 
-      <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
-        {/* Categories Grid - Colorful Sitejabber Style with 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <main className="flex-1 container mx-auto px-4 py-12 max-w-7xl">
+        {/* Categories Grid - Uniform card sizes with proper collapsible functionality */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category, index) => {
             const Icon = (LucideIcons as any)[category.icon] || LucideIcons.Store;
             const isExpanded = expandedCategories.has(category.id);
@@ -255,63 +252,64 @@ export default function CategoriesPage() {
             const colorScheme = categoryColors[index % categoryColors.length];
 
             return (
-              <div key={category.id} className="bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                {/* Category Header - Clickable to expand/collapse */}
+              <div key={category.id} className="bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden h-fit">
+                {/* Category Header - Always clickable if has subcategories */}
                 <div 
-                  className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover}`}
-                  onClick={(e) => hasSubcategories && toggleCategory(category.id, e)}
+                  className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover} border-b border-gray-100`}
+                  onClick={() => hasSubcategories && toggleCategory(category.id)}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`h-14 w-14 ${colorScheme.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
-                        <Icon className={`h-7 w-7 ${colorScheme.icon}`} />
+                    <div className="flex items-center space-x-4 flex-1 min-w-0">
+                      <div className={`h-12 w-12 ${colorScheme.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
+                        <Icon className={`h-6 w-6 ${colorScheme.icon}`} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-gray-900 text-xl mb-2">{category.name}</h3>
-                        {category.description && (
-                          <p className="text-sm text-gray-600 line-clamp-2">{category.description}</p>
+                        <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{category.name}</h3>
+                        {hasSubcategories && (
+                          <p className="text-sm text-gray-500">
+                            {category.subcategories.length} subcategories
+                          </p>
                         )}
                       </div>
                     </div>
                     {hasSubcategories && (
-                      <div className={`ml-3 flex-shrink-0 p-2 rounded-full ${colorScheme.bg} transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
-                        <ChevronDown className={`h-5 w-5 ${colorScheme.icon}`} />
+                      <div className={`ml-3 flex-shrink-0 p-2 rounded-full ${colorScheme.bg} transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>
+                        <ChevronRight className={`h-4 w-4 ${colorScheme.icon}`} />
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Subcategories - Collapsible with proper animation */}
+                {/* Subcategories - Collapsible with smooth animation */}
                 {hasSubcategories && (
                   <div 
-                    className={`border-t border-gray-100 bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-500 ease-in-out ${
+                    className={`transition-all duration-500 ease-in-out overflow-hidden ${
                       isExpanded 
                         ? 'max-h-96 opacity-100' 
                         : 'max-h-0 opacity-0'
                     }`}
-                    style={{
-                      overflow: 'hidden'
-                    }}
                   >
-                    <div className="p-6 space-y-2">
-                      {category.subcategories.map((subcategory, subIndex) => (
-                        <Link
-                          key={subcategory.id}
-                          href={`/stores?categoryId=${subcategory.id}`}
-                          className="block text-sm text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-4 py-3 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
-                        >
-                          {subcategory.name}
-                        </Link>
-                      ))}
+                    <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+                      <div className="space-y-2">
+                        {category.subcategories.map((subcategory) => (
+                          <Link
+                            key={subcategory.id}
+                            href={`/stores?categoryId=${subcategory.id}`}
+                            className="block text-sm text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-3 py-2 rounded-lg transition-all duration-200 font-medium hover:shadow-md transform hover:scale-105"
+                          >
+                            {subcategory.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* View All Link */}
-                <div className="border-t border-gray-100 p-4">
+                {/* View All Link - Always visible */}
+                <div className="p-4">
                   <Link
                     href={`/stores?categoryId=${category.id}`}
-                    className={`${colorScheme.icon} hover:text-white font-bold text-sm flex items-center justify-center w-full py-3 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105`}
+                    className={`${colorScheme.icon} hover:text-white font-semibold text-sm flex items-center justify-center w-full py-3 hover:bg-gradient-to-r hover:${colorScheme.gradient} rounded-xl transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 border border-gray-200 hover:border-transparent`}
                   >
                     View All {category.name} →
                   </Link>
