@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Menu, X, Shield, User, Building2, Globe, ChevronDown } from "lucide-react";
+import { Search, Menu, X, Shield, User, Building2, MapPin, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/authStore";
@@ -66,28 +66,8 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Country Selection and Auth Buttons */}
+          {/* Right side: Auth Buttons and Country Selection */}
           <div className="flex items-center gap-3">
-            {/* Country Selection */}
-            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-              <SelectTrigger className="w-auto border-0 shadow-none hover:bg-gray-100 px-2 py-1 h-auto gap-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-lg">{currentCountry.flag}</span>
-                  <span className="hidden sm:inline text-sm font-medium">{currentCountry.code}</span>
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{country.flag}</span>
-                      <span>{country.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
               {user && accessToken ? (
@@ -118,7 +98,6 @@ export function Header() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="ml-4"
                     onClick={handleBusinessClick}
                   >
                     For Business
@@ -126,6 +105,26 @@ export function Header() {
                 </>
               )}
             </div>
+
+            {/* Country Selection - moved to right corner */}
+            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+              <SelectTrigger className="w-auto border-0 shadow-none hover:bg-gray-100 px-2 py-1 h-auto gap-1">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-gray-600" />
+                  <span className="hidden sm:inline text-sm font-medium">{currentCountry.code}</span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {countries.map((country) => (
+                  <SelectItem key={country.code} value={country.code}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{country.flag}</span>
+                      <span>{country.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Mobile Menu Button */}
             <button
