@@ -527,44 +527,6 @@ export default function HomePage() {
     <div className="bg-white min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        {/* Location Selection Bar */}
-        <div className="bg-blue-600 text-white py-2">
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center text-sm">
-                <MapPin className="h-4 w-4 mr-2" />
-                <span>Shopping in:</span>
-              </div>
-              <div className="relative" ref={locationRef}>
-                <button
-                  onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                  className="flex items-center bg-blue-700 hover:bg-blue-800 px-3 py-1 rounded text-sm font-medium transition-colors"
-                >
-                  {selectedLocation}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </button>
-                {showLocationDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 min-w-[120px]">
-                    {locations.map((location) => (
-                      <button
-                        key={location}
-                        onClick={() => {
-                          setSelectedLocation(location);
-                          setShowLocationDropdown(false);
-                        }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                          selectedLocation === location ? "text-blue-600 font-medium" : "text-gray-700"
-                        }`}
-                      >
-                        {location}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* 1. Search Section */}
         <SectionContainer className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
