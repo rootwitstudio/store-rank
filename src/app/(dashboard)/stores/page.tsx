@@ -219,7 +219,6 @@ export default function StoresPage() {
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
-      <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="container mx-auto px-4 py-8 lg:flex lg:space-x-6">
           {/* Mobile Filter and Sort Buttons */}
