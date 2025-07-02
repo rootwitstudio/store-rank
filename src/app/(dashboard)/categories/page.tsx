@@ -34,6 +34,20 @@ interface SearchResultItem {
   categoryId?: string;
 }
 
+// Color palette for categories
+const categoryColors = [
+  { bg: "bg-blue-100", icon: "text-blue-600", hover: "hover:bg-blue-50" },
+  { bg: "bg-purple-100", icon: "text-purple-600", hover: "hover:bg-purple-50" },
+  { bg: "bg-green-100", icon: "text-green-600", hover: "hover:bg-green-50" },
+  { bg: "bg-orange-100", icon: "text-orange-600", hover: "hover:bg-orange-50" },
+  { bg: "bg-pink-100", icon: "text-pink-600", hover: "hover:bg-pink-50" },
+  { bg: "bg-indigo-100", icon: "text-indigo-600", hover: "hover:bg-indigo-50" },
+  { bg: "bg-red-100", icon: "text-red-600", hover: "hover:bg-red-50" },
+  { bg: "bg-teal-100", icon: "text-teal-600", hover: "hover:bg-teal-50" },
+  { bg: "bg-yellow-100", icon: "text-yellow-600", hover: "hover:bg-yellow-50" },
+  { bg: "bg-cyan-100", icon: "text-cyan-600", hover: "hover:bg-cyan-50" },
+];
+
 const highlightText = (text: string, query: string) => {
   if (!query) return <span>{text}</span>;
 
@@ -111,14 +125,19 @@ export default function CategoriesPage() {
     });
   }
 
-  const toggleCategory = (categoryId: string) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
-    }
-    setExpandedCategories(newExpanded);
+  const toggleCategory = (categoryId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
   };
 
   const handleDropdownItemClick = (item: SearchResultItem) => {
@@ -144,7 +163,7 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="bg-gray-50 min-h-screen flex flex-col">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
@@ -160,7 +179,7 @@ export default function CategoriesPage() {
 
   if (error) {
     return (
-      <div className="bg-gray-50 min-h-screen flex flex-col">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="text-center">
@@ -172,16 +191,16 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
+    <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen flex flex-col">
       <Header />
       
-      {/* Hero Section - Sitejabber Style */}
-      <section className="bg-white py-16 border-b">
+      {/* Hero Section - Colorful Sitejabber Style */}
+      <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-20 text-white">
         <div className="container mx-auto px-4 text-center max-w-4xl">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
             Browse Businesses
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed text-blue-100">
             Don't wait to stumble across what you need... Find it, stat ⚡ - from the hottest 
             in retail to must-have business tools, and beyond.
           </p>
@@ -193,7 +212,7 @@ export default function CategoriesPage() {
                 ref={inputRef}
                 type="text"
                 placeholder="Search here..."
-                className="w-full h-14 text-lg pl-6 pr-16 rounded-full border-2 border-gray-300 shadow-sm bg-white text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                className="w-full h-16 text-lg pl-6 pr-20 rounded-full border-0 shadow-2xl bg-white text-gray-900 focus:ring-4 focus:ring-white/30 focus:outline-none"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -201,20 +220,20 @@ export default function CategoriesPage() {
                 }}
                 onFocus={() => setShowDropdown(true)}
               />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                <div className="bg-blue-600 hover:bg-blue-700 rounded-full p-3 cursor-pointer transition-colors">
-                  <Search className="h-5 w-5 text-white" />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 rounded-full p-4 cursor-pointer transition-all duration-200 shadow-lg">
+                  <Search className="h-6 w-6 text-white" />
                 </div>
               </div>
             </div>
 
             {/* Search Dropdown */}
             {showDropdown && dropdownResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-80 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 max-h-80 overflow-y-auto">
                 {dropdownResults.map((item) => (
                   <button
                     key={item.id + item.type}
-                    className="block w-full text-left px-6 py-3 text-gray-700 hover:bg-blue-50 border-b border-gray-100 last:border-b-0"
+                    className="block w-full text-left px-6 py-4 text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 border-b border-gray-100 last:border-b-0 transition-all duration-200"
                     onClick={() => handleDropdownItemClick(item)}
                   >
                     {highlightText(item.name, searchQuery)}
@@ -227,51 +246,59 @@ export default function CategoriesPage() {
       </section>
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-6xl">
-        {/* Categories Grid - Sitejabber Style with 3 columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category) => {
+        {/* Categories Grid - Colorful Sitejabber Style with 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {categories.map((category, index) => {
             const Icon = (LucideIcons as any)[category.icon] || LucideIcons.Store;
             const isExpanded = expandedCategories.has(category.id);
             const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+            const colorScheme = categoryColors[index % categoryColors.length];
 
             return (
-              <div key={category.id} className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <div key={category.id} className="bg-white rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
                 {/* Category Header - Clickable to expand/collapse */}
                 <div 
-                  className={`p-6 flex items-center justify-between ${hasSubcategories ? 'cursor-pointer hover:bg-gray-50' : ''} transition-colors`}
-                  onClick={() => hasSubcategories && toggleCategory(category.id)}
+                  className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover}`}
+                  onClick={(e) => hasSubcategories && toggleCategory(category.id, e)}
                 >
-                  <div className="flex items-center space-x-4">
-                    <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Icon className="h-6 w-6 text-blue-600" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className={`h-14 w-14 ${colorScheme.bg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-md`}>
+                        <Icon className={`h-7 w-7 ${colorScheme.icon}`} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-bold text-gray-900 text-xl mb-2">{category.name}</h3>
+                        {category.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">{category.description}</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-gray-900 text-lg mb-1">{category.name}</h3>
-                      {category.description && (
-                        <p className="text-sm text-gray-500 line-clamp-2">{category.description}</p>
-                      )}
-                    </div>
+                    {hasSubcategories && (
+                      <div className={`ml-3 flex-shrink-0 p-2 rounded-full ${colorScheme.bg} transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                        <ChevronDown className={`h-5 w-5 ${colorScheme.icon}`} />
+                      </div>
+                    )}
                   </div>
-                  {hasSubcategories && (
-                    <div className="text-gray-400 ml-2 flex-shrink-0">
-                      {isExpanded ? (
-                        <ChevronUp className="h-5 w-5" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5" />
-                      )}
-                    </div>
-                  )}
                 </div>
 
-                {/* Subcategories - Collapsible */}
+                {/* Subcategories - Collapsible with proper animation */}
                 {hasSubcategories && (
-                  <div className={`border-t border-gray-100 bg-gray-50 overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="p-4 space-y-1">
-                      {category.subcategories.map((subcategory) => (
+                  <div 
+                    className={`border-t border-gray-100 bg-gradient-to-br from-gray-50 to-gray-100 transition-all duration-500 ease-in-out ${
+                      isExpanded 
+                        ? 'max-h-96 opacity-100' 
+                        : 'max-h-0 opacity-0'
+                    }`}
+                    style={{
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div className="p-6 space-y-2">
+                      {category.subcategories.map((subcategory, subIndex) => (
                         <Link
                           key={subcategory.id}
                           href={`/stores?categoryId=${subcategory.id}`}
-                          className="block text-sm text-gray-700 hover:text-blue-600 hover:bg-white px-3 py-2 rounded transition-colors"
+                          className="block text-sm text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 px-4 py-3 rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
                         >
                           {subcategory.name}
                         </Link>
@@ -284,9 +311,9 @@ export default function CategoriesPage() {
                 <div className="border-t border-gray-100 p-4">
                   <Link
                     href={`/stores?categoryId=${category.id}`}
-                    className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center justify-center w-full py-2 hover:bg-blue-50 rounded transition-colors"
+                    className={`${colorScheme.icon} hover:text-white font-bold text-sm flex items-center justify-center w-full py-3 hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105`}
                   >
-                    View All {category.name}
+                    View All {category.name} →
                   </Link>
                 </div>
               </div>
