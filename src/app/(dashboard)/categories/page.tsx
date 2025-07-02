@@ -8,15 +8,6 @@ import { Header } from "@/components/header";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown, ChevronRight } from "lucide-react";
 
-interface SubCategory {
-  id: string;
-  name: string;
-  description: string | null;
-  icon: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface Category {
   id: string;
   name: string;
@@ -24,7 +15,9 @@ interface Category {
   icon: string;
   createdAt: string;
   updatedAt: string;
-  subcategories: SubCategory[];
+  parentId: string | null;
+  parent: Category | null;
+  children: Category[];
 }
 
 interface SearchResultItem {
@@ -73,7 +66,8 @@ const highlightText = (text: string, query: string) => {
 };
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [mainCategories, setMainCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -87,7 +81,16 @@ export default function CategoriesPage() {
       try {
         setLoading(true);
         const data = await categoryApi.getAll();
-        setCategories(data);
+        console.log("Fetched categories:", data); // Debug log
+        
+        // Store all categories
+        setAllCategories(data);
+        
+        // Filter main categories (those without parentId or with parentId = null)
+        const mainCats = data.filter((category: Category) => !category.parentId);
+        console.log("Main categories:", mainCats); // Debug log
+        
+        setMainCategories(mainCats);
       } catch (error) {
         console.error("Error fetching categories:", error);
         setError("Failed to load categories.");
@@ -102,7 +105,9 @@ export default function CategoriesPage() {
   const dropdownResults: SearchResultItem[] = [];
   if (searchQuery) {
     const lowerCaseQuery = searchQuery.toLowerCase();
-    categories.forEach((category) => {
+    
+    // Search in main categories
+    mainCategories.forEach((category) => {
       if (category.name.toLowerCase().includes(lowerCaseQuery)) {
         dropdownResults.push({
           id: category.id,
@@ -110,8 +115,10 @@ export default function CategoriesPage() {
           type: "category",
         });
       }
-      if (category.subcategories) {
-        category.subcategories.forEach((subcategory) => {
+      
+      // Search in subcategories (children)
+      if (category.children && category.children.length > 0) {
+        category.children.forEach((subcategory) => {
           if (subcategory.name.toLowerCase().includes(lowerCaseQuery)) {
             dropdownResults.push({
               id: subcategory.id,
@@ -241,12 +248,21 @@ export default function CategoriesPage() {
       </section>
 
       <main className="flex-1 container mx-auto px-4 py-12 max-w-7xl">
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-gray-100 rounded-lg">
+            <p className="text-sm text-gray-600">
+              Debug: Found {allCategories.length} total categories, {mainCategories.length} main categories
+            </p>
+          </div>
+        )}
+
         {/* Categories Grid - Uniform card sizes with proper collapsible functionality */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category, index) => {
+          {mainCategories.map((category, index) => {
             const Icon = (LucideIcons as any)[category.icon] || LucideIcons.Store;
             const isExpanded = expandedCategories.has(category.id);
-            const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+            const hasSubcategories = category.children && category.children.length > 0;
             const colorScheme = categoryColors[index % categoryColors.length];
 
             return (
@@ -265,7 +281,7 @@ export default function CategoriesPage() {
                         <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{category.name}</h3>
                         {hasSubcategories && (
                           <p className="text-sm text-gray-500">
-                            {category.subcategories.length} subcategories
+                            {category.children.length} subcategories
                           </p>
                         )}
                       </div>
@@ -289,7 +305,7 @@ export default function CategoriesPage() {
                   >
                     <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4">
                       <div className="space-y-2">
-                        {category.subcategories.map((subcategory) => (
+                        {category.children.map((subcategory) => (
                           <Link
                             key={subcategory.id}
                             href={`/stores?categoryId=${subcategory.id}`}
@@ -316,6 +332,13 @@ export default function CategoriesPage() {
             );
           })}
         </div>
+
+        {/* Show message if no categories found */}
+        {mainCategories.length === 0 && !loading && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No categories found.</p>
+          </div>
+        )}
       </main>
     </div>
   );
