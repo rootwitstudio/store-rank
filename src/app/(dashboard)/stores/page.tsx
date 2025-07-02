@@ -724,7 +724,7 @@ export default function StoresPage() {
       const filteredStores = categoryId
         ? mockStores.filter((store) => store.categoryId === categoryId)
         : mockStores;
-      setStores(filteredStores);
+      setStores(mockStores);
 
       if (categoryId && filteredStores.length > 0) {
         setCategoryName(filteredStores[0].category);
