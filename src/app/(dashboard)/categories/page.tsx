@@ -189,8 +189,6 @@ export default function CategoriesPage() {
 
   return (
     <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 min-h-screen flex flex-col">
-      <Header />
-      
       {/* Hero Section - Colorful Sitejabber Style */}
       <section className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 py-20 text-white">
         <div className="container mx-auto px-4 text-center max-w-4xl">
