@@ -265,7 +265,7 @@ export default function CategoriesPage() {
               <div key={category.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
                 {/* Category Header */}
                 <div 
-                  className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover} border-b border-gray-100`}
+                  className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover}`}
                   onClick={() => hasSubcategories && toggleCategory(category.id)}
                 >
                   <div className="flex items-center justify-between">
@@ -314,16 +314,6 @@ export default function CategoriesPage() {
                     </div>
                   </div>
                 )}
-
-                {/* View All Link */}
-                <div className="p-4">
-                  <Link
-                    href={`/stores?categoryId=${category.id}`}
-                    className={`${colorScheme.icon} hover:text-white font-medium text-sm flex items-center justify-center w-full py-3 hover:bg-gradient-to-r hover:${colorScheme.gradient} rounded-lg transition-all duration-200 border border-gray-200 hover:border-transparent`}
-                  >
-                    View All {category.name} →
-                  </Link>
-                </div>
               </div>
             );
           })}
