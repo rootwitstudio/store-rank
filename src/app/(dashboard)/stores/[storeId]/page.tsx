@@ -1,103 +1,341 @@
 "use client";
 
-import { StarRating } from "../page";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, PencilLine, ShieldCheck } from "lucide-react"; // Icons for buttons and badge
-import { Header } from "@/components/header";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { use } from "react";
+import { 
+  Star, 
+  ExternalLink, 
+  Shield, 
+  CheckCircle, 
+  MapPin, 
+  Calendar, 
+  Users, 
+  Clock, 
+  TrendingUp, 
+  TrendingDown,
+  Globe,
+  Phone,
+  Mail,
+  Building,
+  Award,
+  AlertTriangle,
+  ThumbsUp,
+  ThumbsDown,
+  Flag,
+  Share2,
+  Bookmark,
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  Search,
+  MoreHorizontal,
+  Heart,
+  MessageSquare,
+  Eye,
+  ShoppingCart,
+  Package,
+  Truck,
+  CreditCard,
+  Headphones
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Header } from "@/components/header";
 
-// Using the same mock data as the parent page
+// Enhanced mock data
 const mockStores = [
   {
     id: "1",
     name: "Amazon",
-    desc: "World's largest online marketplace with millions of products.",
-    tags: ["Free Shipping", "Eco-friendly"],
-    categoryId: "111f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Electronics",
+    description: "World's largest online marketplace with millions of products and fast delivery worldwide. Founded in 1994 by Jeff Bezos, Amazon has grown from an online bookstore to a global e-commerce and cloud computing giant.",
     logo: null,
-    rating: 4.5,
-    totalRating: 820,
+    website: "https://www.amazon.com",
+    category: "E-commerce",
+    rating: 4.2,
+    totalReviews: 125847,
     verified: true,
     claimed: true,
     country: "United States",
-    link: "https://www.amazon.com",
+    founded: "1994",
+    employees: "1.5M+",
+    headquarters: "Seattle, WA, USA",
+    phone: "+1-888-280-4331",
+    email: "customer-service@amazon.com",
+    responseTime: "< 1 hour",
+    responseRate: 95,
+    tags: ["Free Shipping", "Prime Delivery", "Easy Returns", "24/7 Support"],
+    trustScore: 92,
+    businessType: "Public Company",
+    certifications: ["ISO 27001", "SOC 2", "PCI DSS"],
+    socialMedia: {
+      twitter: "@amazon",
+      facebook: "amazon",
+      instagram: "amazon"
+    },
+    keyFeatures: [
+      "Prime membership with free shipping",
+      "Same-day delivery in select areas",
+      "30-day return policy",
+      "24/7 customer support",
+      "Secure payment processing",
+      "Product reviews and ratings"
+    ],
+    popularProducts: [
+      { name: "Echo Dot (5th Gen)", price: "$49.99", rating: 4.6, reviews: 45231 },
+      { name: "Fire TV Stick 4K Max", price: "$54.99", rating: 4.5, reviews: 32145 },
+      { name: "Kindle Paperwhite", price: "$139.99", rating: 4.7, reviews: 28934 },
+      { name: "AmazonBasics USB Cable", price: "$8.99", rating: 4.3, reviews: 15678 }
+    ],
+    recentNews: [
+      {
+        title: "Amazon announces new sustainability initiatives",
+        date: "2024-01-15",
+        summary: "Company commits to carbon neutrality by 2040"
+      },
+      {
+        title: "Prime membership benefits expanded",
+        date: "2024-01-10",
+        summary: "New perks added for Prime subscribers"
+      }
+    ],
+    ratingBreakdown: {
+      5: 65234,
+      4: 32145,
+      3: 18765,
+      2: 6543,
+      1: 3160
+    },
+    reviewTrends: {
+      lastMonth: 4.3,
+      last3Months: 4.2,
+      last6Months: 4.1,
+      lastYear: 4.0
+    }
+  }
+];
+
+const mockReviews = [
+  {
+    id: "1",
+    author: "Sarah Johnson",
+    avatar: null,
+    rating: 5,
+    title: "Excellent service and fast delivery",
+    content: "I've been shopping with Amazon for over 5 years and they consistently deliver excellent service. The Prime membership is worth every penny - free shipping, fast delivery, and great customer service. Recently ordered a laptop and it arrived the next day in perfect condition.",
+    date: "2024-01-20",
+    verified: true,
+    helpful: 24,
+    location: "New York, USA",
+    orderValue: "$1,299",
+    productCategory: "Electronics"
   },
   {
     id: "2",
-    name: "eBay",
-    desc: "Global online marketplace for buying and selling goods.",
-    tags: ["Discounts", "Online Only"],
-    categoryId: "111f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Electronics",
-    logo: null,
-    rating: 4.2,
-    totalRating: 110,
-    verified: false,
-    claimed: false,
-    country: "United Kingdom",
-    link: "https://www.ebay.com",
+    author: "Mike Chen",
+    avatar: null,
+    rating: 4,
+    title: "Good overall experience with minor issues",
+    content: "Amazon has a vast selection and competitive prices. Delivery is usually fast with Prime. Had one issue with a damaged package but customer service resolved it quickly with a full refund. The return process is straightforward.",
+    date: "2024-01-18",
+    verified: true,
+    helpful: 18,
+    location: "California, USA",
+    orderValue: "$89",
+    productCategory: "Home & Garden"
   },
   {
     id: "3",
-    name: "Flipkart",
-    desc: "India's leading e-commerce marketplace.",
-    tags: ["Local"],
-    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Home",
-    logo: null,
-    rating: 4.8,
-    totalRating: 90,
+    author: "Emma Wilson",
+    avatar: null,
+    rating: 5,
+    title: "Outstanding customer support",
+    content: "Had an issue with my order and contacted customer support through chat. The representative was knowledgeable, friendly, and resolved my issue within minutes. This is why I keep coming back to Amazon.",
+    date: "2024-01-15",
     verified: true,
-    claimed: true,
-    country: "India",
-    link: "https://www.flipkart.com",
+    helpful: 31,
+    location: "London, UK",
+    orderValue: "$156",
+    productCategory: "Books"
   },
   {
     id: "4",
-    name: "Zalando",
-    desc: "Europe's leading online fashion platform.",
-    tags: ["Free Shipping", "Discounts"],
-    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Food",
-    logo: null,
-    rating: 4.0,
-    totalRating: 79,
-    verified: false,
-    claimed: true,
-    country: "Germany",
-    link: "https://www.zalando.com",
+    author: "David Rodriguez",
+    avatar: null,
+    rating: 3,
+    title: "Mixed experience - good products, delivery delays",
+    content: "Product quality is generally good and prices are competitive. However, I've experienced several delivery delays recently, even with Prime. Customer service is helpful but sometimes takes time to respond.",
+    date: "2024-01-12",
+    verified: true,
+    helpful: 12,
+    location: "Texas, USA",
+    orderValue: "$234",
+    productCategory: "Sports & Outdoors"
   },
+  {
+    id: "5",
+    author: "Lisa Thompson",
+    avatar: null,
+    rating: 5,
+    title: "Love the convenience and selection",
+    content: "Amazon makes shopping so convenient. The mobile app is user-friendly, product descriptions are detailed, and the review system helps make informed decisions. Prime Video is a nice bonus too!",
+    date: "2024-01-10",
+    verified: true,
+    helpful: 19,
+    location: "Ontario, Canada",
+    orderValue: "$67",
+    productCategory: "Beauty & Personal Care"
+  }
 ];
 
-// Helper component for the rating breakdown bars
-function RatingBar({
-  rating,
-  count,
-  total,
-}: {
-  rating: number;
-  count: number;
-  total: number;
-}) {
-  const percentage = total > 0 ? (count / total) * 100 : 0;
+function StarRating({ rating, size = "sm", showNumber = true }: { rating: number; size?: "sm" | "md" | "lg"; showNumber?: boolean }) {
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-5 h-5",
+    lg: "w-6 h-6"
+  };
+
   return (
-    <div className="flex items-center text-sm">
-      <span className="w-8 text-gray-700">{rating}-star</span>
-      <div className="w-full h-2 bg-gray-200 rounded-full mx-2">
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: `${percentage}%`,
-            backgroundColor:
-              rating >= 4 ? "#4ade80" : rating >= 3 ? "#facc15" : "#f87171", // Simple color logic based on rating
-          }}
-        ></div>
+    <div className="flex items-center gap-1">
+      <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            className={`${sizeClasses[size]} ${
+              i < Math.floor(rating) 
+                ? "text-yellow-400 fill-yellow-400" 
+                : i === Math.floor(rating) && rating % 1 >= 0.5
+                ? "text-yellow-400 fill-yellow-400"
+                : "text-gray-300"
+            }`}
+          />
+        ))}
       </div>
-      <span className="w-10 text-right text-gray-600">{count}</span>
+      {showNumber && (
+        <span className={`font-medium text-gray-900 ${size === 'lg' ? 'text-lg' : size === 'md' ? 'text-base' : 'text-sm'}`}>
+          {rating.toFixed(1)}
+        </span>
+      )}
     </div>
+  );
+}
+
+function RatingBreakdown({ breakdown, totalReviews }: { breakdown: any; totalReviews: number }) {
+  return (
+    <div className="space-y-2">
+      {[5, 4, 3, 2, 1].map((stars) => {
+        const count = breakdown[stars] || 0;
+        const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+        
+        return (
+          <div key={stars} className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-1 w-12">
+              <span className="text-gray-600">{stars}</span>
+              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+            </div>
+            <div className="flex-1">
+              <Progress value={percentage} className="h-2" />
+            </div>
+            <span className="text-gray-600 w-16 text-right">
+              {count.toLocaleString()}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReviewCard({ review }: { review: any }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHelpful, setIsHelpful] = useState(false);
+
+  return (
+    <Card className="border border-gray-200">
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <Avatar className="w-12 h-12">
+            <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
+              {review.author.split(' ').map((n: string) => n[0]).join('')}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-gray-900">{review.author}</h4>
+                  {review.verified && (
+                    <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>{review.location}</span>
+                  <span>•</span>
+                  <span>{new Date(review.date).toLocaleDateString()}</span>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="mb-3">
+              <StarRating rating={review.rating} size="sm" />
+            </div>
+            
+            <h5 className="font-semibold text-gray-900 mb-2">{review.title}</h5>
+            
+            <div className="text-gray-700 text-sm leading-relaxed mb-4">
+              {isExpanded ? review.content : `${review.content.slice(0, 200)}${review.content.length > 200 ? '...' : ''}`}
+              {review.content.length > 200 && (
+                <button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="text-blue-600 hover:text-blue-800 ml-1 font-medium"
+                >
+                  {isExpanded ? 'Show less' : 'Read more'}
+                </button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+              <span>Order value: {review.orderValue}</span>
+              <span>•</span>
+              <span>Category: {review.productCategory}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setIsHelpful(!isHelpful)}
+                  className={`flex items-center gap-1 text-sm ${
+                    isHelpful ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  Helpful ({review.helpful + (isHelpful ? 1 : 0)})
+                </button>
+                <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+                  <Flag className="w-4 h-4" />
+                  Report
+                </button>
+              </div>
+              <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -108,13 +346,18 @@ export default function StoreDetailPage({
 }) {
   const router = useRouter();
   const { storeId } = use(params);
-  const mockStore = mockStores.find((store) => store.id === storeId);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [reviewFilter, setReviewFilter] = useState("all");
+  const [reviewSort, setReviewSort] = useState("newest");
+  const [showWriteReview, setShowWriteReview] = useState(false);
 
-  if (!mockStore) {
+  const store = mockStores.find((s) => s.id === storeId);
+
+  if (!store) {
     return (
-      <div className="bg-white min-h-screen flex flex-col">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Store not found</h1>
             <Button onClick={() => router.push("/stores")}>
@@ -126,403 +369,513 @@ export default function StoreDetailPage({
     );
   }
 
-  // Mock review counts for the rating breakdown (using fixed values)
-  const mockRatingCounts = {
-    5: Math.round(mockStore.rating * 20), // 20% of total reviews
-    4: Math.round((5 - mockStore.rating) * 20), // 20% of total reviews
-    3: 15, // Fixed value
-    2: 10, // Fixed value
-    1: 5, // Fixed value
-  };
-  const totalMockReviews = Object.values(mockRatingCounts).reduce(
-    (sum, count) => sum + count,
-    0
-  );
-
-  // Mock data for review summary tags
-  const mockReviewTags = [
-    { text: "Great hospitality", count: 6 },
-    { text: "Quiet area", count: 3 },
-    { text: "Clean", count: 1 },
-    { text: "Great communication", count: 1 },
-    { text: "Well equipped", count: 1 },
-    { text: "Spacious", count: 1 },
-    { text: "Accurate photos", count: 1 },
+  const tabs = [
+    { id: "overview", label: "Overview", icon: Eye },
+    { id: "reviews", label: `Reviews (${store.totalReviews.toLocaleString()})`, icon: MessageSquare },
+    { id: "products", label: "Popular Products", icon: Package },
+    { id: "company", label: "Company Info", icon: Building },
+    { id: "news", label: "News & Updates", icon: TrendingUp }
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Store Details and Reviews */}
-        <div className="lg:col-span-2">
-          {/* Store Summary Section */}
-          <div className="bg-white p-6 rounded-lg mb-8 shadow-xxs">
-            <div className="flex items-start mb-4">
-              {/* Placeholder for Logo */}
-              <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold text-xl mr-6 flex-shrink-0">
-                {mockStore.name.charAt(0)}
-              </div>
-              <div className="flex-grow">
-                <div className="flex items-center mb-1">
-                  <h1 className="text-2xl font-bold mr-3">{mockStore.name}</h1>
-                  {/* Claimed Profile Badge */}
-                  {mockStore.verified && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      <ShieldCheck
-                        className="-ml-0.5 mr-1 h-3 w-3"
-                        aria-hidden="true"
-                      />
-                      Claimed profile
-                    </span>
-                  )}
+      
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Store Header */}
+        <Card className="mb-8 border-0 shadow-lg">
+          <CardContent className="p-8">
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Left: Store Info */}
+              <div className="flex-1">
+                <div className="flex items-start gap-6 mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                    {store.name.charAt(0)}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-3xl font-bold text-gray-900">{store.name}</h1>
+                      <div className="flex items-center gap-2">
+                        {store.verified && (
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <Shield className="w-4 h-4 mr-1" />
+                            Verified
+                          </Badge>
+                        )}
+                        {store.claimed && (
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Claimed
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a 
+                          href={store.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {new URL(store.website).hostname.replace('www.', '')}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-1 text-gray-500">
+                        <MapPin className="w-4 h-4" />
+                        {store.country}
+                      </div>
+                      <Badge variant="outline">{store.category}</Badge>
+                    </div>
+                    
+                    <p className="text-gray-600 leading-relaxed mb-6">{store.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {store.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="bg-gray-100">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  {mockStore.desc} &bull; {mockStore.rating} rating
-                </p>{" "}
-                {/* Using desc as temp website/url placeholder */}
-                <p className="text-sm text-blue-600 mb-4">
-                  {mockStore.category}
-                </p>
-                {/* Review Actions */}
-                <div className="flex space-x-4">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
-                    <PencilLine className="mr-2 h-4 w-4" /> Write a review
+                
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3">
+                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    Visit Website
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="px-4 py-2 rounded-md flex items-center border-gray-300"
+                  <Button variant="outline" size="lg" onClick={() => setShowWriteReview(true)}>
+                    <Star className="w-5 h-5 mr-2" />
+                    Write Review
+                  </Button>
+                  <Button variant="outline" size="lg">
+                    <Bookmark className="w-5 h-5 mr-2" />
+                    Save Store
+                  </Button>
+                  <Button variant="outline" size="lg">
+                    <Share2 className="w-5 h-5 mr-2" />
+                    Share
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Right: Rating & Stats */}
+              <div className="lg:w-80">
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+                  <CardContent className="p-6 text-center">
+                    <div className="mb-4">
+                      <div className="text-5xl font-bold text-gray-900 mb-2">{store.rating.toFixed(1)}</div>
+                      <StarRating rating={store.rating} size="lg" showNumber={false} />
+                      <div className="text-sm text-gray-600 mt-2">
+                        Based on {store.totalReviews.toLocaleString()} reviews
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">{store.trustScore}</div>
+                        <div className="text-xs text-gray-600">Trust Score</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-blue-600">{store.responseRate}%</div>
+                        <div className="text-xs text-gray-600">Response Rate</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-blue-200">
+                      <div className="text-sm text-gray-600">
+                        <div className="flex justify-between mb-1">
+                          <span>Response Time:</span>
+                          <span className="font-medium">{store.responseTime}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Founded:</span>
+                          <span className="font-medium">{store.founded}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Navigation Tabs */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 overflow-x-auto">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                   >
-                    Visit website <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            {/* Trustpilot Statement */}
-            {/* <div className="flex items-center p-3 bg-yellow-50 rounded-md text-yellow-800 text-sm mt-4">
-              <ShieldCheck className="h-5 w-5 mr-3 text-yellow-600 flex-shrink-0" />
-              <p>
-                Companies on Trustpilot can't offer incentives or pay to hide
-                any reviews.
-              </p>
-            </div> */}
-          </div>
-
-          {/* Review Summary Tags */}
-          <div className="bg-white rounded-lg p-6 mb-8 shadow-xxs">
-            <div className="flex flex-wrap gap-2">
-              {mockReviewTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
-                >
-                  {tag.text} &bull; {tag.count}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* See what reviewers are saying Section */}
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">
-              See what reviewers are saying
-            </h2>
-            {/* Placeholder for individual reviews - loop through review data here */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Example Review Placeholder */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center text-orange-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    S
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Sandeep</div>
-                    <div className="text-xs text-gray-500">
-                      1 year on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 2 weeks ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  We had a wonderful time! The room was incredibly spacious and
-                  thoughtfully designed, offering plenty of comfort and unwind.
-                  One of the highlights was the beautiful balcony ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 2 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3 flex-shrink-0">
-                    R
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Rajat</div>
-                    <div className="text-xs text-gray-500">
-                      2 years on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 2 days ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  I had a fantastic stay here, felt just like at home. thanks to
-                  the exceptional hospitality and serene environment. Mr Pratik
-                  was incredibly responsive and very helpful. Enjoyed...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 3 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    C
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Chaitanya</div>
-                    <div className="text-xs text-gray-500">
-                      3 years on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  Staying at your home was an absolute delight! It was truly the
-                  best experience we've had your hospitality, and the comfort of
-                  your space made us feel like part of the ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 4 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    D
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Dinesh</div>
-                    <div className="text-xs text-gray-500">
-                      8 months on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  hello there!This was hands down the most peaceful and
-                  beautiful Stay I have ever stayed! You can just book this
-                  place just for their lovely Iced Coffee! ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 5 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-red-200 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    M
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Mani</div>
-                    <div className="text-xs text-gray-500">
-                      6 years on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  First of all thank you so much diyaa and prathik for giving us
-                  a wonderful experience. We never thought that a random stay
-                  would feel like home!! I have never shared my review on any
-                  ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 6 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center text-purple-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    G
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Gopi</div>
-                    <div className="text-xs text-gray-500">
-                      7 months on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  Already missing the place ❤️ Great stay!! I must recommend for
-                  everyone who likes a homely feel stay. Peaceful and calm
-                  society ❤️. For those who are cofee lover...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Add more review placeholders or map through actual review data */}
-            </div>
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
         </div>
 
-        {/* Right Column - Overall Rating and Breakdown */}
-        <div className="lg:col-span-1">
-          {/* Overall Rating and Category Breakdown (Top Section) */}
-          <div className="bg-white rounded-lg p-6 mb-8 text-center shadow-xxs">
-            {/* Placeholder for Laurels */}
-            <div className="flex items-center justify-center text-yellow-500 text-5xl mb-4">
-              {/* Replace with actual laurel icons if available */}
-              ✨✨
-            </div>
-            <div className="text-8xl font-bold mb-2 leading-none">
-              {mockStore.rating.toFixed(1)}
-            </div>
-            <div className="text-2xl font-semibold mb-1">Guest favourite</div>{" "}
-            {/* Placeholder Text */}
-            <div className="text-md text-gray-600 mb-8 px-4 max-w-md mx-auto">
-              This store is in the <span className="font-semibold">top 5%</span>{" "}
-              of eligible listings based on ratings, reviews and reliability.
-            </div>
-            {/* Category Rating Breakdown (Horizontal) */}
-            {/* <div className="flex justify-around border-t border-b border-gray-200 py-4 mb-6">
-              
-            </div> */}
+        {/* Tab Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                {/* Rating Breakdown */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5" />
+                      Rating Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <RatingBreakdown breakdown={store.ratingBreakdown} totalReviews={store.totalReviews} />
+                  </CardContent>
+                </Card>
+
+                {/* Key Features */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="w-5 h-5" />
+                      Key Features
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {store.keyFeatures.map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                          <span className="text-sm text-gray-700">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Recent Reviews Preview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
+                        Recent Reviews
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab("reviews")}>
+                        View All
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {mockReviews.slice(0, 2).map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "reviews" && (
+              <div className="space-y-6">
+                {/* Review Filters */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1">
+                        <Select value={reviewFilter} onValueChange={setReviewFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Filter reviews" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Reviews</SelectItem>
+                            <SelectItem value="5">5 Stars</SelectItem>
+                            <SelectItem value="4">4 Stars</SelectItem>
+                            <SelectItem value="3">3 Stars</SelectItem>
+                            <SelectItem value="2">2 Stars</SelectItem>
+                            <SelectItem value="1">1 Star</SelectItem>
+                            <SelectItem value="verified">Verified Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex-1">
+                        <Select value={reviewSort} onValueChange={setReviewSort}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sort by" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="newest">Newest First</SelectItem>
+                            <SelectItem value="oldest">Oldest First</SelectItem>
+                            <SelectItem value="highest">Highest Rated</SelectItem>
+                            <SelectItem value="lowest">Lowest Rated</SelectItem>
+                            <SelectItem value="helpful">Most Helpful</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Reviews List */}
+                <div className="space-y-4">
+                  {mockReviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+
+                {/* Load More */}
+                <div className="text-center">
+                  <Button variant="outline" size="lg">
+                    Load More Reviews
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "products" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Popular Products
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {store.popularProducts.map((product, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-900 mb-2">{product.name}</h4>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg font-bold text-green-600">{product.price}</span>
+                          <StarRating rating={product.rating} size="sm" />
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {product.reviews.toLocaleString()} reviews
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "company" && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="w-5 h-5" />
+                      Company Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Founded</label>
+                          <div className="text-gray-900">{store.founded}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Employees</label>
+                          <div className="text-gray-900">{store.employees}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Headquarters</label>
+                          <div className="text-gray-900">{store.headquarters}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Business Type</label>
+                          <div className="text-gray-900">{store.businessType}</div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Phone</label>
+                          <div className="text-gray-900">{store.phone}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email</label>
+                          <div className="text-gray-900">{store.email}</div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Certifications</label>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {store.certifications.map((cert) => (
+                              <Badge key={cert} variant="outline">{cert}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "news" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    Recent News & Updates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {store.recentNews.map((news, index) => (
+                      <div key={index} className="border-b border-gray-200 pb-4 last:border-b-0">
+                        <h4 className="font-semibold text-gray-900 mb-2">{news.title}</h4>
+                        <p className="text-gray-600 text-sm mb-2">{news.summary}</p>
+                        <div className="text-xs text-gray-500">
+                          {new Date(news.date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Replied to Negative Reviews Note */}
-          {/* <div className="bg-white rounded-lg p-6 mb-6 flex items-start shadow-md">
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="flex-shrink-0 mr-3 text-gray-500"
-            >
-              <path
-                d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-3.91 11.64a3.87 3.87 0 0 1-.29-1.48 3.92 3.92 0 0 1 4.14-3.84 3.94 3.94 0 0 1 3.75 2.25 3.9 3.9 0 0 1 .09 2.19c-.21.74-.61 1.43-1.17 2a4.25 4.25 0 0 1-.87.74c-.22.14-.4.26-.53.34-.12.09-.21.14-.24.17-.04.03-.06.05-.07.06l-.01.01a.1.1 0 0 1-.07.02.08.08 0 0 1-.07-.02c-.03-.03-.05-.05-.07-.07a.09.09 0 0 1-.04-.06c-.01-.01-.01-.02-.02-.03-.02-.02-.03-.04-.04-.06-.07-.12-.16-.24-.29-.36-.21-.18-.43-.36-.67-.54a6.13 6.13 0 0 0-.73-.55 4.77 4.77 0 0 0-.84-.68ZM8.01 8.73a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm7.98 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Z"
-                fill="currentColor"
-              ></path>
-            </svg>
-            <div>
-              <p className="text-sm text-gray-700">
-                Replied to 44% of negative reviews
-              </p>
-              <p className="text-xs text-gray-500">
-                Typically takes over 1 month to reply
-              </p>
-            </div>
-          </div> */}
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Quick Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Reviews</span>
+                    <span className="font-semibold">{store.totalReviews.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Trust Score</span>
+                    <span className="font-semibold text-green-600">{store.trustScore}/100</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Response Rate</span>
+                    <span className="font-semibold">{store.responseRate}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Avg Response Time</span>
+                    <span className="font-semibold">{store.responseTime}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* How company uses Trustpilot link */}
-          {/* <div className="text-center lg:text-left">
-            <a href="#" className="text-blue-600 hover:underline text-sm">
-              How this company uses Trustpilot{" "}
-              <ExternalLink className="inline-block h-3 w-3 ml-1" />
-            </a>
-          </div> */}
+            {/* Rating Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Rating Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Last Month</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{store.reviewTrends.lastMonth}</span>
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Last 3 Months</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{store.reviewTrends.last3Months}</span>
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Last 6 Months</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{store.reviewTrends.last6Months}</span>
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Last Year</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{store.reviewTrends.lastYear}</span>
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Globe className="w-4 h-4 text-gray-500" />
+                    <a href={store.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
+                      Visit Website
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Phone className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm">{store.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm">{store.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm">{store.headquarters}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Similar Stores */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Similar Stores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {["eBay", "Walmart", "Target"].map((storeName) => (
+                    <div key={storeName} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center text-sm font-semibold">
+                        {storeName.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{storeName}</div>
+                        <div className="text-xs text-gray-500">4.1 ★ • 89k reviews</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
-
-      {/* Placeholder for Footer */}
-      {/* <footer className="border-t py-4 text-center text-sm text-muted-foreground">Footer</footer> */}
     </div>
   );
 }
