@@ -1,102 +1,226 @@
 "use client";
 
-import { StarRating } from "../page";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, PencilLine, ShieldCheck } from "lucide-react"; // Icons for buttons and badge
-import { Header } from "@/components/header";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { use } from "react";
+import { 
+  ArrowLeft,
+  Store as StoreIcon,
+  TrendingUp,
+  Award,
+  CheckCircle,
+  Package,
+  Building,
+  MessageSquare,
+  Star,
+  Filter,
+  Eye
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Header } from "@/components/header";
+import { StoreHeader } from "@/components/store-detail/StoreHeader";
+import { ReviewCard } from "@/components/store-detail/ReviewCard";
+import { RatingBreakdown } from "@/components/store-detail/RatingBreakdown";
+import { WriteReviewModal } from "@/components/store-detail/WriteReviewModal";
+import { MobileNavTabs } from "@/components/store-detail/MobileNavTabs";
+import { StoreSidebar } from "@/components/store-detail/StoreSidebar";
 
-// Using the same mock data as the parent page
+// Enhanced mock data
 const mockStores = [
   {
     id: "1",
     name: "Amazon",
-    desc: "World's largest online marketplace with millions of products.",
-    tags: ["Free Shipping", "Eco-friendly"],
-    categoryId: "111f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Electronics",
+    description: "World's largest online marketplace with millions of products and fast delivery worldwide. Founded in 1994 by Jeff Bezos, Amazon has grown from an online bookstore to a global e-commerce and cloud computing giant serving customers in over 100 countries.",
     logo: null,
-    rating: 4.5,
-    totalRating: 820,
+    website: "https://www.amazon.com",
+    category: "E-commerce",
+    rating: 4.2,
+    totalReviews: 125847,
     verified: true,
     claimed: true,
     country: "United States",
-    link: "https://www.amazon.com",
+    founded: "1994",
+    employees: "1.5M+",
+    headquarters: "Seattle, WA, USA",
+    phone: "+1-888-280-4331",
+    email: "customer-service@amazon.com",
+    responseTime: "< 1 hour",
+    responseRate: 95,
+    tags: ["Free Shipping", "Prime Delivery", "Easy Returns", "24/7 Support"],
+    trustScore: 92,
+    businessType: "Public Company",
+    certifications: ["ISO 27001", "SOC 2", "PCI DSS", "Better Business Bureau A+"],
+    keyFeatures: [
+      "Prime membership with free shipping",
+      "Same-day delivery in select areas",
+      "30-day return policy",
+      "24/7 customer support",
+      "Secure payment processing",
+      "Product reviews and ratings",
+      "Amazon Web Services (AWS)",
+      "Alexa voice assistant integration"
+    ],
+    popularProducts: [
+      { name: "Echo Dot (5th Gen)", price: "$49.99", rating: 4.6, reviews: 45231, category: "Smart Home" },
+      { name: "Fire TV Stick 4K Max", price: "$54.99", rating: 4.5, reviews: 32145, category: "Electronics" },
+      { name: "Kindle Paperwhite", price: "$139.99", rating: 4.7, reviews: 28934, category: "Books & Media" },
+      { name: "AmazonBasics USB Cable", price: "$8.99", rating: 4.3, reviews: 15678, category: "Accessories" }
+    ],
+    recentNews: [
+      {
+        title: "Amazon announces new sustainability initiatives",
+        date: "2024-01-15",
+        summary: "Company commits to carbon neutrality by 2040 with $10 billion investment in clean energy"
+      },
+      {
+        title: "Prime membership benefits expanded",
+        date: "2024-01-10",
+        summary: "New perks added for Prime subscribers including exclusive deals and faster delivery"
+      },
+      {
+        title: "Amazon opens new fulfillment centers",
+        date: "2024-01-05",
+        summary: "Five new facilities to improve delivery times and create 10,000 jobs"
+      }
+    ],
+    ratingBreakdown: {
+      5: 65234,
+      4: 32145,
+      3: 18765,
+      2: 6543,
+      1: 3160
+    },
+    reviewTrends: {
+      lastMonth: 4.3,
+      last3Months: 4.2,
+      last6Months: 4.1,
+      lastYear: 4.0
+    },
+    businessMetrics: {
+      monthlyVisitors: "2.8B",
+      marketShare: "38%",
+      customerSatisfaction: "87%",
+      returnRate: "8.5%"
+    },
+    awards: [
+      "Fortune 500 #2",
+      "Best Employer 2024",
+      "Innovation Leader",
+      "Customer Choice Award"
+    ]
+  }
+];
+
+const mockReviews = [
+  {
+    id: "1",
+    author: "Sarah Johnson",
+    avatar: null,
+    rating: 5,
+    title: "Excellent service and fast delivery",
+    content: "I've been shopping with Amazon for over 5 years and they consistently deliver excellent service. The Prime membership is worth every penny - free shipping, fast delivery, and great customer service. Recently ordered a laptop and it arrived the next day in perfect condition. The packaging was secure and the product exactly as described. Customer support was helpful when I had questions about warranty coverage.",
+    date: "2024-01-20",
+    verified: true,
+    helpful: 24,
+    location: "New York, USA",
+    orderValue: "$1,299",
+    productCategory: "Electronics",
+    pros: ["Fast delivery", "Great customer service", "Secure packaging"],
+    cons: ["Prices could be better"],
+    wouldRecommend: true
   },
   {
     id: "2",
-    name: "eBay",
-    desc: "Global online marketplace for buying and selling goods.",
-    tags: ["Discounts", "Online Only"],
-    categoryId: "111f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Electronics",
-    logo: null,
-    rating: 4.2,
-    totalRating: 110,
-    verified: false,
-    claimed: false,
-    country: "United Kingdom",
-    link: "https://www.ebay.com",
+    author: "Mike Chen",
+    avatar: null,
+    rating: 4,
+    title: "Good overall experience with minor issues",
+    content: "Amazon has a vast selection and competitive prices. Delivery is usually fast with Prime. Had one issue with a damaged package but customer service resolved it quickly with a full refund. The return process is straightforward and hassle-free. Website is easy to navigate and product descriptions are detailed.",
+    date: "2024-01-18",
+    verified: true,
+    helpful: 18,
+    location: "California, USA",
+    orderValue: "$89",
+    productCategory: "Home & Garden",
+    pros: ["Wide selection", "Easy returns", "Competitive prices"],
+    cons: ["Occasional packaging issues"],
+    wouldRecommend: true
   },
   {
     id: "3",
-    name: "Flipkart",
-    desc: "India's leading e-commerce marketplace.",
-    tags: ["Local"],
-    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Home",
-    logo: null,
-    rating: 4.8,
-    totalRating: 90,
+    author: "Emma Wilson",
+    avatar: null,
+    rating: 5,
+    title: "Outstanding customer support",
+    content: "Had an issue with my order and contacted customer support through chat. The representative was knowledgeable, friendly, and resolved my issue within minutes. This is why I keep coming back to Amazon. They really care about customer satisfaction and it shows in every interaction.",
+    date: "2024-01-15",
     verified: true,
-    claimed: true,
-    country: "India",
-    link: "https://www.flipkart.com",
+    helpful: 31,
+    location: "London, UK",
+    orderValue: "$156",
+    productCategory: "Books",
+    pros: ["Excellent support", "Quick resolution", "Friendly staff"],
+    cons: ["None"],
+    wouldRecommend: true
   },
   {
     id: "4",
-    name: "Zalando",
-    desc: "Europe's leading online fashion platform.",
-    tags: ["Free Shipping", "Discounts"],
-    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Food",
-    logo: null,
-    rating: 4.0,
-    totalRating: 79,
-    verified: false,
-    claimed: true,
-    country: "Germany",
-    link: "https://www.zalando.com",
+    author: "David Rodriguez",
+    avatar: null,
+    rating: 3,
+    title: "Mixed experience - good products, delivery delays",
+    content: "Product quality is generally good and prices are competitive. However, I've experienced several delivery delays recently, even with Prime. Customer service is helpful but sometimes takes time to respond. The mobile app could use some improvements for better user experience.",
+    date: "2024-01-12",
+    verified: true,
+    helpful: 12,
+    location: "Texas, USA",
+    orderValue: "$234",
+    productCategory: "Sports & Outdoors",
+    pros: ["Good product quality", "Competitive prices"],
+    cons: ["Delivery delays", "App issues"],
+    wouldRecommend: true
   },
+  {
+    id: "5",
+    author: "Lisa Thompson",
+    avatar: null,
+    rating: 5,
+    title: "Love the convenience and selection",
+    content: "Amazon makes shopping so convenient. The mobile app is user-friendly, product descriptions are detailed, and the review system helps make informed decisions. Prime Video is a nice bonus too! The recommendation engine is surprisingly accurate.",
+    date: "2024-01-10",
+    verified: true,
+    helpful: 19,
+    location: "Ontario, Canada",
+    orderValue: "$67",
+    productCategory: "Beauty & Personal Care",
+    pros: ["Convenient", "Great selection", "Good recommendations"],
+    cons: ["Can be addictive"],
+    wouldRecommend: true
+  }
 ];
 
-// Helper component for the rating breakdown bars
-function RatingBar({
-  rating,
-  count,
-  total,
-}: {
-  rating: number;
-  count: number;
-  total: number;
-}) {
-  const percentage = total > 0 ? (count / total) * 100 : 0;
+function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-5 h-5"
+  };
+
   return (
-    <div className="flex items-center text-sm">
-      <span className="w-8 text-gray-700">{rating}-star</span>
-      <div className="w-full h-2 bg-gray-200 rounded-full mx-2">
-        <div
-          className="h-full rounded-full"
-          style={{
-            width: `${percentage}%`,
-            backgroundColor:
-              rating >= 4 ? "#4ade80" : rating >= 3 ? "#facc15" : "#f87171", // Simple color logic based on rating
-          }}
-        ></div>
-      </div>
-      <span className="w-10 text-right text-gray-600">{count}</span>
+    <div className="flex items-center">
+      {[...Array(5)].map((_, i) => (
+        <Star
+          key={i}
+          className={`${sizeClasses[size]} ${
+            i < Math.floor(rating) 
+              ? "text-yellow-400 fill-yellow-400" 
+              : i === Math.floor(rating) && rating % 1 >= 0.5
+              ? "text-yellow-400 fill-yellow-400"
+              : "text-gray-300"
+          }`}
+        />
+      ))}
     </div>
   );
 }
@@ -108,16 +232,26 @@ export default function StoreDetailPage({
 }) {
   const router = useRouter();
   const { storeId } = use(params);
-  const mockStore = mockStores.find((store) => store.id === storeId);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [reviewFilter, setReviewFilter] = useState("all");
+  const [reviewSort, setReviewSort] = useState("newest");
+  const [showWriteReview, setShowWriteReview] = useState(false);
 
-  if (!mockStore) {
+  const store = mockStores.find((s) => s.id === storeId);
+
+  if (!store) {
     return (
-      <div className="bg-white min-h-screen flex flex-col">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8">
           <div className="text-center">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <StoreIcon className="w-8 h-8 text-gray-400" />
+            </div>
             <h1 className="text-2xl font-bold mb-4">Store not found</h1>
+            <p className="text-gray-600 mb-6">The store you're looking for doesn't exist or has been removed.</p>
             <Button onClick={() => router.push("/stores")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Stores
             </Button>
           </div>
@@ -126,403 +260,326 @@ export default function StoreDetailPage({
     );
   }
 
-  // Mock review counts for the rating breakdown (using fixed values)
-  const mockRatingCounts = {
-    5: Math.round(mockStore.rating * 20), // 20% of total reviews
-    4: Math.round((5 - mockStore.rating) * 20), // 20% of total reviews
-    3: 15, // Fixed value
-    2: 10, // Fixed value
-    1: 5, // Fixed value
-  };
-  const totalMockReviews = Object.values(mockRatingCounts).reduce(
-    (sum, count) => sum + count,
-    0
-  );
-
-  // Mock data for review summary tags
-  const mockReviewTags = [
-    { text: "Great hospitality", count: 6 },
-    { text: "Quiet area", count: 3 },
-    { text: "Clean", count: 1 },
-    { text: "Great communication", count: 1 },
-    { text: "Well equipped", count: 1 },
-    { text: "Spacious", count: 1 },
-    { text: "Accurate photos", count: 1 },
-  ];
-
   return (
-    <div className="bg-gray-50 min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1 container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Store Details and Reviews */}
-        <div className="lg:col-span-2">
-          {/* Store Summary Section */}
-          <div className="bg-white p-6 rounded-lg mb-8 shadow-xxs">
-            <div className="flex items-start mb-4">
-              {/* Placeholder for Logo */}
-              <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 font-bold text-xl mr-6 flex-shrink-0">
-                {mockStore.name.charAt(0)}
-              </div>
-              <div className="flex-grow">
-                <div className="flex items-center mb-1">
-                  <h1 className="text-2xl font-bold mr-3">{mockStore.name}</h1>
-                  {/* Claimed Profile Badge */}
-                  {mockStore.verified && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      <ShieldCheck
-                        className="-ml-0.5 mr-1 h-3 w-3"
-                        aria-hidden="true"
-                      />
-                      Claimed profile
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  {mockStore.desc} &bull; {mockStore.rating} rating
-                </p>{" "}
-                {/* Using desc as temp website/url placeholder */}
-                <p className="text-sm text-blue-600 mb-4">
-                  {mockStore.category}
-                </p>
-                {/* Review Actions */}
-                <div className="flex space-x-4">
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
-                    <PencilLine className="mr-2 h-4 w-4" /> Write a review
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="px-4 py-2 rounded-md flex items-center border-gray-300"
-                  >
-                    Visit website <ExternalLink className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            {/* Trustpilot Statement */}
-            {/* <div className="flex items-center p-3 bg-yellow-50 rounded-md text-yellow-800 text-sm mt-4">
-              <ShieldCheck className="h-5 w-5 mr-3 text-yellow-600 flex-shrink-0" />
-              <p>
-                Companies on Trustpilot can't offer incentives or pay to hide
-                any reviews.
-              </p>
-            </div> */}
-          </div>
+    <div className="min-h-screen bg-gray-50">      
+      <main className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4 sm:mb-6">
+          <button onClick={() => router.push("/stores")} className="hover:text-gray-700">
+            Stores
+          </button>
+          <span>/</span>
+          <span className="text-gray-900 font-medium truncate">{store.name}</span>
+        </nav>
 
-          {/* Review Summary Tags */}
-          <div className="bg-white rounded-lg p-6 mb-8 shadow-xxs">
-            <div className="flex flex-wrap gap-2">
-              {mockReviewTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
-                >
-                  {tag.text} &bull; {tag.count}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* See what reviewers are saying Section */}
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">
-              See what reviewers are saying
-            </h2>
-            {/* Placeholder for individual reviews - loop through review data here */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* Example Review Placeholder */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center text-orange-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    S
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Sandeep</div>
-                    <div className="text-xs text-gray-500">
-                      1 year on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 2 weeks ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  We had a wonderful time! The room was incredibly spacious and
-                  thoughtfully designed, offering plenty of comfort and unwind.
-                  One of the highlights was the beautiful balcony ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 2 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3 flex-shrink-0">
-                    R
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Rajat</div>
-                    <div className="text-xs text-gray-500">
-                      2 years on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 2 days ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  I had a fantastic stay here, felt just like at home. thanks to
-                  the exceptional hospitality and serene environment. Mr Pratik
-                  was incredibly responsive and very helpful. Enjoyed...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 3 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    C
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Chaitanya</div>
-                    <div className="text-xs text-gray-500">
-                      3 years on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  Staying at your home was an absolute delight! It was truly the
-                  best experience we've had your hospitality, and the comfort of
-                  your space made us feel like part of the ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 4 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    D
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Dinesh</div>
-                    <div className="text-xs text-gray-500">
-                      8 months on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  hello there!This was hands down the most peaceful and
-                  beautiful Stay I have ever stayed! You can just book this
-                  place just for their lovely Iced Coffee! ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 5 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-red-200 rounded-full flex items-center justify-center text-red-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    M
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Mani</div>
-                    <div className="text-xs text-gray-500">
-                      6 years on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  First of all thank you so much diyaa and prathik for giving us
-                  a wonderful experience. We never thought that a random stay
-                  would feel like home!! I have never shared my review on any
-                  ...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Example Review Placeholder 6 */}
-              <div className="bg-white rounded-lg p-6 mb-6 shadow-xxs">
-                <div className="flex items-start mb-3">
-                  {/* Reviewer Avatar Placeholder */}
-                  <div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center text-purple-700 font-semibold text-sm mr-3 flex-shrink-0">
-                    G
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-gray-900">Gopi</div>
-                    <div className="text-xs text-gray-500">
-                      7 months on Airbnb
-                    </div>{" "}
-                    {/* Placeholder */}
-                  </div>
-                </div>
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <StarRating rating={5} /> {/* Placeholder Rating */}
-                  <span className="ml-2">&bull; 1 week ago</span>{" "}
-                  {/* Placeholder */}
-                </div>
-                <p className="text-gray-800 text-sm leading-relaxed">
-                  Already missing the place ❤️ Great stay!! I must recommend for
-                  everyone who likes a homely feel stay. Peaceful and calm
-                  society ❤️. For those who are cofee lover...
-                </p>
-                <button
-                  className="text-blue-600 hover:underline text-sm mt-2 p-0"
-                  style={{
-                    lineHeight: "inherit",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  See more
-                </button>
-              </div>
-              {/* Add more review placeholders or map through actual review data */}
-            </div>
-          </div>
+        {/* Store Header */}
+        <div className="mb-6 sm:mb-8">
+          <StoreHeader store={store} onWriteReview={() => setShowWriteReview(true)} />
         </div>
 
-        {/* Right Column - Overall Rating and Breakdown */}
-        <div className="lg:col-span-1">
-          {/* Overall Rating and Category Breakdown (Top Section) */}
-          <div className="bg-white rounded-lg p-6 mb-8 text-center shadow-xxs">
-            {/* Placeholder for Laurels */}
-            <div className="flex items-center justify-center text-yellow-500 text-5xl mb-4">
-              {/* Replace with actual laurel icons if available */}
-              ✨✨
-            </div>
-            <div className="text-8xl font-bold mb-2 leading-none">
-              {mockStore.rating.toFixed(1)}
-            </div>
-            <div className="text-2xl font-semibold mb-1">Guest favourite</div>{" "}
-            {/* Placeholder Text */}
-            <div className="text-md text-gray-600 mb-8 px-4 max-w-md mx-auto">
-              This store is in the <span className="font-semibold">top 5%</span>{" "}
-              of eligible listings based on ratings, reviews and reliability.
-            </div>
-            {/* Category Rating Breakdown (Horizontal) */}
-            {/* <div className="flex justify-around border-t border-b border-gray-200 py-4 mb-6">
-              
-            </div> */}
+        {/* Navigation Tabs */}
+        <div className="mb-6 sm:mb-8">
+          <MobileNavTabs 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+            reviewCount={store.totalReviews}
+          />
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                {/* Rating Breakdown */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <TrendingUp className="w-5 h-5" />
+                      Rating Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <RatingBreakdown breakdown={store.ratingBreakdown} totalReviews={store.totalReviews} />
+                  </CardContent>
+                </Card>
+
+                {/* Business Metrics */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <TrendingUp className="w-5 h-5" />
+                      Business Metrics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                      <div className="text-center">
+                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{store.businessMetrics.monthlyVisitors}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Monthly Visitors</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl sm:text-2xl font-bold text-green-600">{store.businessMetrics.marketShare}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Market Share</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl sm:text-2xl font-bold text-purple-600">{store.businessMetrics.customerSatisfaction}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Customer Satisfaction</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl sm:text-2xl font-bold text-orange-600">{store.businessMetrics.returnRate}</div>
+                        <div className="text-xs sm:text-sm text-gray-600">Return Rate</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Key Features */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Award className="w-5 h-5" />
+                      Key Features & Services
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {store.keyFeatures.map((feature, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Recent Reviews Preview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-5 h-5" />
+                        Recent Reviews
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab("reviews")}>
+                        View All
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4 sm:space-y-6">
+                      {mockReviews.slice(0, 2).map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeTab === "reviews" && (
+              <div className="space-y-6">
+                {/* Review Filters */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <div className="flex-1">
+                        <Select value={reviewFilter} onValueChange={setReviewFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Filter reviews" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Reviews</SelectItem>
+                            <SelectItem value="5">5 Stars</SelectItem>
+                            <SelectItem value="4">4 Stars</SelectItem>
+                            <SelectItem value="3">3 Stars</SelectItem>
+                            <SelectItem value="2">2 Stars</SelectItem>
+                            <SelectItem value="1">1 Star</SelectItem>
+                            <SelectItem value="verified">Verified Only</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex-1">
+                        <Select value={reviewSort} onValueChange={setReviewSort}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sort by" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="newest">Newest First</SelectItem>
+                            <SelectItem value="oldest">Oldest First</SelectItem>
+                            <SelectItem value="highest">Highest Rated</SelectItem>
+                            <SelectItem value="lowest">Lowest Rated</SelectItem>
+                            <SelectItem value="helpful">Most Helpful</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={() => setShowWriteReview(true)} className="sm:w-auto">
+                        <Star className="w-4 h-4 mr-2" />
+                        Write Review
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Reviews List */}
+                <div className="space-y-4 sm:space-y-6">
+                  {mockReviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+
+                {/* Load More */}
+                <div className="text-center">
+                  <Button variant="outline" size="lg">
+                    Load More Reviews
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "products" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Package className="w-5 h-5" />
+                    Popular Products
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    {store.popularProducts.map((product, index) => (
+                      <Card key={index} className="border border-gray-200">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <h4 className="font-semibold text-gray-900 flex-1 text-sm sm:text-base">{product.name}</h4>
+                            <Badge variant="outline" className="ml-2 text-xs">{product.category}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-lg sm:text-xl font-bold text-green-600">{product.price}</span>
+                            <StarRating rating={product.rating} size="sm" />
+                          </div>
+                          <div className="text-xs sm:text-sm text-gray-500">
+                            {product.reviews.toLocaleString()} reviews
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "company" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Building className="w-5 h-5" />
+                    Company Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+                    <div className="space-y-4 sm:space-y-6">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Founded</label>
+                        <div className="text-gray-900 font-medium">{store.founded}</div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Employees</label>
+                        <div className="text-gray-900 font-medium">{store.employees}</div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Headquarters</label>
+                        <div className="text-gray-900 font-medium">{store.headquarters}</div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Business Type</label>
+                        <div className="text-gray-900 font-medium">{store.businessType}</div>
+                      </div>
+                    </div>
+                    <div className="space-y-4 sm:space-y-6">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Phone</label>
+                        <div className="text-gray-900 font-medium">{store.phone}</div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Email</label>
+                        <div className="text-gray-900 font-medium">{store.email}</div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-2">Certifications</label>
+                        <div className="flex flex-wrap gap-2">
+                          {store.certifications.map((cert) => (
+                            <Badge key={cert} variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                              {cert}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-2">Awards & Recognition</label>
+                        <div className="flex flex-wrap gap-2">
+                          {store.awards.map((award) => (
+                            <Badge key={award} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs">
+                              <Award className="w-3 h-3 mr-1" />
+                              {award}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "news" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <TrendingUp className="w-5 h-5" />
+                    Recent News & Updates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {store.recentNews.map((news, index) => (
+                      <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                        <div className="flex items-start gap-4">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{news.title}</h4>
+                            <p className="text-gray-600 text-sm leading-relaxed mb-3">{news.summary}</p>
+                            <div className="text-xs text-gray-500">
+                              {new Date(news.date).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Replied to Negative Reviews Note */}
-          {/* <div className="bg-white rounded-lg p-6 mb-6 flex items-start shadow-md">
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="flex-shrink-0 mr-3 text-gray-500"
-            >
-              <path
-                d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-3.91 11.64a3.87 3.87 0 0 1-.29-1.48 3.92 3.92 0 0 1 4.14-3.84 3.94 3.94 0 0 1 3.75 2.25 3.9 3.9 0 0 1 .09 2.19c-.21.74-.61 1.43-1.17 2a4.25 4.25 0 0 1-.87.74c-.22.14-.4.26-.53.34-.12.09-.21.14-.24.17-.04.03-.06.05-.07.06l-.01.01a.1.1 0 0 1-.07.02.08.08 0 0 1-.07-.02c-.03-.03-.05-.05-.07-.07a.09.09 0 0 1-.04-.06c-.01-.01-.01-.02-.02-.03-.02-.02-.03-.04-.04-.06-.07-.12-.16-.24-.29-.36-.21-.18-.43-.36-.67-.54a6.13 6.13 0 0 0-.73-.55 4.77 4.77 0 0 0-.84-.68ZM8.01 8.73a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm7.98 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Z"
-                fill="currentColor"
-              ></path>
-            </svg>
-            <div>
-              <p className="text-sm text-gray-700">
-                Replied to 44% of negative reviews
-              </p>
-              <p className="text-xs text-gray-500">
-                Typically takes over 1 month to reply
-              </p>
-            </div>
-          </div> */}
-
-          {/* How company uses Trustpilot link */}
-          {/* <div className="text-center lg:text-left">
-            <a href="#" className="text-blue-600 hover:underline text-sm">
-              How this company uses Trustpilot{" "}
-              <ExternalLink className="inline-block h-3 w-3 ml-1" />
-            </a>
-          </div> */}
+          {/* Sidebar */}
+          <StoreSidebar store={store} />
         </div>
       </main>
 
-      {/* Placeholder for Footer */}
-      {/* <footer className="border-t py-4 text-center text-sm text-muted-foreground">Footer</footer> */}
+      {/* Write Review Modal */}
+      <WriteReviewModal 
+        isOpen={showWriteReview} 
+        onClose={() => setShowWriteReview(false)} 
+        storeName={store.name}
+      />
     </div>
   );
 }
