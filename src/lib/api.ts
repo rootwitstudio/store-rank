@@ -110,3 +110,33 @@ export const categoryApi = {
     }
   },
 };
+
+// Search API
+export const searchApi = {
+  search: async (params: {
+    q: string;
+    limit?: number;
+    offset?: number;
+    includeInactive?: boolean;
+    categoryOnly?: boolean;
+    storeOnly?: boolean;
+    customCategoryOnly?: boolean;
+  }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.append('q', params.q);
+      queryParams.append('limit', (params.limit || 10).toString());
+      queryParams.append('offset', (params.offset || 0).toString());
+      queryParams.append('includeInactive', params.includeInactive ? 'yes' : 'no');
+      queryParams.append('categoryOnly', params.categoryOnly ? 'yes' : 'no');
+      queryParams.append('storeOnly', params.storeOnly ? '1' : '0');
+      queryParams.append('customCategoryOnly', params.customCategoryOnly ? 'yes' : 'no');
+      
+      const response = await api.get(`/search?${queryParams.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error in search:", error);
+      throw error;
+    }
+  },
+};
