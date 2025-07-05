@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import { categoryApi } from "@/lib/api";
 import { HomeList } from "@/components/HomeList";
 
+// Move all static data outside the component to prevent re-renders
 const featuredStores = [
   {
     id: "1",
@@ -152,11 +153,11 @@ const recentReviews = [
 ];
 
 const trendingStores = [
-  { 
+  {
     id: "5",
-    name: "Meesho", 
-    category: "Social Commerce", 
-    growth: "+45%", 
+    name: "Meesho",
+    category: "Social Commerce",
+    growth: "+45%",
     reviews: 1834,
     rating: 4.2,
     link: "https://meesho.com",
@@ -164,11 +165,11 @@ const trendingStores = [
     trustScore: "Great",
     isRising: true,
   },
-  { 
+  {
     id: "6",
-    name: "Swiggy Instamart", 
-    category: "Quick Commerce", 
-    growth: "+38%", 
+    name: "Swiggy Instamart",
+    category: "Quick Commerce",
+    growth: "+38%",
     reviews: 987,
     rating: 4.1,
     link: "https://swiggy.com",
@@ -176,11 +177,11 @@ const trendingStores = [
     trustScore: "Good",
     isRising: true,
   },
-  { 
+  {
     id: "7",
-    name: "Boat", 
-    category: "Electronics", 
-    growth: "+32%", 
+    name: "Boat",
+    category: "Electronics",
+    growth: "+32%",
     reviews: 756,
     rating: 4.3,
     link: "https://boat-lifestyle.com",
@@ -188,11 +189,11 @@ const trendingStores = [
     trustScore: "Great",
     isRising: true,
   },
-  { 
+  {
     id: "8",
-    name: "Lenskart", 
-    category: "Eyewear", 
-    growth: "+28%", 
+    name: "Lenskart",
+    category: "Eyewear",
+    growth: "+28%",
     reviews: 543,
     rating: 4.0,
     link: "https://lenskart.com",
@@ -200,11 +201,11 @@ const trendingStores = [
     trustScore: "Good",
     isRising: true,
   },
-  { 
+  {
     id: "9",
-    name: "BigBasket", 
-    category: "Groceries", 
-    growth: "+25%", 
+    name: "BigBasket",
+    category: "Groceries",
+    growth: "+25%",
     reviews: 432,
     rating: 4.2,
     link: "https://bigbasket.com",
@@ -212,11 +213,11 @@ const trendingStores = [
     trustScore: "Great",
     isRising: true,
   },
-  { 
+  {
     id: "10",
-    name: "Zomato", 
-    category: "Food Delivery", 
-    growth: "+22%", 
+    name: "Zomato",
+    category: "Food Delivery",
+    growth: "+22%",
     reviews: 321,
     rating: 3.9,
     link: "https://zomato.com",
@@ -371,8 +372,39 @@ export default function HomePage() {
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const locations = ["India", "United States", "United Kingdom", "Canada", "Australia"];
+
+  // Create stable event handlers with useCallback
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  }, []);
+
+  const handleSearchFocus = useCallback(() => {
+    setIsInputFocused(true);
+    if (window.innerWidth < 640) {
+      setIsSearchModalOpen(true);
+    } else {
+      if (search.length > 0) {
+        setShowDropdown(true);
+      }
+    }
+  }, [search]);
+
+  const handleSearchBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    // Only blur if not clicking on dropdown
+    const relatedTarget = e.relatedTarget as HTMLElement;
+    if (
+      !dropdownRef.current?.contains(relatedTarget) &&
+      !inputRef.current?.contains(relatedTarget)
+    ) {
+      setTimeout(() => {
+        setIsInputFocused(false);
+        setShowDropdown(false);
+      }, 150);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -391,63 +423,80 @@ export default function HomePage() {
     fetchCategories();
   }, []);
 
+  // Debounce search results to prevent excessive re-renders
   useEffect(() => {
-    if (search.length === 0) {
-      setFilteredResults([]);
-      return;
-    }
+    const timeoutId = setTimeout(() => {
+      if (search.length === 0) {
+        setFilteredResults([]);
+        return;
+      }
 
-    const lowerCaseSearch = search.toLowerCase();
-    const results: SearchResult[] = [];
+      const lowerCaseSearch = search.toLowerCase();
+      const results: SearchResult[] = [];
 
-    // Filter Categories
-    categories
-      .filter((category) => !category.parentId)
-      .forEach((category) => {
-        if (category.name.toLowerCase().includes(lowerCaseSearch)) {
+      // Filter Categories
+      categories
+        .filter((category) => !category.parentId)
+        .forEach((category) => {
+          if (category.name.toLowerCase().includes(lowerCaseSearch)) {
+            results.push({
+              type: "category",
+              id: category.id,
+              name: category.name,
+              icon: category.icon || "Store",
+              description: `The best companies in the category '${category.name}'`,
+            });
+          }
+        });
+
+      // Filter Stores
+      featuredStores.forEach((store) => {
+        if (
+          store.name.toLowerCase().includes(lowerCaseSearch) ||
+          store.desc.toLowerCase().includes(lowerCaseSearch)
+        ) {
           results.push({
-            type: "category",
-            id: category.id,
-            name: category.name,
-            icon: category.icon || "Store",
-            description: `The best companies in the category '${category.name}'`,
+            type: "store",
+            id: store.id,
+            name: store.name,
+            description: store.desc || null,
           });
         }
       });
 
-    // Filter Stores
-    featuredStores.forEach((store) => {
-      if (
-        store.name.toLowerCase().includes(lowerCaseSearch) ||
-        store.desc.toLowerCase().includes(lowerCaseSearch)
-      ) {
-        results.push({
-          type: "store",
-          id: store.id,
-          name: store.name,
-          description: store.desc || null,
-        });
-      }
-    });
+      setFilteredResults(results);
+    }, 300); // 300ms debounce
 
-    setFilteredResults(results);
-  }, [search, categories, featuredStores]);
+    return () => clearTimeout(timeoutId);
+  }, [search, categories]);
 
   useEffect(() => {
-    if (!showDropdown) return;
+    if (!showDropdown || !isInputFocused) return;
+
     function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+
       if (
         inputRef.current &&
-        !inputRef.current.contains(event.target as Node) &&
+        !inputRef.current.contains(target) &&
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(target)
       ) {
         setShowDropdown(false);
+        setIsInputFocused(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDropdown]);
+
+    // Use a small delay to prevent immediate closing
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown, isInputFocused]);
 
   useEffect(() => {
     if (!showLocationDropdown) return;
@@ -474,7 +523,7 @@ export default function HomePage() {
     };
   }, [isSearchModalOpen]);
 
-  const getTrustScoreColor = (score: string) => {
+  const getTrustScoreColor = useCallback((score: string) => {
     switch (score) {
       case "Excellent":
         return "text-green-600 bg-green-100";
@@ -485,17 +534,17 @@ export default function HomePage() {
       default:
         return "text-gray-600 bg-gray-100";
     }
-  };
+  }, []);
 
-  const SectionContainer = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+    const SectionContainer = useCallback(({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
     <section className={`py-12 sm:py-16 ${className}`}>
       <div className="container mx-auto px-4 sm:px-6">
         {children}
       </div>
     </section>
-  );
+  ), []);
 
-  const SectionHeader = ({ 
+  const SectionHeader = useCallback(({ 
     title, 
     subtitle, 
     linkText, 
@@ -521,7 +570,7 @@ export default function HomePage() {
         </Link>
       )}
     </div>
-  );
+  ), []);
 
   return (
     <div className="bg-white min-h-screen flex flex-col">
@@ -538,7 +587,7 @@ export default function HomePage() {
                 <span className="text-blue-600">{selectedLocation}</span>
               </h1>
               <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-6 sm:mb-8">
-                Discover verified e-commerce stores, read authentic customer reviews, and make informed shopping decisions. 
+                Discover verified e-commerce stores, read authentic customer reviews, and make informed shopping decisions.
                 Join millions of shoppers who trust our platform.
               </p>
             </div>
@@ -551,6 +600,7 @@ export default function HomePage() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   setShowDropdown(false);
+                  setIsInputFocused(false);
                 }}
               >
                 <Input
@@ -559,17 +609,9 @@ export default function HomePage() {
                   placeholder="Search for stores, brands, or categories..."
                   className="w-full h-12 sm:h-14 text-base sm:text-lg pl-4 pr-12 rounded-lg border-2 focus:border-blue-500 shadow-lg"
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => {
-                    if (window.innerWidth < 640) {
-                      setIsSearchModalOpen(true);
-                    } else {
-                      setShowDropdown(true);
-                    }
-                  }}
+                  onChange={handleSearchChange}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
                 />
                 <Button
                   type="submit"
@@ -584,6 +626,10 @@ export default function HomePage() {
                 <div
                   ref={dropdownRef}
                   className="absolute w-full mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto z-50"
+                  onMouseDown={(e) => {
+                    // Prevent blur when clicking on dropdown
+                    e.preventDefault();
+                  }}
                 >
                   {filteredResults.some((result) => result.type === "store") && (
                     <>
@@ -600,7 +646,10 @@ export default function HomePage() {
                               key={storeResult.id}
                               href={`/stores/${storeResult.id}`}
                               className="w-full px-4 py-3 text-left hover:bg-gray-100 text-sm flex items-center justify-between border-b border-gray-100 last:border-b-0"
-                              onClick={() => setShowDropdown(false)}
+                              onClick={() => {
+                                setShowDropdown(false);
+                                setIsInputFocused(false);
+                              }}
                             >
                               <div className="flex items-center">
                                 <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
@@ -643,7 +692,10 @@ export default function HomePage() {
                               key={categoryResult.id}
                               href={`/stores?categoryId=${categoryResult.id}`}
                               className="flex items-center px-4 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
-                              onClick={() => setShowDropdown(false)}
+                              onClick={() => {
+                                setShowDropdown(false);
+                                setIsInputFocused(false);
+                              }}
                             >
                               <Icon className="h-5 w-5 text-gray-600 mr-3" />
                               <div>
@@ -680,6 +732,8 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
+
+
           </div>
         </SectionContainer>
 
@@ -855,9 +909,9 @@ export default function HomePage() {
                     <CheckCircle className="h-5 w-5 text-green-500" />
                   )}
                 </div>
-                
+
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{store.desc}</p>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <div className="flex items-center">
@@ -874,12 +928,12 @@ export default function HomePage() {
                     {store.trustScore}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-gray-500">{store.reviewCount} reviews</span>
                   <span className="text-sm text-gray-500">{store.monthlyVisitors} monthly</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <a
                     href={store.link}
@@ -983,7 +1037,7 @@ export default function HomePage() {
                     HOT
                   </div>
                 )}
-                
+
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center text-green-600 text-lg font-bold mr-3">
@@ -1126,12 +1180,12 @@ export default function HomePage() {
                     <p className="text-sm text-gray-500">{story.location}</p>
                   </div>
                 </div>
-                
+
                 <div className="mb-4">
                   <Quote className="h-5 w-5 text-gray-400 mb-2" />
                   <p className="text-gray-700 italic">"{story.story}"</p>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <ThumbsUp className="h-3 w-3 mr-1" />
@@ -1157,7 +1211,7 @@ export default function HomePage() {
                 All stores undergo verification to ensure legitimacy and trustworthiness before listing.
               </p>
             </div>
-            
+
             <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-100 hover:shadow-lg transition-all duration-300">
               <Award className="h-12 w-12 text-blue-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-blue-800">Authentic Reviews</h3>
@@ -1165,7 +1219,7 @@ export default function HomePage() {
                 Only verified customers can leave reviews, ensuring authentic and helpful feedback.
               </p>
             </div>
-            
+
             <div className="text-center p-6 bg-red-50 rounded-xl border border-red-100 hover:shadow-lg transition-all duration-300">
               <AlertTriangle className="h-12 w-12 text-red-600 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2 text-red-800">Fraud Protection</h3>
@@ -1268,7 +1322,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t pt-6 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600">
             <div className="flex items-center gap-6 mb-4 sm:mb-0">
               <Link href="/privacy" className="hover:text-blue-600">Privacy Policy</Link>
