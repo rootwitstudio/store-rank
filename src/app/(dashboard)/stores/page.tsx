@@ -2,17 +2,17 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { 
-  Store, 
-  Filter, 
-  ArrowUpDown, 
-  Search, 
-  Star, 
-  MapPin, 
-  ExternalLink, 
-  Shield, 
-  CheckCircle, 
-  Users, 
+import {
+  Store as StoreIcon,
+  Filter,
+  ArrowUpDown,
+  Search,
+  Star,
+  MapPin,
+  ExternalLink,
+  Shield,
+  CheckCircle,
+  Users,
   TrendingUp,
   Grid3X3,
   List,
@@ -20,7 +20,9 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Globe
+  Globe,
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,241 +35,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data with 10 stores
-const mockStores = [
-  {
-    id: "1",
-    name: "Amazon",
-    desc: "World's largest online marketplace with millions of products and fast delivery worldwide.",
-    tags: ["Free Shipping", "Prime Delivery", "Easy Returns"],
-    categoryId: "111f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "E-commerce",
-    logo: null,
-    rating: 4.2,
-    totalRating: 125847,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.amazon.com",
-    responseTime: "< 1 hour"
-  },
-  {
-    id: "2",
-    name: "eBay",
-    desc: "Global online marketplace connecting millions of buyers and sellers around the world.",
-    tags: ["Auction Style", "Buy It Now", "Global Shipping"],
-    categoryId: "111f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Marketplace",
-    logo: null,
-    rating: 3.8,
-    totalRating: 89234,
-    verified: true,
-    claimed: false,
-    country: "United States",
-    link: "https://www.ebay.com",
-    responseTime: "2-4 hours"
-  },
-  {
-    id: "3",
-    name: "Flipkart",
-    desc: "India's leading e-commerce marketplace offering electronics, fashion, and more.",
-    tags: ["Local Delivery", "Cash on Delivery", "Big Billion Days"],
-    categoryId: "222f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "E-commerce",
-    logo: null,
-    rating: 4.1,
-    totalRating: 67890,
-    verified: true,
-    claimed: true,
-    country: "India",
-    link: "https://www.flipkart.com",
-    responseTime: "< 2 hours"
-  },
-  {
-    id: "4",
-    name: "Zalando",
-    desc: "Europe's leading online fashion platform with over 4,000 brands and free returns.",
-    tags: ["Fashion", "Free Returns", "Premium Brands"],
-    categoryId: "333f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Fashion",
-    logo: null,
-    rating: 4.0,
-    totalRating: 45678,
-    verified: false,
-    claimed: true,
-    country: "Germany",
-    link: "https://www.zalando.com",
-    responseTime: "1-3 hours"
-  },
-  {
-    id: "5",
-    name: "Shopify",
-    desc: "Leading e-commerce platform helping businesses of all sizes sell online and in-person.",
-    tags: ["E-commerce Platform", "Small Business", "Enterprise"],
-    categoryId: "444f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Technology",
-    logo: null,
-    rating: 4.4,
-    totalRating: 34567,
-    verified: true,
-    claimed: true,
-    country: "Canada",
-    link: "https://www.shopify.com",
-    responseTime: "< 30 min"
-  },
-  {
-    id: "6",
-    name: "Etsy",
-    desc: "Global marketplace for unique and creative goods made by independent sellers.",
-    tags: ["Handmade", "Vintage", "Creative"],
-    categoryId: "555f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Marketplace",
-    logo: null,
-    rating: 3.9,
-    totalRating: 78901,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.etsy.com",
-    responseTime: "2-6 hours"
-  },
-  {
-    id: "7",
-    name: "Best Buy",
-    desc: "Leading electronics retailer with expert advice and competitive prices.",
-    tags: ["Electronics", "Expert Support", "Price Match"],
-    categoryId: "666f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Electronics",
-    logo: null,
-    rating: 4.3,
-    totalRating: 92341,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.bestbuy.com",
-    responseTime: "< 1 hour"
-  },
-  {
-    id: "8",
-    name: "Target",
-    desc: "American retail corporation offering everything from groceries to home goods.",
-    tags: ["Everyday Essentials", "Same Day Delivery", "RedCard Benefits"],
-    categoryId: "777f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Retail",
-    logo: null,
-    rating: 4.1,
-    totalRating: 156789,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.target.com",
-    responseTime: "1-2 hours"
-  },
-  {
-    id: "9",
-    name: "Walmart",
-    desc: "World's largest retailer offering low prices on millions of products.",
-    tags: ["Low Prices", "Grocery Pickup", "Everyday Low Price"],
-    categoryId: "888f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Retail",
-    logo: null,
-    rating: 3.7,
-    totalRating: 234567,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.walmart.com",
-    responseTime: "2-4 hours"
-  },
-  {
-    id: "10",
-    name: "Nike",
-    desc: "Global leader in athletic footwear, apparel, equipment and accessories.",
-    tags: ["Athletic Wear", "Innovation", "Premium Quality"],
-    categoryId: "999f70a8-f143-4b04-bbf3-309d3abc3184",
-    category: "Sports",
-    logo: null,
-    rating: 4.2,
-    totalRating: 87654,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    link: "https://www.nike.com",
-    responseTime: "< 2 hours"
-  }
-];
-
-const allTags = [
-  "Free Shipping",
-  "Easy Returns", 
-  "Prime Delivery",
-  "Cash on Delivery",
-  "Global Shipping",
-  "Local Delivery",
-  "Premium Brands",
-  "Handmade",
-  "Vintage",
-  "Quality",
-  "Service",
-  "Value"
-];
-
-const countries = [
-  "United States",
-  "United Kingdom", 
-  "India",
-  "Germany",
-  "Canada",
-  "Australia",
-  "Sweden",
-  "Spain"
-];
-
-const categories = [
-  "E-commerce",
-  "Marketplace", 
-  "Fashion",
-  "Technology",
-  "Electronics",
-  "Home & Garden",
-  "Sports",
-  "Retail"
-];
+import { useStoresList } from "@/stores/storeDetailsStore";
+import Link from "next/link";
 
 function getDomain(url: string) {
   try {
-    const domain = new URL(url).hostname;
-    return domain.replace('www.', '');
+    const parsed = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return parsed.hostname.replace('www.', '');
   } catch {
     return url;
   }
 }
 
+function ensureHttps(url: string) {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `https://${url}`;
+}
+
 function StarRating({ rating, totalRating }: { rating: number; totalRating: number }) {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  
   return (
     <div className="flex items-center gap-2">
       <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
+        {[1, 2, 3, 4, 5].map((star) => (
           <Star
-            key={i}
+            key={star}
             className={`w-4 h-4 ${
-              i < fullStars 
-                ? "text-yellow-400 fill-yellow-400" 
-                : i === fullStars && hasHalfStar
-                ? "text-yellow-400 fill-yellow-400"
-                : "text-gray-300"
+              star <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
             }`}
           />
         ))}
       </div>
-      <div className="flex items-center gap-1 text-sm">
-        <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
-        <span className="text-gray-500">({totalRating.toLocaleString()})</span>
-      </div>
+      <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+      <span className="text-sm text-gray-500">({totalRating.toLocaleString()})</span>
     </div>
   );
 }
@@ -275,88 +77,80 @@ function StarRating({ rating, totalRating }: { rating: number; totalRating: numb
 function StoreCard({ store, viewMode }: { store: any; viewMode: 'grid' | 'list' }) {
   if (viewMode === 'list') {
     return (
-      <Card className="hover:shadow-md transition-all duration-200 border border-gray-200">
+      <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200">
         <CardContent className="p-6">
-          <div className="flex items-start gap-6">
-            {/* Logo and Basic Info */}
-            <div className="flex items-start gap-4 flex-1 min-w-0">
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center flex-shrink-0 border">
-                <span className="text-xl font-bold text-gray-600">{store.name.charAt(0)}</span>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900 truncate">{store.name}</h3>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        {store.verified && (
-                          <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                            <Shield className="w-3 h-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
-                        {store.claimed && (
-                          <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Claimed
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a 
-                          href={store.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm hover:underline"
-                        >
-                          {getDomain(store.link)}
-                        </a>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <MapPin className="w-4 h-4" />
-                        {store.country}
-                      </div>
-                      <Badge variant="outline" className="text-xs">{store.category}</Badge>
-                    </div>
-                    
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{store.desc}</p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {store.tags.slice(0, 3).map((tag: string) => (
-                        <Badge key={tag} variant="outline" className="text-xs bg-gray-50">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex-shrink-0">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl flex items-center justify-center">
+                {store.logo ? (
+                  <img
+                    src={store.logo}
+                    alt={`${store.name} logo`}
+                    className="w-16 h-16 object-contain rounded-lg"
+                  />
+                ) : (
+                  <span className="text-xl font-bold text-blue-600">
+                    {store.name.charAt(0)}
+                  </span>
+                )}
               </div>
             </div>
-            
-            {/* Rating and Actions */}
-            <div className="flex flex-col items-end gap-4 flex-shrink-0">
-              <div className="text-right">
-                <div className="text-xs text-gray-500 mb-2">Customer Rating</div>
-                <StarRating rating={store.rating} totalRating={store.totalRating} />
-              </div>
-              
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" asChild>
-                  <a href={store.link} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Visit Store
-                  </a>
-                </Button>
-                <Button size="sm" asChild>
-                  <a href={`/stores/${store.id}`}>
-                    View Reviews
-                  </a>
-                </Button>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl font-bold text-gray-900 truncate">
+                        {store.name}
+                      </h3>
+                      {store.verified && (
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      )}
+                      {store.claimed && (
+                        <Shield className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 mb-3 line-clamp-2">{store.description}</p>
+
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {store.tags.slice(0, 3).map((tag: string) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {store.tags.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{store.tags.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <StarRating rating={store.rating} totalRating={store.totalRatings} />
+                </div>
+
+                <div className="flex flex-col sm:items-end gap-3">
+                                     <div className="flex items-center text-sm text-gray-500">
+                     <MapPin className="w-4 h-4 mr-1" />
+                     {store.country || 'Unknown'}
+                   </div>
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Link href={`/stores/${store.id}`}>
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                        View Details
+                      </Button>
+                    </Link>
+                                         <Button asChild size="sm" className="w-full sm:w-auto">
+                       <a href={ensureHttps(store.website)} target="_blank" rel="noopener noreferrer">
+                         <ExternalLink className="w-4 h-4 mr-1" />
+                         Visit Site
+                       </a>
+                     </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -366,97 +160,89 @@ function StoreCard({ store, viewMode }: { store: any; viewMode: 'grid' | 'list' 
   }
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200 border border-gray-200 h-full">
-      <CardContent className="p-5 h-full flex flex-col">
-        {/* Header with Logo and Badges */}
-        <div className="flex items-start gap-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 border">
-            <span className="text-lg font-bold text-gray-600">{store.name.charAt(0)}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 mb-2 truncate text-lg">{store.name}</h3>
-            <div className="flex items-center gap-2 mb-2">
-              {store.verified && (
-                <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                  <Shield className="w-3 h-3 mr-1" />
-                  Verified
-                </Badge>
+    <Card className="hover:shadow-lg transition-all duration-300 border border-gray-200 h-full">
+      <CardContent className="p-6 h-full flex flex-col">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              {store.logo ? (
+                <img
+                  src={store.logo}
+                  alt={`${store.name} logo`}
+                  className="w-10 h-10 object-contain rounded"
+                />
+              ) : (
+                <span className="text-lg font-bold text-blue-600">
+                  {store.name.charAt(0)}
+                </span>
               )}
-              {store.claimed && (
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Claimed
-                </Badge>
-              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-bold text-gray-900 truncate">{store.name}</h3>
+              <div className="flex items-center gap-1 mt-1">
+                {store.verified && (
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                )}
+                {store.claimed && (
+                  <Shield className="w-4 h-4 text-blue-500" />
+                )}
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Website and Location */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-gray-500 flex-shrink-0" />
-            <a 
-              href={store.link} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-800 font-medium text-sm hover:underline truncate"
-            >
-              {getDomain(store.link)}
-            </a>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gray-500 flex-shrink-0" />
-            <span className="text-sm text-gray-600">{store.country}</span>
-            <Badge variant="outline" className="text-xs ml-auto">{store.category}</Badge>
-          </div>
-        </div>
-        
-        {/* Description */}
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">{store.desc}</p>
-        
-        {/* Tags */}
+
+        <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
+          {store.description}
+        </p>
+
         <div className="flex flex-wrap gap-1 mb-4">
           {store.tags.slice(0, 2).map((tag: string) => (
-            <Badge key={tag} variant="outline" className="text-xs bg-gray-50">
+            <Badge key={tag} variant="outline" className="text-xs">
               {tag}
             </Badge>
           ))}
+          {store.tags.length > 2 && (
+            <Badge variant="outline" className="text-xs">
+              +{store.tags.length - 2}
+            </Badge>
+          )}
         </div>
-        
-        {/* Rating */}
-        <div className="mb-4">
-          <div className="text-xs text-gray-500 mb-2">Customer Rating</div>
-          <StarRating rating={store.rating} totalRating={store.totalRating} />
-        </div>
-        
-        {/* Actions */}
-        <div className="flex gap-2 mt-auto">
-          <Button variant="outline" size="sm" className="flex-1" asChild>
-            <a href={store.link} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-4 h-4 mr-1" />
-              Visit
-            </a>
-          </Button>
-          <Button size="sm" className="flex-1" asChild>
-            <a href={`/stores/${store.id}`}>
-              Reviews
-            </a>
-          </Button>
+
+        <div className="space-y-3 mt-auto">
+          <StarRating rating={store.rating} totalRating={store.totalRatings} />
+
+                     <div className="flex items-center text-sm text-gray-500">
+             <MapPin className="w-4 h-4 mr-1" />
+             {store.country || 'Unknown'}
+           </div>
+
+          <div className="flex gap-2">
+            <Link href={`/stores/${store.id}`} className="flex-1">
+              <Button variant="outline" size="sm" className="w-full text-xs">
+                Details
+              </Button>
+            </Link>
+                         <Button asChild size="sm" className="flex-1 text-xs">
+               <a href={ensureHttps(store.website)} target="_blank" rel="noopener noreferrer">
+                 Visit
+                 <ExternalLink className="w-3 h-3 ml-1" />
+               </a>
+             </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function Pagination({ 
-  currentPage, 
-  totalPages, 
-  onPageChange 
-}: { 
-  currentPage: number; 
-  totalPages: number; 
-  onPageChange: (page: number) => void; 
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }) {
   const getVisiblePages = () => {
     const delta = 2;
@@ -494,28 +280,21 @@ function Pagination({
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
       >
-        <ChevronLeft className="w-4 h-4 mr-1" />
-        Previous
+        <ChevronLeft className="w-4 h-4" />
       </Button>
 
-      <div className="flex items-center gap-1">
-        {getVisiblePages().map((page, index) => (
-          <div key={index}>
-            {page === '...' ? (
-              <span className="px-3 py-2 text-gray-500">...</span>
-            ) : (
-              <Button
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => onPageChange(page as number)}
-                className="w-10 h-10"
-              >
-                {page}
-              </Button>
-            )}
-          </div>
-        ))}
-      </div>
+      {getVisiblePages().map((page, index) => (
+        <Button
+          key={index}
+          variant={page === currentPage ? "default" : "outline"}
+          size="sm"
+          onClick={() => typeof page === 'number' && onPageChange(page)}
+          disabled={typeof page !== 'number'}
+          className="min-w-[40px]"
+        >
+          {page}
+        </Button>
+      ))}
 
       <Button
         variant="outline"
@@ -523,8 +302,7 @@ function Pagination({
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
       >
-        Next
-        <ChevronRight className="w-4 h-4 ml-1" />
+        <ChevronRight className="w-4 h-4" />
       </Button>
     </div>
   );
@@ -534,10 +312,9 @@ export default function StoresPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryId = searchParams.get("categoryId");
-  
-  const [stores, setStores] = useState(mockStores);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { storesList, fetchStoresByCategory } = useStoresList();
+  const { data: stores, loading, error } = storesList;
   const [categoryName, setCategoryName] = useState("All Categories");
 
   // Filter states
@@ -546,7 +323,6 @@ export default function StoresPage() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [claimedOnly, setClaimedOnly] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"rating" | "name" | "reviews">("rating");
   const [search, setSearch] = useState("");
@@ -557,25 +333,11 @@ export default function StoresPage() {
   const itemsPerPage = 9;
 
   useEffect(() => {
-    setLoading(true);
-    try {
-      const filteredStores = categoryId
-        ? mockStores.filter((store) => store.categoryId === categoryId)
-        : mockStores;
-      setStores(mockStores);
-
-      if (categoryId && filteredStores.length > 0) {
-        setCategoryName(filteredStores[0].category);
-      } else if (!categoryId) {
-        setCategoryName("All Categories");
-      }
-    } catch (error) {
-      console.error("Error filtering stores:", error);
-      setError("Failed to load stores. Please try again later.");
-    } finally {
-      setLoading(false);
+    if (categoryId) {
+      fetchStoresByCategory(categoryId);
+      setCategoryName("Category Stores"); // We can update this when we have category details
     }
-  }, [categoryId]);
+  }, [categoryId, fetchStoresByCategory]);
 
   // Apply filters
   let filteredStores = stores.filter(
@@ -583,13 +345,12 @@ export default function StoresPage() {
       s.rating >= minRating &&
       (!verifiedOnly || s.verified) &&
       (!claimedOnly || s.claimed) &&
-      (selectedCountry === "all" || s.country === selectedCountry) &&
-      (selectedCategory === "all" || s.category === selectedCategory) &&
+      (selectedCountry === "all" || (s.country && s.country === selectedCountry)) &&
       (selectedTags.length === 0 ||
         selectedTags.every((tag) => s.tags.includes(tag))) &&
       (search === "" ||
         s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.desc.toLowerCase().includes(search.toLowerCase()) ||
+        s.description.toLowerCase().includes(search.toLowerCase()) ||
         s.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase())))
   );
 
@@ -599,7 +360,7 @@ export default function StoresPage() {
   } else if (sortBy === "name") {
     filteredStores = filteredStores.sort((a, b) => a.name.localeCompare(b.name));
   } else if (sortBy === "reviews") {
-    filteredStores = filteredStores.sort((a, b) => b.totalRating - a.totalRating);
+    filteredStores = filteredStores.sort((a, b) => b.totalRatings - a.totalRatings);
   }
 
   // Pagination logic
@@ -611,7 +372,13 @@ export default function StoresPage() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [minRating, verifiedOnly, claimedOnly, selectedCountry, selectedCategory, selectedTags, search, sortBy]);
+  }, [minRating, verifiedOnly, claimedOnly, selectedCountry, selectedTags, search, sortBy]);
+
+  // Get unique countries from stores
+  const countries = Array.from(new Set(stores.map(store => store.country).filter((country): country is string => Boolean(country))));
+
+  // Get unique tags from stores
+  const allTags = Array.from(new Set(stores.flatMap(store => store.tags)));
 
   if (loading) {
     return (
@@ -619,7 +386,7 @@ export default function StoresPage() {
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
               <p className="text-gray-600">Loading stores...</p>
             </div>
           </div>
@@ -632,8 +399,34 @@ export default function StoresPage() {
     return (
       <div className="bg-gray-50 min-h-screen flex flex-col">
         <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="text-center">
-            <p className="text-red-500 text-lg">{error}</p>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Stores</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={() => categoryId && fetchStoresByCategory(categoryId)}>
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!categoryId) {
+    return (
+      <div className="bg-gray-50 min-h-screen flex flex-col">
+        <main className="flex-1 container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <StoreIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">No Category Selected</h2>
+              <p className="text-gray-600 mb-4">Please select a category to view stores.</p>
+              <Button onClick={() => router.push('/')}>
+                Go to Homepage
+              </Button>
+            </div>
           </div>
         </main>
       </div>
@@ -652,7 +445,7 @@ export default function StoresPage() {
             <p className="text-lg text-gray-600 mb-6">
               Find reliable businesses with verified reviews and ratings from real customers
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto relative">
               <Input
@@ -678,7 +471,7 @@ export default function StoresPage() {
                   <SlidersHorizontal className="w-5 h-5" />
                   Filters
                 </h3>
-                
+
                 {/* Rating Filter */}
                 <div className="mb-6">
                   <h4 className="font-medium mb-3">Minimum Rating</h4>
@@ -698,353 +491,190 @@ export default function StoresPage() {
                 </div>
 
                 {/* Country Filter */}
-                <div className="mb-6">
-                  <h4 className="font-medium mb-3">Country</h4>
-                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Countries" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Countries</SelectItem>
-                      {countries.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {countries.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-medium mb-3">Country</h4>
+                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Countries" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Countries</SelectItem>
+                        {countries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-                {/* Category Filter */}
+                {/* Verification Filters */}
                 <div className="mb-6">
-                  <h4 className="font-medium mb-3">Category</h4>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Status Filters */}
-                <div className="mb-6">
-                  <h4 className="font-medium mb-3">Status</h4>
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3 cursor-pointer">
+                  <h4 className="font-medium mb-3">Verification</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
+                        id="verified"
                         checked={verifiedOnly}
                         onChange={(e) => setVerifiedOnly(e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-gray-300"
                       />
-                      <span className="text-sm font-medium">Verified stores only</span>
-                    </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
+                      <label htmlFor="verified" className="text-sm">Verified Only</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
+                        id="claimed"
                         checked={claimedOnly}
                         onChange={(e) => setClaimedOnly(e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-gray-300"
                       />
-                      <span className="text-sm font-medium">Claimed profiles only</span>
-                    </label>
+                      <label htmlFor="claimed" className="text-sm">Claimed Only</label>
+                    </div>
                   </div>
                 </div>
 
                 {/* Tags Filter */}
-                <div className="mb-6">
-                  <h4 className="font-medium mb-3">Features</h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {allTags.map((tag) => (
-                      <label key={tag} className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedTags.includes(tag)}
-                          onChange={(e) =>
-                            setSelectedTags(
-                              e.target.checked
-                                ? [...selectedTags, tag]
-                                : selectedTags.filter((t) => t !== tag)
-                            )
-                          }
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm">{tag}</span>
-                      </label>
-                    ))}
+                {allTags.length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="font-medium mb-3">Tags</h4>
+                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                      {allTags.slice(0, 10).map((tag) => (
+                        <Button
+                          key={tag}
+                          variant={selectedTags.includes(tag) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTags(prev =>
+                              prev.includes(tag)
+                                ? prev.filter(t => t !== tag)
+                                : [...prev, tag]
+                            );
+                          }}
+                          className="text-xs"
+                        >
+                          {tag}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                {/* Clear Filters */}
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setMinRating(0);
-                    setVerifiedOnly(false);
-                    setClaimedOnly(false);
-                    setSelectedCountry("all");
-                    setSelectedCategory("all");
-                    setSelectedTags([]);
-                    setSearch("");
-                  }}
-                >
-                  Clear All Filters
-                </Button>
+                )}
               </CardContent>
             </Card>
           </div>
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Mobile Filter Button & Controls */}
+            {/* Mobile Filters Toggle */}
             <div className="lg:hidden mb-6">
-              <div className="flex gap-3 mb-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowFilters(true)}
-                  className="flex-1"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
-                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rating">Rating</SelectItem>
-                    <SelectItem value="reviews">Most Reviews</SelectItem>
-                    <SelectItem value="name">Name</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="w-full"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters & Sort
+              </Button>
             </div>
 
             {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div>
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {filteredStores.length} stores found
-                  {currentPage > 1 && (
-                    <span className="text-sm font-normal text-gray-500 ml-2">
-                      (Page {currentPage} of {totalPages})
-                    </span>
-                  )}
+                  {filteredStores.length} Store{filteredStores.length !== 1 ? 's' : ''} Found
                 </h2>
-                <div className="hidden lg:flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Sort by:</span>
-                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rating">Rating</SelectItem>
-                      <SelectItem value="reviews">Most Reviews</SelectItem>
-                      <SelectItem value="name">Name</SelectItem>
-                    </SelectContent>
-                  </Select>
+                {search && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Searching for "{search}"
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Sort */}
+                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="rating">Sort by Rating</SelectItem>
+                    <SelectItem value="name">Sort by Name</SelectItem>
+                    <SelectItem value="reviews">Sort by Reviews</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* View Toggle */}
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="h-8 w-8 p-0"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
 
-            {/* Store Grid/List */}
-            <div className={
-              viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
-                : "space-y-4"
-            }>
-              {paginatedStores.map((store) => (
-                <StoreCard key={store.id} store={store} viewMode={viewMode} />
-              ))}
-            </div>
-
-            {/* No Results */}
-            {filteredStores.length === 0 && (
+            {/* Stores Grid/List */}
+            {paginatedStores.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-8 h-8 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No stores found</h3>
-                <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
+                <StoreIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Stores Found</h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filters or search terms
+                </p>
                 <Button
                   variant="outline"
                   onClick={() => {
+                    setSearch("");
                     setMinRating(0);
                     setVerifiedOnly(false);
                     setClaimedOnly(false);
                     setSelectedCountry("all");
-                    setSelectedCategory("all");
                     setSelectedTags([]);
-                    setSearch("");
                   }}
                 >
-                  Clear all filters
+                  Clear Filters
                 </Button>
               </div>
-            )}
+            ) : (
+              <>
+                <div className={
+                  viewMode === 'grid'
+                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                    : "space-y-6"
+                }>
+                  {paginatedStores.map((store) => (
+                    <StoreCard
+                      key={store.id}
+                      store={store}
+                      viewMode={viewMode}
+                    />
+                  ))}
+                </div>
 
-            {/* Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
+            )}
           </div>
         </div>
-
-        {/* Mobile Filter Modal */}
-        {showFilters && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden">
-            <div className="bg-white h-full w-full max-w-sm ml-auto p-6 overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold">Filters</h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFilters(false)}
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-              
-              {/* Mobile filter content - same as desktop */}
-              <div className="space-y-6">
-                {/* Rating Filter */}
-                <div>
-                  <h4 className="font-medium mb-3">Minimum Rating</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[0, 3, 4, 4.5].map((rating) => (
-                      <Button
-                        key={rating}
-                        variant={minRating === rating ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setMinRating(rating)}
-                      >
-                        {rating === 0 ? "Any" : `${rating}+ ⭐`}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Country Filter */}
-                <div>
-                  <h4 className="font-medium mb-3">Country</h4>
-                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Countries" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Countries</SelectItem>
-                      {countries.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Status Filters */}
-                <div>
-                  <h4 className="font-medium mb-3">Status</h4>
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={verifiedOnly}
-                        onChange={(e) => setVerifiedOnly(e.target.checked)}
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm">Verified stores only</span>
-                    </label>
-                    <label className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={claimedOnly}
-                        onChange={(e) => setClaimedOnly(e.target.checked)}
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm">Claimed profiles only</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Tags Filter */}
-                <div>
-                  <h4 className="font-medium mb-3">Features</h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {allTags.map((tag) => (
-                      <label key={tag} className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={selectedTags.includes(tag)}
-                          onChange={(e) =>
-                            setSelectedTags(
-                              e.target.checked
-                                ? [...selectedTags, tag]
-                                : selectedTags.filter((t) => t !== tag)
-                            )
-                          }
-                          className="rounded border-gray-300"
-                        />
-                        <span className="text-sm">{tag}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setMinRating(0);
-                    setVerifiedOnly(false);
-                    setClaimedOnly(false);
-                    setSelectedCountry("all");
-                    setSelectedCategory("all");
-                    setSelectedTags([]);
-                    setSearch("");
-                  }}
-                >
-                  Clear All Filters
-                </Button>
-                <Button
-                  className="w-full"
-                  onClick={() => setShowFilters(false)}
-                >
-                  Apply Filters
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

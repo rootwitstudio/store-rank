@@ -22,6 +22,16 @@ export const storeApi = {
     return response.data;
   },
 
+  getByCategory: async (categoryId: string) => {
+    try {
+      const response = await api.get(`/stores/category/${categoryId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error in getByCategory stores:", error);
+      throw error;
+    }
+  },
+
   create: async (data: any) => {
     const response = await api.post("/stores", data);
     return response.data;

@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import {
   ArrowLeft,
   Store as StoreIcon,
   TrendingUp,
@@ -40,9 +40,17 @@ import { StoreSidebar } from "@/components/store-detail/StoreSidebar";
 import { useStoreDetails } from "@/stores/storeDetailsStore";
 import Link from "next/link";
 
+function ensureHttps(url: string) {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `https://${url}`;
+}
+
 function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
   const starSize = size === "sm" ? "w-4 h-4" : "w-5 h-5";
-  
+
   return (
     <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
@@ -66,7 +74,8 @@ export default function StoreDetailPage({
   const [reviewFilter, setReviewFilter] = useState("all");
   const [reviewSort, setReviewSort] = useState("newest");
   const [showWriteReview, setShowWriteReview] = useState(false);
-  const { store, loading, error, fetchStore } = useStoreDetails();
+  const { storeDetails, fetchStore } = useStoreDetails();
+  const { data: store, loading, error } = storeDetails;
 
   useEffect(() => {
     if (storeId) {
@@ -77,7 +86,7 @@ export default function StoreDetailPage({
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-      
+
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -93,7 +102,7 @@ export default function StoreDetailPage({
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
-      
+
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -134,13 +143,13 @@ export default function StoreDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-    
-      
+
+
       <main className="container mx-auto px-4 py-6">
         {/* Back Button */}
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => router.back()}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
@@ -155,8 +164,8 @@ export default function StoreDetailPage({
             <div className="flex-shrink-0">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
                 {store.logo ? (
-                  <img 
-                    src={store.logo} 
+                  <img
+                    src={store.logo}
                     alt={`${store.name} logo`}
                     className="w-16 h-16 object-contain rounded-lg"
                   />
@@ -167,7 +176,7 @@ export default function StoreDetailPage({
                 )}
               </div>
             </div>
-            
+
             <div className="flex-1">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                 <div>
@@ -189,7 +198,7 @@ export default function StoreDetailPage({
                     )}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <div className="flex items-center gap-2">
@@ -204,13 +213,13 @@ export default function StoreDetailPage({
                   </div>
                 </div>
               </div>
-              
+
               {store.description && (
                 <p className="text-gray-600 mb-4 leading-relaxed">
                   {store.description}
                 </p>
               )}
-              
+
               <div className="flex flex-wrap gap-2 mb-4">
                 {store.tags.map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs">
@@ -218,12 +227,12 @@ export default function StoreDetailPage({
                   </Badge>
                 ))}
               </div>
-              
+
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                 {store.website && (
-                  <a 
-                    href={store.website} 
-                    target="_blank" 
+                  <a
+                    href={store.website}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 hover:text-blue-600"
                   >
@@ -355,7 +364,7 @@ export default function StoreDetailPage({
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {store.storeCategories.map((category, index) => (
+                        {store?.storeCategories?.map((category, index) => (
                           <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                             {category.name || category}
                           </Badge>
@@ -385,8 +394,8 @@ export default function StoreDetailPage({
                       {store.website && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">Website</label>
-                          <a 
-                            href={store.website}
+                          <a
+                            href={ensureHttps(store.website)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
@@ -496,8 +505,8 @@ export default function StoreDetailPage({
                         <Globe className="w-5 h-5 text-gray-500" />
                         <div>
                           <label className="text-sm font-medium text-gray-500">Website</label>
-                          <a 
-                            href={store.website}
+                          <a
+                            href={ensureHttps(store.website)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
@@ -539,11 +548,11 @@ export default function StoreDetailPage({
               </CardHeader>
               <CardContent className="space-y-3">
                 {store.website && (
-                  <Button 
-                    asChild 
+                  <Button
+                    asChild
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    <a href={store.website} target="_blank" rel="noopener noreferrer">
+                    <a href={ensureHttps(store.website)} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Visit Website
                     </a>
