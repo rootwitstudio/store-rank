@@ -75,8 +75,49 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         return; // Query changed, ignore this response
       }
       
+      // Handle different response formats
+      let responseData: any[] = [];
+      
+      if (Array.isArray(response)) {
+        responseData = response;
+      } else if (response && typeof response === 'object') {
+        // Handle the specific API response format with categories, stores, customCategories
+        if (response.categories || response.stores || response.customCategories) {
+          const categories = (response.categories || []).map((item: any) => ({
+            ...item,
+            type: 'category'
+          }));
+          
+          const stores = (response.stores || []).map((item: any) => ({
+            ...item,
+            type: 'store'
+          }));
+          
+          const customCategories = (response.customCategories || []).map((item: any) => ({
+            ...item,
+            type: 'category'
+          }));
+          
+          responseData = [...categories, ...customCategories, ...stores];
+        }
+        // Try common response formats as fallback
+        else if (Array.isArray(response.data)) {
+          responseData = response.data;
+        } else if (Array.isArray(response.results)) {
+          responseData = response.results;
+        } else if (Array.isArray(response.items)) {
+          responseData = response.items;
+        } else {
+          console.warn('Unexpected response format:', response);
+          responseData = [];
+        }
+      } else {
+        console.warn('Unexpected response format:', response);
+        responseData = [];
+      }
+      
       // Transform API response to match our SearchResult type
-      const transformedResults: SearchResult[] = (response || []).map((item: any) => ({
+      const transformedResults: SearchResult[] = responseData.map((item: any) => ({
         id: item.id,
         type: item.type || 'store',
         name: item.name,

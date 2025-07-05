@@ -132,11 +132,21 @@ export const searchApi = {
       queryParams.append('storeOnly', params.storeOnly ? '1' : '0');
       queryParams.append('customCategoryOnly', params.customCategoryOnly ? 'yes' : 'no');
       
+      console.log('Search API request:', `/search?${queryParams.toString()}`);
+      
       const response = await api.get(`/search?${queryParams.toString()}`);
+      
+      console.log('Search API response:', response.data);
+      
       return response.data;
     } catch (error) {
       console.error("Error in search:", error);
-      throw error;
+      
+      // Return empty array on error to avoid .map errors
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error('Search failed');
     }
   },
 };

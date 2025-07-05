@@ -3,10 +3,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Shirt, Monitor, Utensils, Sofa, BookOpen, Heart, ArrowRight, Search, Store, Sparkles, Dumbbell, Gamepad2, Car, X, Shield, Star, TrendingUp, Users, CheckCircle, AlertTriangle, Award, Globe, Clock, MessageSquare, Zap, Target, BarChart3, ThumbsUp, Eye, Filter, Plus, Calendar, Activity, Quote, UserCheck, ShoppingBag, Verified, Flag, RefreshCw, ExternalLink, MapPin, ChevronDown, Flame, TrendingDown } from "lucide-react";
+import { Shirt, Monitor, Utensils, Sofa, BookOpen, Heart, ArrowRight, Search, Store, Sparkles, Dumbbell, Gamepad2, Car, X, Shield, Star, TrendingUp, Users, CheckCircle, AlertTriangle, Award, Globe, Clock, MessageSquare, Zap, Target, BarChart3, ThumbsUp, Eye, Filter, Plus, Calendar, Activity, Quote, UserCheck, ShoppingBag, Verified, Flag, RefreshCw, ExternalLink, MapPin, ChevronDown, Flame, TrendingDown, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { categoryApi } from "@/lib/api";
 import { HomeList } from "@/components/HomeList";
+import { useSearch } from "@/stores/searchStore";
 
 // Move all static data outside the component to prevent re-renders
 const featuredStores = [
@@ -360,7 +361,6 @@ interface CategorySearchResult {
 type SearchResult = StoreSearchResult | CategorySearchResult;
 
 export default function HomePage() {
-  const [search, setSearch] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState("India");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -370,27 +370,39 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+
+  // Use search store
+  const { query, results, loading, error, setQuery, search, clearResults } = useSearch();
 
   const locations = ["India", "United States", "United Kingdom", "Canada", "Australia"];
 
   // Create stable event handlers with useCallback
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  }, []);
+    const value = e.target.value;
+    setQuery(value);
+    
+    // Clear results immediately if less than 3 characters
+    if (value.length < 3) {
+      clearResults();
+      return;
+    }
+    
+    // Trigger search after 3 characters
+    search(value);
+  }, [setQuery, search, clearResults]);
 
   const handleSearchFocus = useCallback(() => {
     setIsInputFocused(true);
     if (window.innerWidth < 640) {
       setIsSearchModalOpen(true);
     } else {
-      if (search.length > 0) {
+      if (query.length >= 3) {
         setShowDropdown(true);
       }
     }
-  }, [search]);
+  }, [query]);
 
   const handleSearchBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
     // Only blur if not clicking on dropdown
@@ -423,53 +435,16 @@ export default function HomePage() {
     fetchCategories();
   }, []);
 
-  // Debounce search results to prevent excessive re-renders
+  // Show dropdown when we have a valid query and input is focused
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (search.length === 0) {
-        setFilteredResults([]);
-        return;
-      }
+    if (query.length >= 3 && isInputFocused) {
+      setShowDropdown(true);
+    } else if (query.length < 3) {
+      setShowDropdown(false);
+    }
+  }, [results, query, isInputFocused]);
 
-      const lowerCaseSearch = search.toLowerCase();
-      const results: SearchResult[] = [];
-
-      // Filter Categories
-      categories
-        .filter((category) => !category.parentId)
-        .forEach((category) => {
-          if (category.name.toLowerCase().includes(lowerCaseSearch)) {
-            results.push({
-              type: "category",
-              id: category.id,
-              name: category.name,
-              icon: category.icon || "Store",
-              description: `The best companies in the category '${category.name}'`,
-            });
-          }
-        });
-
-      // Filter Stores
-      featuredStores.forEach((store) => {
-        if (
-          store.name.toLowerCase().includes(lowerCaseSearch) ||
-          store.desc.toLowerCase().includes(lowerCaseSearch)
-        ) {
-          results.push({
-            type: "store",
-            id: store.id,
-            name: store.name,
-            description: store.desc || null,
-          });
-        }
-      });
-
-      setFilteredResults(results);
-    }, 300); // 300ms debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [search, categories]);
-
+  // Handle click outside for search dropdown
   useEffect(() => {
     if (!showDropdown || !isInputFocused) return;
 
@@ -608,7 +583,7 @@ export default function HomePage() {
                   type="text"
                   placeholder="Search for stores, brands, or categories..."
                   className="w-full h-12 sm:h-14 text-base sm:text-lg pl-4 pr-12 rounded-lg border-2 focus:border-blue-500 shadow-lg"
-                  value={search}
+                  value={query}
                   onChange={handleSearchChange}
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
@@ -616,13 +591,18 @@ export default function HomePage() {
                 <Button
                   type="submit"
                   className="absolute right-2 h-8 sm:h-10 w-8 sm:w-10 p-0 bg-blue-600 hover:bg-blue-700"
+                  disabled={loading}
                 >
-                  <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
                 </Button>
               </form>
 
               {/* Search Dropdown */}
-              {showDropdown && filteredResults.length > 0 && !isSearchModalOpen && (
+              {showDropdown && query.length >= 3 && !isSearchModalOpen && (
                 <div
                   ref={dropdownRef}
                   className="absolute w-full mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto z-50"
@@ -631,20 +611,40 @@ export default function HomePage() {
                     e.preventDefault();
                   }}
                 >
-                  {filteredResults.some((result) => result.type === "store") && (
+                  {loading && (
+                    <div className="px-4 py-8 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-blue-600" />
+                      <p className="text-sm text-gray-500">Searching...</p>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="px-4 py-3 text-center text-red-600 text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  {!loading && !error && results.length === 0 && query.length >= 3 && (
+                    <div className="px-4 py-8 text-center">
+                      <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm text-gray-500">No results found for "{query}"</p>
+                      <p className="text-xs text-gray-400 mt-1">Try searching for a different store or category</p>
+                    </div>
+                  )}
+
+                  {!loading && !error && results.length > 0 && (
+                    <>
+                                        {results.some((result) => result.type === "store") && (
                     <>
                       <div className="px-4 py-2 text-xs text-gray-500 font-semibold bg-gray-50">
                         Companies
                       </div>
-                      {filteredResults
+                          {results
                         .filter((result) => result.type === "store")
-                        .map((result) => {
-                          const storeResult = result as StoreSearchResult;
-                          const store = featuredStores.find(s => s.id === storeResult.id);
-                          return (
+                            .map((result) => (
                             <Link
-                              key={storeResult.id}
-                              href={`/stores/${storeResult.id}`}
+                                key={result.id}
+                                href={`/stores/${result.id}`}
                               className="w-full px-4 py-3 text-left hover:bg-gray-100 text-sm flex items-center justify-between border-b border-gray-100 last:border-b-0"
                               onClick={() => {
                                 setShowDropdown(false);
@@ -653,44 +653,44 @@ export default function HomePage() {
                             >
                               <div className="flex items-center">
                                 <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
-                                  {storeResult.name.charAt(0)}
+                                    {result.name.charAt(0)}
                                 </div>
                                 <div>
-                                  <div className="font-medium">{storeResult.name}</div>
-                                  <div className="text-xs text-gray-500">{store?.country}</div>
+                                    <div className="font-medium">{result.name}</div>
+                                    <div className="text-xs text-gray-500">{result.country}</div>
                                 </div>
                               </div>
-                              {store && (
                                 <div className="flex items-center gap-2">
-                                  <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(store.trustScore)}`}>
-                                    {store.trustScore}
+                                  {result.trustScore && (
+                                    <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(result.trustScore)}`}>
+                                      {result.trustScore}
                                   </span>
+                                  )}
+                                  {result.rating && (
                                   <div className="flex items-center">
                                     <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                                    <span className="text-xs ml-1">{store.rating}</span>
-                                  </div>
+                                      <span className="text-xs ml-1">{result.rating}</span>
                                 </div>
                               )}
+                                </div>
                             </Link>
-                          );
-                        })}
+                            ))}
                     </>
                   )}
 
-                  {filteredResults.some((result) => result.type === "category") && (
+                                        {results.some((result) => result.type === "category") && (
                     <>
                       <div className="px-4 py-2 text-xs text-gray-500 font-semibold bg-gray-50">
                         Categories
                       </div>
-                      {filteredResults
+                          {results
                         .filter((result) => result.type === "category")
                         .map((result) => {
-                          const categoryResult = result as CategorySearchResult;
-                          const Icon = iconMap[categoryResult.icon] || Store;
+                              const Icon = iconMap[result.icon || "Store"] || Store;
                           return (
                             <Link
-                              key={categoryResult.id}
-                              href={`/stores?categoryId=${categoryResult.id}`}
+                                  key={result.id}
+                                  href={`/stores?categoryId=${result.id}`}
                               className="flex items-center px-4 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
                               onClick={() => {
                                 setShowDropdown(false);
@@ -699,12 +699,14 @@ export default function HomePage() {
                             >
                               <Icon className="h-5 w-5 text-gray-600 mr-3" />
                               <div>
-                                <div className="text-sm font-medium">{categoryResult.name}</div>
-                                <div className="text-xs text-gray-500">{categoryResult.description}</div>
+                                    <div className="text-sm font-medium">{result.name}</div>
+                                    <div className="text-xs text-gray-500">{result.description}</div>
                               </div>
                             </Link>
                           );
                         })}
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -732,8 +734,6 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
-
-
           </div>
         </SectionContainer>
 
@@ -747,10 +747,16 @@ export default function HomePage() {
                   type="text"
                   placeholder="Search for stores, brands, or categories..."
                   className="w-full h-12 text-base pl-4 pr-10 rounded-lg border focus:border-blue-500"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={query}
+                  onChange={handleSearchChange}
                 />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                  ) : (
+                    <Search className="h-5 w-5 text-gray-400" />
+                  )}
+                </div>
               </div>
               <Button
                 variant="ghost"
@@ -762,66 +768,75 @@ export default function HomePage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              {filteredResults.length > 0 ? (
+              {loading && (
+                <div className="text-center mt-8">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+                  <p className="text-gray-500">Searching...</p>
+                </div>
+              )}
+
+              {error && (
+                <div className="text-center text-red-600 mt-8">
+                  <AlertTriangle className="h-8 w-8 mx-auto mb-4" />
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {!loading && !error && results.length > 0 && (
                 <div className="space-y-1">
-                  {filteredResults.some((result) => result.type === "store") && (
+                  {results.some((result) => result.type === "store") && (
                     <>
                       <div className="px-4 py-2 text-xs text-gray-500 font-semibold">Companies</div>
-                      {filteredResults
+                      {results
                         .filter((result) => result.type === "store")
-                        .map((result) => {
-                          const storeResult = result as StoreSearchResult;
-                          const store = featuredStores.find(s => s.id === storeResult.id);
-                          return (
-                            <Link
-                              key={storeResult.id}
-                              href={`/stores/${storeResult.id}`}
-                              className="block w-full px-4 py-3 text-left hover:bg-gray-100 rounded-lg"
-                              onClick={() => setIsSearchModalOpen(false)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
-                                    {storeResult.name.charAt(0)}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium">{storeResult.name}</div>
-                                    <div className="text-xs text-gray-500">{store?.country}</div>
-                                  </div>
+                        .map((result) => (
+                          <Link
+                            key={result.id}
+                            href={`/stores/${result.id}`}
+                            className="block w-full px-4 py-3 text-left hover:bg-gray-100 rounded-lg"
+                            onClick={() => setIsSearchModalOpen(false)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
+                                  {result.name.charAt(0)}
                                 </div>
-                                {store && (
-                                  <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(store.trustScore)}`}>
-                                      {store.trustScore}
-                                    </span>
-                                  </div>
+                                <div>
+                                  <div className="font-medium">{result.name}</div>
+                                  <div className="text-xs text-gray-500">{result.country}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {result.trustScore && (
+                                  <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(result.trustScore)}`}>
+                                    {result.trustScore}
+                                  </span>
                                 )}
                               </div>
-                            </Link>
-                          );
-                        })}
+                            </div>
+                          </Link>
+                        ))}
                     </>
                   )}
 
-                  {filteredResults.some((result) => result.type === "category") && (
+                  {results.some((result) => result.type === "category") && (
                     <>
                       <div className="px-4 py-2 text-xs text-gray-500 font-semibold">Categories</div>
-                      {filteredResults
+                      {results
                         .filter((result) => result.type === "category")
                         .map((result) => {
-                          const categoryResult = result as CategorySearchResult;
-                          const Icon = iconMap[categoryResult.icon] || Store;
+                          const Icon = iconMap[result.icon || "Store"] || Store;
                           return (
                             <Link
-                              key={categoryResult.id}
-                              href={`/stores?categoryId=${categoryResult.id}`}
+                              key={result.id}
+                              href={`/stores?categoryId=${result.id}`}
                               className="flex items-center px-4 py-3 hover:bg-gray-100 rounded-lg"
                               onClick={() => setIsSearchModalOpen(false)}
                             >
                               <Icon className="h-5 w-5 text-gray-600 mr-3" />
                               <div>
-                                <div className="text-sm font-medium">{categoryResult.name}</div>
-                                <div className="text-xs text-gray-500">{categoryResult.description}</div>
+                                <div className="text-sm font-medium">{result.name}</div>
+                                <div className="text-xs text-gray-500">{result.description}</div>
                               </div>
                             </Link>
                           );
@@ -829,14 +844,14 @@ export default function HomePage() {
                     </>
                   )}
                 </div>
-              ) : (
-                search.length > 0 && !loadingCategories && (
-                  <div className="text-center text-gray-500 mt-8">
-                    <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No results found for "{search}"</p>
-                    <p className="text-sm mt-2">Try searching for a different store or category</p>
-                  </div>
-                )
+              )}
+
+              {!loading && !error && results.length === 0 && query.length >= 3 && (
+                <div className="text-center text-gray-500 mt-8">
+                  <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No results found for "{query}"</p>
+                  <p className="text-sm mt-2">Try searching for a different store or category</p>
+                </div>
               )}
             </div>
           </div>
