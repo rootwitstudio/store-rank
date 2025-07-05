@@ -382,13 +382,13 @@ export default function HomePage() {
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    
+
     // Clear results immediately if less than 3 characters
     if (value.length < 3) {
       clearResults();
       return;
     }
-    
+
     // Trigger search after 3 characters
     search(value);
   }, [setQuery, search, clearResults]);
@@ -519,16 +519,16 @@ export default function HomePage() {
     </section>
   ), []);
 
-  const SectionHeader = useCallback(({ 
-    title, 
-    subtitle, 
-    linkText, 
-    linkHref 
-  }: { 
-    title: string; 
-    subtitle: string; 
-    linkText?: string; 
-    linkHref?: string; 
+  const SectionHeader = useCallback(({
+    title,
+    subtitle,
+    linkText,
+    linkHref
+  }: {
+    title: string;
+    subtitle: string;
+    linkText?: string;
+    linkHref?: string;
   }) => (
     <div className="flex justify-between items-end mb-8 sm:mb-12">
       <div>
