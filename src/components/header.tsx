@@ -20,7 +20,7 @@ export function Header() {
   const [selectedCountry, setSelectedCountry] = useState("IN");
   const { user, logout, accessToken } = useAuth();
   const router = useRouter();
-  
+
   const handleBusinessClick = () => {
     router.push("/business/register");
   };
@@ -166,7 +166,7 @@ export function Header() {
                 </div>
                 Categories
               </Link>
-              
+
               <Link
                 href="/blogs"
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors border-b border-gray-100"
@@ -197,8 +197,8 @@ export function Header() {
 
                     {/* Dashboard Link for Business Users */}
                     {user?.role === "BUSINESS" && (
-                      <Link 
-                        href="/dashboard" 
+                      <Link
+                        href="/dashboard"
                         className="flex items-center gap-3 p-3 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
@@ -221,8 +221,8 @@ export function Header() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Link 
-                      href="/login" 
+                    <Link
+                      href="/login"
                       className="flex items-center justify-center gap-2 w-full p-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >

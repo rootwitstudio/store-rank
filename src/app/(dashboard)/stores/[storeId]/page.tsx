@@ -32,12 +32,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/header";
 import { StoreHeader } from "@/components/store-detail/StoreHeader";
-import { ReviewCard } from "@/components/store-detail/ReviewCard";
+
 import { RatingBreakdown } from "@/components/store-detail/RatingBreakdown";
 import { WriteReviewModal } from "@/components/store-detail/WriteReviewModal";
+import { EditReviewModal } from "@/components/store-detail/EditReviewModal";
 import { MobileNavTabs } from "@/components/store-detail/MobileNavTabs";
 import { StoreSidebar } from "@/components/store-detail/StoreSidebar";
 import { useStoreDetails } from "@/stores/storeDetailsStore";
+import { useReviewStore, type Review } from "@/stores/reviewStore";
 import Link from "next/link";
 
 function ensureHttps(url: string) {
@@ -46,6 +48,119 @@ function ensureHttps(url: string) {
     return url;
   }
   return `https://${url}`;
+}
+
+function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: { 
+  review: Review; 
+  isUserReview?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+      {/* Header with user info and actions */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+            {review.user?.picture ? (
+              <img
+                src={review.user.picture}
+                alt={review.user.name}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-sm font-semibold text-blue-600">
+                {review.user?.name?.charAt(0) || 'U'}
+              </span>
+            )}
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">{review.user?.name || 'Anonymous'}</h4>
+            <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
+          </div>
+        </div>
+
+        {/* Edit/Delete actions for user's own reviews */}
+        {isUserReview && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              className="text-red-600 hover:text-red-700"
+            >
+              Delete
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Rating */}
+      <div className="flex items-center gap-2">
+        <div className="flex">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={`w-4 h-4 ${
+                star <= review.rating
+                  ? 'text-yellow-400 fill-yellow-400'
+                  : 'text-gray-300'
+              }`}
+            />
+          ))}
+        </div>
+        <span className="font-medium text-gray-900">{review.rating}</span>
+        <span className="text-gray-500">•</span>
+        <span className="text-sm text-gray-600">{review.title}</span>
+      </div>
+
+      {/* Review content */}
+      <div className="space-y-3">
+        <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+        
+        {/* Purchase details */}
+        {(review.orderNumber || review.dateOfPurchase) && (
+          <div className="bg-gray-50 rounded-lg p-3 text-sm">
+            <div className="flex flex-wrap gap-4 text-gray-600">
+              {review.orderNumber && (
+                <span>Order #: {review.orderNumber}</span>
+              )}
+              {review.dateOfPurchase && (
+                <span>Purchased: {formatDate(review.dateOfPurchase)}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Attachments */}
+        {review.attachments && review.attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {review.attachments.map((attachment, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                📎 {attachment}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
@@ -74,14 +189,113 @@ export default function StoreDetailPage({
   const [reviewFilter, setReviewFilter] = useState("all");
   const [reviewSort, setReviewSort] = useState("newest");
   const [showWriteReview, setShowWriteReview] = useState(false);
+  const [showEditReview, setShowEditReview] = useState(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  
   const { storeDetails, fetchStore } = useStoreDetails();
   const { data: store, loading, error } = storeDetails;
+  
+  const { 
+    storeReviews, 
+    userReviews,
+    fetchStoreReviews, 
+    fetchUserReviews,
+    removeReview,
+    deleteReview 
+  } = useReviewStore();
+  const { data: reviews, loading: reviewsLoading, error: reviewsError } = storeReviews;
+  const { data: userReviewsData, loading: userReviewsLoading, error: userReviewsError } = userReviews;
+
+  // Extract user ID from JWT token
+  const token = localStorage.getItem('authToken');
+  let currentUserId = "d9c9e39d-b50d-40be-9974-880bb2fe8c57"; // fallback
+  
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log('JWT Token Payload:', payload);
+      currentUserId = payload.id; // Use actual user ID from token
+      console.log('User ID from JWT:', payload.id);
+    } catch (error) {
+      console.error('Error decoding JWT:', error);
+    }
+  }
 
   useEffect(() => {
     if (storeId) {
       fetchStore(storeId);
+      fetchStoreReviews(storeId);
+      
+      // Fetch user reviews with token
+      const token = localStorage.getItem('authToken');
+      if (token && currentUserId) {
+        fetchUserReviews(currentUserId, token);
+      }
     }
-  }, [storeId, fetchStore]);
+  }, [storeId, fetchStore, fetchStoreReviews, fetchUserReviews, currentUserId]);
+
+  // Refetch user reviews when page comes into focus
+  useEffect(() => {
+    const handleFocus = () => {
+      const token = localStorage.getItem('authToken');
+      if (token && currentUserId && storeId) {
+        console.log('Page focused - refetching user reviews');
+        fetchUserReviews(currentUserId, token);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleFocus();
+      }
+    };
+
+    // Listen for window focus and page visibility changes
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentUserId, storeId, fetchUserReviews]);
+
+  const handleEditReview = (review: Review) => {
+    setEditingReview(review);
+    setShowEditReview(true);
+  };
+
+  const handleDeleteConfirm = (reviewId: string) => {
+    setDeletingReviewId(reviewId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteReview = async () => {
+    if (!deletingReviewId) return;
+    
+    const token = localStorage.getItem('authToken') || '';
+    const success = await removeReview(deletingReviewId, token);
+    
+    if (success) {
+      setShowDeleteConfirm(false);
+      setDeletingReviewId(null);
+    }
+  };
+
+  // Filter user reviews for this store
+  const storeUserReviews = userReviewsData.filter(review => review.storeId === storeId);
+  
+  // Debug logging
+  console.log('Current User ID:', currentUserId);
+  console.log('Store ID:', storeId);
+  console.log('User Reviews Data:', userReviewsData);
+  console.log('Filtered Store User Reviews:', storeUserReviews);
+  console.log('Auth Token:', localStorage.getItem('authToken') ? 'Present' : 'Missing');
+  
+  // Combine reviews with user reviews at top
+  const allReviews = [...storeUserReviews, ...reviews];
 
   if (loading) {
     return (
@@ -454,20 +668,85 @@ export default function StoreDetailPage({
             {activeTab === "reviews" && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    Customer Reviews
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5" />
+                      Customer Reviews ({reviews.length})
+                    </div>
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setShowWriteReview(true)}
+                    >
+                      Write a Review
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-center py-8">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
-                    <p className="text-gray-600 mb-4">Be the first to review this store</p>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
-                      Write a Review
-                    </Button>
-                  </div>
+                  {reviewsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                      <span className="ml-2 text-gray-600">Loading reviews...</span>
+                    </div>
+                  ) : reviewsError ? (
+                    <div className="text-center py-8">
+                      <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Reviews</h3>
+                      <p className="text-gray-600 mb-4">{reviewsError}</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => fetchStoreReviews(storeId)}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  ) : reviews.length === 0 && storeUserReviews.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
+                      <p className="text-gray-600 mb-4">Be the first to review this store</p>
+                      <Button 
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => setShowWriteReview(true)}
+                      >
+                        Write a Review
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* User's Own Reviews - Show at top */}
+                      {storeUserReviews.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Your Review</h3>
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                              Your Review
+                            </Badge>
+                          </div>
+                          {storeUserReviews.map((review) => (
+                            <ReviewCard 
+                              key={review.id} 
+                              review={review}
+                              isUserReview={true}
+                              onEdit={() => handleEditReview(review)}
+                              onDelete={() => handleDeleteConfirm(review.id)}
+                            />
+                          ))}
+                          
+                          {/* Separator */}
+                          {reviews.length > 0 && (
+                            <div className="border-t border-gray-200 pt-6 mt-6">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Reviews</h3>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Other Store Reviews */}
+                      {reviews.map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -558,7 +837,11 @@ export default function StoreDetailPage({
                     </a>
                   </Button>
                 )}
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setShowWriteReview(true)}
+                >
                   <Star className="w-4 h-4 mr-2" />
                   Write Review
                 </Button>
@@ -604,6 +887,61 @@ export default function StoreDetailPage({
           </div>
         </div>
       </main>
+
+      {/* Write Review Modal */}
+      <WriteReviewModal
+        isOpen={showWriteReview}
+        onClose={() => setShowWriteReview(false)}
+        storeName={store.name}
+        storeId={storeId}
+      />
+
+      {/* Edit Review Modal */}
+      {editingReview && (
+        <EditReviewModal
+          isOpen={showEditReview}
+          onClose={() => {
+            setShowEditReview(false);
+            setEditingReview(null);
+          }}
+          review={editingReview}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-lg">Delete Review</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Are you sure you want to delete this review? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeletingReviewId(null);
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleDeleteReview}
+                  disabled={deleteReview.loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {deleteReview.loading ? 'Deleting...' : 'Delete'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

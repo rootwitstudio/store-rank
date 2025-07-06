@@ -7,25 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useReviewStore } from "@/stores/reviewStore";
+import { useReviewStore, Review } from "@/stores/reviewStore";
 
-interface WriteReviewModalProps {
+interface EditReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  storeName: string;
-  storeId: string;
+  review: Review;
 }
 
-export function WriteReviewModal({ isOpen, onClose, storeName, storeId }: WriteReviewModalProps) {
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [title, setTitle] = useState("");
-  const [dateOfPurchase, setDateOfPurchase] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
-  const [attachments, setAttachments] = useState("");
-  const [purchaseProof, setPurchaseProof] = useState("");
+export function EditReviewModal({ isOpen, onClose, review }: EditReviewModalProps) {
+  const [rating, setRating] = useState(review.rating);
+  const [comment, setComment] = useState(review.comment);
+  const [title, setTitle] = useState(review.title);
+  const [attachments, setAttachments] = useState(review.attachments.join(', '));
 
-  const { submitReview, createReview } = useReviewStore();
+  const { updateReview, editReview } = useReviewStore();
 
   // Auto-populate title based on comment
   useEffect(() => {
@@ -36,40 +32,31 @@ export function WriteReviewModal({ isOpen, onClose, storeName, storeId }: WriteR
     }
   }, [comment]);
 
+  // Reset form when review changes
+  useEffect(() => {
+    setRating(review.rating);
+    setComment(review.comment);
+    setTitle(review.title);
+    setAttachments(review.attachments.join(', '));
+  }, [review]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Get auth token (you may need to get this from auth store)
+    // Get auth token
     const token = localStorage.getItem('authToken') || '';
     
-    // Convert date to ISO format
-    const dateISO = dateOfPurchase ? new Date(dateOfPurchase + 'T00:00:00.000Z').toISOString() : '';
-    
     const reviewData = {
-      storeId,
       title,
       comment,
       rating,
-      dateOfPurchase: dateISO,
-      orderNumber,
-      attachments: attachments ? attachments.split(',').map(s => s.trim()).filter(Boolean) : [],
-      purchaseProof,
+      attachments: attachments ? attachments.split(', ').map(s => s.trim()).filter(Boolean) : [],
     };
 
-    console.log('Sending review data:', reviewData);
-
-    const success = await submitReview(reviewData, token);
+    const success = await updateReview(review.id, reviewData, token);
     if (success) {
-      // Reset form
-      setRating(0);
-      setComment("");
-      setTitle("");
-      setDateOfPurchase("");
-      setOrderNumber("");
-      setAttachments("");
-      setPurchaseProof("");
       onClose();
     }
   };
@@ -79,7 +66,7 @@ export function WriteReviewModal({ isOpen, onClose, storeName, storeId }: WriteR
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg sm:text-xl">Write a Review for {storeName}</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Edit Your Review</CardTitle>
             <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
               <X className="h-4 w-4" />
             </Button>
@@ -143,79 +130,26 @@ export function WriteReviewModal({ isOpen, onClose, storeName, storeId }: WriteR
               />
             </div>
 
-            {/* Purchase Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date-of-purchase" className="text-sm font-medium mb-2 block">
-                  Date of Purchase *
-                </Label>
-                <Input
-                  id="date-of-purchase"
-                  type="date"
-                  value={dateOfPurchase}
-                  onChange={(e) => setDateOfPurchase(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label htmlFor="order-number" className="text-sm font-medium mb-2 block">
-                  Order Number *
-                </Label>
-                <Input
-                  id="order-number"
-                  placeholder="Your order number"
-                  value={orderNumber}
-                  onChange={(e) => setOrderNumber(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            {/* Attachments and Purchase Proof */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="attachments" className="text-sm font-medium mb-2 block">
-                  Attachments (Optional)
-                </Label>
-                <Input
-                  id="attachments"
-                  placeholder="Attachment URLs separated by commas"
-                  value={attachments}
-                  onChange={(e) => setAttachments(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div>
-                <Label htmlFor="purchase-proof" className="text-sm font-medium mb-2 block">
-                  Purchase Proof (Optional)
-                </Label>
-                <Input
-                  id="purchase-proof"
-                  placeholder="Purchase proof reference"
-                  value={purchaseProof}
-                  onChange={(e) => setPurchaseProof(e.target.value)}
-                  className="w-full"
-                />
-              </div>
+            {/* Attachments */}
+            <div>
+              <Label htmlFor="attachments" className="text-sm font-medium mb-2 block">
+                Attachments (Optional)
+              </Label>
+              <Input
+                id="attachments"
+                placeholder="Attachment URLs separated by commas"
+                value={attachments}
+                onChange={(e) => setAttachments(e.target.value)}
+                className="w-full"
+              />
             </div>
 
             {/* Error Display */}
-            {createReview.error && (
+            {editReview.error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800 text-sm">{createReview.error}</p>
+                <p className="text-red-800 text-sm">{editReview.error}</p>
               </div>
             )}
-
-            {/* Guidelines */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2 text-sm">Review Guidelines</h4>
-              <ul className="text-xs text-blue-800 space-y-1">
-                <li>• Be honest and specific about your experience</li>
-                <li>• Focus on the product or service quality</li>
-                <li>• Avoid personal attacks or inappropriate language</li>
-                <li>• Include relevant details that would help other buyers</li>
-              </ul>
-            </div>
 
             {/* Submit Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
@@ -230,9 +164,9 @@ export function WriteReviewModal({ isOpen, onClose, storeName, storeId }: WriteR
               <Button 
                 type="submit"
                 className="flex-1 order-1 sm:order-2" 
-                disabled={rating === 0 || !title.trim() || !comment.trim() || !dateOfPurchase || !orderNumber.trim() || createReview.loading}
+                disabled={rating === 0 || !title.trim() || !comment.trim() || editReview.loading}
               >
-                {createReview.loading ? 'Submitting...' : 'Submit Review'}
+                {editReview.loading ? 'Updating...' : 'Update Review'}
               </Button>
             </div>
           </form>
@@ -240,4 +174,4 @@ export function WriteReviewModal({ isOpen, onClose, storeName, storeId }: WriteR
       </Card>
     </div>
   );
-}
+} 
