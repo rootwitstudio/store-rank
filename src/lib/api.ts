@@ -187,10 +187,13 @@ export const reviewApi = {
   },
 
   updateReview: async (reviewId: string, reviewData: {
-    title: string;
-    comment: string;
-    rating: number;
-    attachments: string[];
+    title?: string;
+    comment?: string;
+    rating?: number;
+    dateOfPurchase?: string;
+    orderNumber?: string;
+    attachments?: string[];
+    purchaseProof?: string;
   }, token: string) => {
     try {
       console.log("Updating review:", reviewId, reviewData);

@@ -34,12 +34,12 @@ import { Header } from "@/components/header";
 import { StoreHeader } from "@/components/store-detail/StoreHeader";
 
 import { RatingBreakdown } from "@/components/store-detail/RatingBreakdown";
-import { WriteReviewModal } from "@/components/store-detail/WriteReviewModal";
-import { EditReviewModal } from "@/components/store-detail/EditReviewModal";
+import { ReviewModal } from "@/components/store-detail/ReviewModal";
 import { MobileNavTabs } from "@/components/store-detail/MobileNavTabs";
 import { StoreSidebar } from "@/components/store-detail/StoreSidebar";
 import { useStoreDetails } from "@/stores/storeDetailsStore";
 import { useReviewStore, type Review } from "@/stores/reviewStore";
+import { useAuthStore } from "@/stores/authStore";
 import Link from "next/link";
 
 function ensureHttps(url: string) {
@@ -56,6 +56,8 @@ function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: {
   onEdit?: () => void;
   onDelete?: () => void;
 }) {
+  const { user } = useAuthStore();
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -64,26 +66,30 @@ function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: {
     });
   };
 
+  // Use authState user info if it's the current user's review
+  const displayUser = isUserReview && user ? user : review.user;
+  const displayName = isUserReview && user ? user.name : (review.user?.name || 'Anonymous');
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
       {/* Header with user info and actions */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
-            {review.user?.picture ? (
+            {displayUser?.picture ? (
               <img
-                src={review.user.picture}
-                alt={review.user.name}
+                src={displayUser.picture}
+                alt={displayName}
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
               <span className="text-sm font-semibold text-blue-600">
-                {review.user?.name?.charAt(0) || 'U'}
+                {displayName?.charAt(0) || 'U'}
               </span>
             )}
           </div>
           <div>
-            <h4 className="font-semibold text-gray-900">{review.user?.name || 'Anonymous'}</h4>
+            <h4 className="font-semibold text-gray-900">{displayName}</h4>
             <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
           </div>
         </div>
@@ -208,41 +214,32 @@ export default function StoreDetailPage({
   const { data: reviews, loading: reviewsLoading, error: reviewsError } = storeReviews;
   const { data: userReviewsData, loading: userReviewsLoading, error: userReviewsError } = userReviews;
 
-  // Extract user ID from JWT token
-  const token = localStorage.getItem('authToken');
-  let currentUserId = "d9c9e39d-b50d-40be-9974-880bb2fe8c57"; // fallback
+  // Get user and token from authStore
+  const { user, accessToken } = useAuthStore();
+  const currentUserId = user?.id || "d9c9e39d-b50d-40be-9974-880bb2fe8c57"; // fallback
   
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('JWT Token Payload:', payload);
-      currentUserId = payload.id; // Use actual user ID from token
-      console.log('User ID from JWT:', payload.id);
-    } catch (error) {
-      console.error('Error decoding JWT:', error);
-    }
-  }
+  console.log('Current user from authStore:', user);
+  console.log('Access token from authStore:', accessToken ? 'Present' : 'Missing');
 
   useEffect(() => {
     if (storeId) {
       fetchStore(storeId);
-      fetchStoreReviews(storeId);
+      fetchStoreReviews(storeId, accessToken);
       
       // Fetch user reviews with token
-      const token = localStorage.getItem('authToken');
-      if (token && currentUserId) {
-        fetchUserReviews(currentUserId, token);
+      console.log('Fetching user reviews', currentUserId, accessToken);
+      if (accessToken && currentUserId) {
+        fetchUserReviews(currentUserId, accessToken);
       }
     }
-  }, [storeId, fetchStore, fetchStoreReviews, fetchUserReviews, currentUserId]);
+  }, [storeId, fetchStore, fetchStoreReviews, fetchUserReviews, currentUserId, accessToken]);
 
   // Refetch user reviews when page comes into focus
   useEffect(() => {
     const handleFocus = () => {
-      const token = localStorage.getItem('authToken');
-      if (token && currentUserId && storeId) {
+      if (accessToken && currentUserId && storeId) {
         console.log('Page focused - refetching user reviews');
-        fetchUserReviews(currentUserId, token);
+        fetchUserReviews(currentUserId, accessToken);
       }
     };
 
@@ -260,7 +257,7 @@ export default function StoreDetailPage({
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [currentUserId, storeId, fetchUserReviews]);
+  }, [currentUserId, storeId, fetchUserReviews, accessToken]);
 
   const handleEditReview = (review: Review) => {
     setEditingReview(review);
@@ -275,8 +272,7 @@ export default function StoreDetailPage({
   const handleDeleteReview = async () => {
     if (!deletingReviewId) return;
     
-    const token = localStorage.getItem('authToken') || '';
-    const success = await removeReview(deletingReviewId, token);
+    const success = await removeReview(deletingReviewId, accessToken || '');
     
     if (success) {
       setShowDeleteConfirm(false);
@@ -287,15 +283,19 @@ export default function StoreDetailPage({
   // Filter user reviews for this store
   const storeUserReviews = userReviewsData.filter(review => review.storeId === storeId);
   
+  // Filter out user's reviews from store reviews to avoid duplicates
+  const otherReviews = reviews.filter(review => review.userId !== currentUserId);
+  
   // Debug logging
   console.log('Current User ID:', currentUserId);
   console.log('Store ID:', storeId);
   console.log('User Reviews Data:', userReviewsData);
   console.log('Filtered Store User Reviews:', storeUserReviews);
-  console.log('Auth Token:', localStorage.getItem('authToken') ? 'Present' : 'Missing');
+  console.log('Other Reviews (excluding user):', otherReviews);
+  console.log('Auth Token:', accessToken ? 'Present' : 'Missing');
   
   // Combine reviews with user reviews at top
-  const allReviews = [...storeUserReviews, ...reviews];
+  const allReviews = [...storeUserReviews, ...otherReviews];
 
   if (loading) {
     return (
@@ -671,7 +671,7 @@ export default function StoreDetailPage({
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="w-5 h-5" />
-                      Customer Reviews ({reviews.length})
+                      Customer Reviews ({storeUserReviews.length + otherReviews.length})
                     </div>
                     <Button 
                       className="bg-blue-600 hover:bg-blue-700"
@@ -699,7 +699,7 @@ export default function StoreDetailPage({
                         Try Again
                       </Button>
                     </div>
-                  ) : reviews.length === 0 && storeUserReviews.length === 0 ? (
+                  ) : otherReviews.length === 0 && storeUserReviews.length === 0 ? (
                     <div className="text-center py-8">
                       <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
@@ -733,7 +733,7 @@ export default function StoreDetailPage({
                           ))}
                           
                           {/* Separator */}
-                          {reviews.length > 0 && (
+                          {otherReviews.length > 0 && (
                             <div className="border-t border-gray-200 pt-6 mt-6">
                               <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Reviews</h3>
                             </div>
@@ -742,7 +742,7 @@ export default function StoreDetailPage({
                       )}
                       
                       {/* Other Store Reviews */}
-                      {reviews.map((review) => (
+                      {otherReviews.map((review) => (
                         <ReviewCard key={review.id} review={review} />
                       ))}
                     </div>
@@ -888,30 +888,24 @@ export default function StoreDetailPage({
         </div>
       </main>
 
-      {/* Write Review Modal */}
-      <WriteReviewModal
-        isOpen={showWriteReview}
-        onClose={() => setShowWriteReview(false)}
+      {/* Review Modal - Unified for both create and edit */}
+      <ReviewModal
+        isOpen={showWriteReview || showEditReview}
+        onClose={() => {
+          setShowWriteReview(false);
+          setShowEditReview(false);
+          setEditingReview(null);
+        }}
+        isEdit={showEditReview}
+        review={editingReview || undefined}
         storeName={store.name}
         storeId={storeId}
       />
 
-      {/* Edit Review Modal */}
-      {editingReview && (
-        <EditReviewModal
-          isOpen={showEditReview}
-          onClose={() => {
-            setShowEditReview(false);
-            setEditingReview(null);
-          }}
-          review={editingReview}
-        />
-      )}
-
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md shadow-2xl border-0">
             <CardHeader>
               <CardTitle className="text-lg">Delete Review</CardTitle>
             </CardHeader>

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { reviewApi } from '@/lib/api';
+import { useAuthStore } from './authStore';
 
 export type ReviewUser = {
   id: string;
@@ -41,10 +42,13 @@ export interface CreateReviewData {
 }
 
 export interface UpdateReviewData {
-  title: string;
-  comment: string;
-  rating: number;
-  attachments: string[];
+  title?: string;
+  comment?: string;
+  rating?: number;
+  dateOfPurchase?: string;
+  orderNumber?: string;
+  attachments?: string[];
+  purchaseProof?: string;
 }
 
 export type ReviewStoreState = {
@@ -158,8 +162,14 @@ export const useReviewStore = create<ReviewStoreState>((set, get) => ({
       }));
       
       // Refresh reviews for the store after creating
-      const { fetchStoreReviews } = get();
+      const { fetchStoreReviews, fetchUserReviews } = get();
       await fetchStoreReviews(reviewData.storeId, token);
+      
+      // Also fetch user reviews to update the UI
+      const authState = useAuthStore.getState();
+      if (authState.user?.id) {
+        await fetchUserReviews(authState.user.id, token);
+      }
       
       return true;
     } catch (error) {
@@ -213,7 +223,13 @@ export const useReviewStore = create<ReviewStoreState>((set, get) => ({
       if (storeReviews.storeId) {
         await fetchStoreReviews(storeReviews.storeId, token);
       }
-      if (userReviews.userId) {
+      
+      // Always refresh user reviews for the current user
+      const authState = useAuthStore.getState();
+      if (authState.user?.id) {
+        await fetchUserReviews(authState.user.id, token);
+      } else if (userReviews.userId) {
+        // Fallback to existing userReviews state if no auth user
         await fetchUserReviews(userReviews.userId, token);
       }
       
@@ -246,7 +262,13 @@ export const useReviewStore = create<ReviewStoreState>((set, get) => ({
       if (storeReviews.storeId) {
         await fetchStoreReviews(storeReviews.storeId, token);
       }
-      if (userReviews.userId) {
+      
+      // Always refresh user reviews for the current user
+      const authState = useAuthStore.getState();
+      if (authState.user?.id) {
+        await fetchUserReviews(authState.user.id, token);
+      } else if (userReviews.userId) {
+        // Fallback to existing userReviews state if no auth user
         await fetchUserReviews(userReviews.userId, token);
       }
       

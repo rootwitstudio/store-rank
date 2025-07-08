@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   googleLogin: async (idToken) => {
     const response = await authApi.verifyGoogleAuth({ idToken });
-    console.log('response login', response);
+    console.log('Login response login', response);
     const { user, token } = response;
     set({ user, accessToken: token });
     Cookies.set(ACCESS_TOKEN, JSON.stringify(token));
