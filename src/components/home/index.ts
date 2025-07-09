@@ -1,0 +1,12 @@
+export { HeroSection } from './HeroSection';
+export { CategorySection } from './CategorySection';
+export { TopRatedStoresSection } from './TopRatedStoresSection';
+export { RecentReviewsSection } from './RecentReviewsSection';
+export { TrendingStoresSection } from './TrendingStoresSection';
+export { IndustryInsightsSection } from './IndustryInsightsSection';
+export { HowItWorksSection } from './HowItWorksSection';
+export { SuccessStoriesSection } from './SuccessStoriesSection';
+export { TrustSafetySection } from './TrustSafetySection';
+export { TrustedByMillionsSection } from './TrustedByMillionsSection';
+export { CTASection } from './CTASection';
+export { Footer } from './Footer'; 
