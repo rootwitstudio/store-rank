@@ -50,6 +50,29 @@ function ensureHttps(url: string) {
   return `https://${url}`;
 }
 
+// Utility function to safely convert any value to a string for rendering
+function safeStringify(value: any, fallback: string = 'Unknown'): string {
+  try {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+    if (value && typeof value === 'object') {
+      // Try common name properties
+      const name = value.name || value.category || value.categoryName || value.title;
+      if (typeof name === 'string' && name.trim()) {
+        return name.trim();
+      }
+      // If nested object, try to get name from it
+      if (name && typeof name === 'object' && name.name && typeof name.name === 'string') {
+        return name.name.trim();
+      }
+    }
+    return fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
 function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: { 
   review: Review; 
   isUserReview?: boolean;
@@ -211,8 +234,8 @@ export default function StoreDetailPage({
     removeReview,
     deleteReview 
   } = useReviewStore();
-  const { data: reviews, loading: reviewsLoading, error: reviewsError } = storeReviews;
-  const { data: userReviewsData, loading: userReviewsLoading, error: userReviewsError } = userReviews;
+  const { data: reviews = [], loading: reviewsLoading, error: reviewsError } = storeReviews;
+  const { data: userReviewsData = [], loading: userReviewsLoading, error: userReviewsError } = userReviews;
 
   // Get user and token from authStore
   const { user, accessToken } = useAuthStore();
@@ -272,19 +295,27 @@ export default function StoreDetailPage({
   const handleDeleteReview = async () => {
     if (!deletingReviewId) return;
     
-    const success = await removeReview(deletingReviewId, accessToken || '');
-    
-    if (success) {
-      setShowDeleteConfirm(false);
-      setDeletingReviewId(null);
+    try {
+      const success = await removeReview(deletingReviewId, accessToken || '');
+      
+      if (success) {
+        setShowDeleteConfirm(false);
+        setDeletingReviewId(null);
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
     }
   };
 
-  // Filter user reviews for this store
-  const storeUserReviews = userReviewsData.filter(review => review.storeId === storeId);
+  // Filter user reviews for this store - with safety checks
+  const storeUserReviews = (userReviewsData || []).filter(review => 
+    review && review.storeId === storeId
+  );
   
-  // Filter out user's reviews from store reviews to avoid duplicates
-  const otherReviews = reviews.filter(review => review.userId !== currentUserId);
+  // Filter out user's reviews from store reviews to avoid duplicates - with safety checks
+  const otherReviews = (reviews || []).filter(review => 
+    review && review.userId !== currentUserId
+  );
   
   // Debug logging
   console.log('Current User ID:', currentUserId);
@@ -294,8 +325,8 @@ export default function StoreDetailPage({
   console.log('Other Reviews (excluding user):', otherReviews);
   console.log('Auth Token:', accessToken ? 'Present' : 'Missing');
   
-  // Combine reviews with user reviews at top
-  const allReviews = [...storeUserReviews, ...otherReviews];
+  // Combine reviews with user reviews at top - with safety checks
+  const allReviews = [...(storeUserReviews || []), ...(otherReviews || [])];
 
   if (loading) {
     return (
@@ -377,15 +408,15 @@ export default function StoreDetailPage({
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-shrink-0">
               <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
-                {store.logo ? (
+                {store?.logo ? (
                   <img
                     src={store.logo}
-                    alt={`${store.name} logo`}
+                    alt={`${store?.name || 'Store'} logo`}
                     className="w-16 h-16 object-contain rounded-lg"
                   />
                 ) : (
                   <span className="text-2xl font-bold text-blue-600">
-                    {store.name.charAt(0)}
+                    {store?.name?.charAt(0) || 'S'}
                   </span>
                 )}
               </div>
@@ -395,16 +426,16 @@ export default function StoreDetailPage({
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                    {store.name}
+                    {store?.name || 'Store Name'}
                   </h1>
                   <div className="flex items-center gap-3 mb-3">
-                    {store.verified && (
+                    {store?.verified && (
                       <Badge className="bg-green-100 text-green-800 border-green-200">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Verified
                       </Badge>
                     )}
-                    {store.claimed && (
+                    {store?.claimed && (
                       <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                         <ShieldCheck className="w-3 h-3 mr-1" />
                         Claimed
@@ -416,34 +447,37 @@ export default function StoreDetailPage({
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <div className="flex items-center gap-2">
-                      <StarRating rating={store.rating} size="md" />
+                      <StarRating rating={store?.rating || 0} size="md" />
                       <span className="text-xl font-bold text-gray-900">
-                        {store.rating.toFixed(1)}
+                        {(store?.rating || 0).toFixed(1)}
                       </span>
                     </div>
                     <div className="text-sm text-gray-500">
-                      {store.totalRatings} review{store.totalRatings !== 1 ? 's' : ''}
+                      {store?.totalRatings || 0} review{(store?.totalRatings || 0) !== 1 ? 's' : ''}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {store.description && (
+              {store?.description && (
                 <p className="text-gray-600 mb-4 leading-relaxed">
                   {store.description}
                 </p>
               )}
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {store.tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
+                {(store?.tags || []).map((tag, index) => {
+                  const tagName = safeStringify(tag, 'Tag');
+                  return (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tagName}
+                    </Badge>
+                  );
+                })}
               </div>
 
               <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                {store.website && (
+                {store?.website && (
                   <a
                     href={store.website}
                     target="_blank"
@@ -455,19 +489,19 @@ export default function StoreDetailPage({
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
-                {store.email && (
+                {store?.email && (
                   <div className="flex items-center gap-1">
                     <Mail className="w-4 h-4" />
                     {store.email}
                   </div>
                 )}
-                {store.mobile && (
+                {store?.mobile && (
                   <div className="flex items-center gap-1">
                     <Phone className="w-4 h-4" />
                     {store.mobile}
                   </div>
                 )}
-                {store.country && (
+                {store?.country && (
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
                     {store.country}
@@ -525,21 +559,21 @@ export default function StoreDetailPage({
                       <div className="space-y-4">
                         <div>
                           <label className="text-sm font-medium text-gray-500">Store Name</label>
-                          <div className="text-gray-900 font-medium">{store.name}</div>
+                          <div className="text-gray-900 font-medium">{store?.name || 'N/A'}</div>
                         </div>
-                        {store.foundedYear && (
+                        {store?.foundedYear && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">Founded</label>
                             <div className="text-gray-900 font-medium">{store.foundedYear}</div>
                           </div>
                         )}
-                        {store.employeeCount && (
+                        {store?.employeeCount && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">Employee Count</label>
                             <div className="text-gray-900 font-medium">{store.employeeCount}</div>
                           </div>
                         )}
-                        {store.ceoOwner && (
+                        {store?.ceoOwner && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">CEO/Owner</label>
                             <div className="text-gray-900 font-medium">{store.ceoOwner}</div>
@@ -550,25 +584,25 @@ export default function StoreDetailPage({
                         <div>
                           <label className="text-sm font-medium text-gray-500">Created</label>
                           <div className="text-gray-900 font-medium">
-                            {new Date(store.createdAt).toLocaleDateString()}
+                            {store?.createdAt ? new Date(store.createdAt).toLocaleDateString() : 'N/A'}
                           </div>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Last Updated</label>
                           <div className="text-gray-900 font-medium">
-                            {new Date(store.updatedAt).toLocaleDateString()}
+                            {store?.updatedAt ? new Date(store.updatedAt).toLocaleDateString() : 'N/A'}
                           </div>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Total Ratings</label>
-                          <div className="text-gray-900 font-medium">{store.totalRatings}</div>
+                          <div className="text-gray-900 font-medium">{store?.totalRatings || 0}</div>
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {store.storeCategories && store.storeCategories.length > 0 && (
+                {store?.storeCategories && store.storeCategories.length > 0 && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -578,11 +612,15 @@ export default function StoreDetailPage({
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {store?.storeCategories?.map((category, index) => (
-                          <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                            {category.name || category}
-                          </Badge>
-                        ))}
+                        {store?.storeCategories?.map((category, index) => {
+                          const categoryName = safeStringify(category, 'Unknown Category');
+                          
+                          return (
+                            <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {categoryName}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -603,9 +641,9 @@ export default function StoreDetailPage({
                     <div className="space-y-4">
                       <div>
                         <label className="text-sm font-medium text-gray-500">Company Name</label>
-                        <div className="text-gray-900 font-medium">{store.name}</div>
+                        <div className="text-gray-900 font-medium">{store?.name || 'N/A'}</div>
                       </div>
-                      {store.website && (
+                      {store?.website && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">Website</label>
                           <a
@@ -619,13 +657,13 @@ export default function StoreDetailPage({
                           </a>
                         </div>
                       )}
-                      {store.foundedYear && (
+                      {store?.foundedYear && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">Founded</label>
                           <div className="text-gray-900 font-medium">{store.foundedYear}</div>
                         </div>
                       )}
-                      {store.employeeCount && (
+                      {store?.employeeCount && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">Employee Count</label>
                           <div className="text-gray-900 font-medium">{store.employeeCount}</div>
@@ -633,26 +671,26 @@ export default function StoreDetailPage({
                       )}
                     </div>
                     <div className="space-y-4">
-                      {store.ceoOwner && (
+                      {store?.ceoOwner && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">CEO/Owner</label>
                           <div className="text-gray-900 font-medium">{store.ceoOwner}</div>
                         </div>
                       )}
-                      {store.users && store.users.length > 0 && (
+                      {store?.users && store.users.length > 0 && (
                         <div>
                           <label className="text-sm font-medium text-gray-500">Business Users</label>
                           <div className="space-y-2">
                             {store.users.map((user) => (
-                              <div key={user.id} className="flex items-center gap-2">
+                              <div key={user?.id || Math.random()} className="flex items-center gap-2">
                                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                   <span className="text-sm font-medium text-blue-600">
-                                    {user.name.charAt(0)}
+                                    {user?.name?.charAt(0) || 'U'}
                                   </span>
                                 </div>
                                 <div>
-                                  <div className="text-sm font-medium">{user.name}</div>
-                                  <div className="text-xs text-gray-500">{user.role}</div>
+                                  <div className="text-sm font-medium">{user?.name || 'Unknown User'}</div>
+                                  <div className="text-xs text-gray-500">{user?.role || 'Unknown Role'}</div>
                                 </div>
                               </div>
                             ))}
@@ -761,7 +799,7 @@ export default function StoreDetailPage({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {store.email && (
+                    {store?.email && (
                       <div className="flex items-center gap-3">
                         <Mail className="w-5 h-5 text-gray-500" />
                         <div>
@@ -770,7 +808,7 @@ export default function StoreDetailPage({
                         </div>
                       </div>
                     )}
-                    {store.mobile && (
+                    {store?.mobile && (
                       <div className="flex items-center gap-3">
                         <Phone className="w-5 h-5 text-gray-500" />
                         <div>
@@ -779,7 +817,7 @@ export default function StoreDetailPage({
                         </div>
                       </div>
                     )}
-                    {store.website && (
+                    {store?.website && (
                       <div className="flex items-center gap-3">
                         <Globe className="w-5 h-5 text-gray-500" />
                         <div>
@@ -796,16 +834,16 @@ export default function StoreDetailPage({
                         </div>
                       </div>
                     )}
-                    {(store.address1 || store.city || store.state || store.country) && (
+                    {(store?.address1 || store?.city || store?.state || store?.country) && (
                       <div className="flex items-start gap-3">
                         <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
                         <div>
                           <label className="text-sm font-medium text-gray-500">Address</label>
                           <div className="text-gray-900 font-medium">
-                            {store.address1 && <div>{store.address1}</div>}
-                            {store.address2 && <div>{store.address2}</div>}
+                            {store?.address1 && <div>{store.address1}</div>}
+                            {store?.address2 && <div>{store.address2}</div>}
                             <div>
-                              {[store.city, store.state, store.pincode, store.country]
+                              {[store?.city, store?.state, store?.pincode, store?.country]
                                 .filter(Boolean)
                                 .join(', ')}
                             </div>
@@ -826,7 +864,7 @@ export default function StoreDetailPage({
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {store.website && (
+                {store?.website && (
                   <Button
                     asChild
                     className="w-full bg-blue-600 hover:bg-blue-700"
@@ -861,24 +899,24 @@ export default function StoreDetailPage({
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Overall Rating</span>
                     <div className="flex items-center gap-2">
-                      <StarRating rating={store.rating} size="sm" />
-                      <span className="font-medium">{store.rating.toFixed(1)}</span>
+                      <StarRating rating={store?.rating || 0} size="sm" />
+                      <span className="font-medium">{(store?.rating || 0).toFixed(1)}</span>
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Total Reviews</span>
-                    <span className="font-medium">{store.totalRatings}</span>
+                    <span className="font-medium">{store?.totalRatings || 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Verified</span>
-                    <Badge variant={store.verified ? "default" : "secondary"}>
-                      {store.verified ? "Yes" : "No"}
+                    <Badge variant={store?.verified ? "default" : "secondary"}>
+                      {store?.verified ? "Yes" : "No"}
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Claimed</span>
-                    <Badge variant={store.claimed ? "default" : "secondary"}>
-                      {store.claimed ? "Yes" : "No"}
+                    <Badge variant={store?.claimed ? "default" : "secondary"}>
+                      {store?.claimed ? "Yes" : "No"}
                     </Badge>
                   </div>
                 </div>
@@ -898,7 +936,7 @@ export default function StoreDetailPage({
         }}
         isEdit={showEditReview}
         review={editingReview || undefined}
-        storeName={store.name}
+        storeName={store?.name || 'Store'}
         storeId={storeId}
       />
 
