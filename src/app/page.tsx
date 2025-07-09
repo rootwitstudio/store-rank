@@ -690,7 +690,7 @@ export default function HomePage() {
                           return (
                             <Link
                                   key={result.id}
-                                  href={`/stores?categoryId=${result.id}`}
+                                  href={`/stores?categoryId=${result.id}&categoryName=${encodeURIComponent(result.name)}`}
                               className="flex items-center px-4 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
                               onClick={() => {
                                 setShowDropdown(false);
@@ -829,7 +829,7 @@ export default function HomePage() {
                           return (
                             <Link
                               key={result.id}
-                              href={`/stores?categoryId=${result.id}`}
+                              href={`/stores?categoryId=${result.id}&categoryName=${encodeURIComponent(result.name)}`}
                               className="flex items-center px-4 py-3 hover:bg-gray-100 rounded-lg"
                               onClick={() => setIsSearchModalOpen(false)}
                             >
@@ -885,7 +885,7 @@ export default function HomePage() {
                   return (
                     <Link
                       key={category.id}
-                      href={`/stores?categoryId=${category.id}`}
+                      href={`/stores?categoryId=${category.id}&categoryName=${encodeURIComponent(category.name)}`}
                       className="group flex flex-col items-center justify-center p-4 sm:p-6 bg-white rounded-xl hover:bg-blue-50 hover:shadow-lg transition-all duration-300 text-center border border-gray-100 hover:border-blue-200"
                     >
                       <Icon className="h-8 w-8 sm:h-10 sm:w-10 mb-2 sm:mb-3 text-blue-600 group-hover:text-blue-700 transition-colors group-hover:scale-110 transform duration-300" />

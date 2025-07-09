@@ -312,8 +312,10 @@ export default function StoresPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryId = searchParams.get("categoryId");
+  const categoryNameParam = searchParams.get("categoryName");
 
   const { storesList, fetchStoresByCategory } = useStoresList();
+  console.log('storesList', storesList, categoryNameParam);
   const { data: stores, loading, error } = storesList;
   const [categoryName, setCategoryName] = useState("All Categories");
 
@@ -335,9 +337,13 @@ export default function StoresPage() {
   useEffect(() => {
     if (categoryId) {
       fetchStoresByCategory(categoryId);
-      setCategoryName("Category Stores"); // We can update this when we have category details
+      if (categoryNameParam) {
+        setCategoryName(categoryNameParam);
+      } else {
+        setCategoryName("Category");
+      }
     }
-  }, [categoryId, fetchStoresByCategory]);
+  }, [categoryId, categoryNameParam, fetchStoresByCategory]);
 
   // Apply filters
   let filteredStores = stores.filter(
