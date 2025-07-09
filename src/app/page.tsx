@@ -1,1283 +1,475 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+
+import { useState, useEffect } from "react";
 import { Header } from "@/components/header";
+import { HomeList } from "@/components/HomeList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Shirt, Monitor, Utensils, Sofa, BookOpen, Heart, ArrowRight, Search, Store, Sparkles, Dumbbell, Gamepad2, Car, X, Shield, Star, TrendingUp, Users, CheckCircle, AlertTriangle, Award, Globe, Clock, MessageSquare, Zap, Target, BarChart3, ThumbsUp, Eye, Filter, Plus, Calendar, Activity, Quote, UserCheck, ShoppingBag, Verified, Flag, RefreshCw, ExternalLink, MapPin, ChevronDown, Flame, TrendingDown } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import {
+  Search,
+  TrendingUp,
+  Shield,
+  Users,
+  Star,
+  ArrowRight,
+  CheckCircle,
+  Globe,
+  Zap,
+  Award,
+  BarChart3,
+  MessageSquare,
+  Filter,
+  Sparkles,
+  Target,
+  Clock,
+  ThumbsUp
+} from "lucide-react";
 import Link from "next/link";
-import { categoryApi } from "@/lib/api";
-import { HomeList } from "@/components/HomeList";
+import { useRouter } from "next/navigation";
 
+// Mock data
 const featuredStores = [
   {
     id: "1",
-    name: "Amazon India",
-    desc: "India's largest online marketplace with millions of products and fast delivery across the country.",
-    tags: ["Verified", "Trusted", "Fast Delivery"],
-    category: "Electronics",
-    logo: null,
-    rating: 4.5,
-    score: 8.7,
+    name: "Amazon",
+    desc: "World's largest online marketplace with millions of products and fast delivery worldwide.",
+    rating: 4.2,
+    country: "United States",
+    link: "https://www.amazon.com",
+    category: "E-commerce",
     verified: true,
     claimed: true,
-    country: "India",
-    link: "https://amazon.in",
-    reviewCount: 2847,
-    trustScore: "Excellent",
-    monthlyVisitors: "50M+",
-    founded: "2013",
+    trustScore: 92,
+    responseTime: "< 1 hour"
   },
   {
     id: "2",
-    name: "Flipkart",
-    desc: "India's homegrown e-commerce leader with wide product range and excellent customer service.",
-    tags: ["Verified", "Local", "Big Billion Days"],
-    category: "Electronics",
-    logo: null,
-    rating: 4.8,
-    score: 9.1,
-    verified: true,
-    claimed: true,
-    country: "India",
-    link: "https://flipkart.com",
-    reviewCount: 3421,
-    trustScore: "Excellent",
-    monthlyVisitors: "45M+",
-    founded: "2007",
-  },
-  {
-    id: "3",
-    name: "Myntra",
-    desc: "India's fashion destination with latest trends, brands, and exclusive collections.",
-    tags: ["Verified", "Fashion", "Trendy"],
-    category: "Fashion",
-    logo: null,
-    rating: 4.3,
-    score: 8.5,
-    verified: true,
-    claimed: true,
-    country: "India",
-    link: "https://myntra.com",
-    reviewCount: 1892,
-    trustScore: "Great",
-    monthlyVisitors: "25M+",
-    founded: "2007",
-  },
-  {
-    id: "4",
-    name: "Nykaa",
-    desc: "India's leading beauty and wellness platform with authentic products and expert advice.",
-    tags: ["Verified", "Beauty", "Authentic"],
-    category: "Beauty",
-    logo: null,
+    name: "Shopify",
+    desc: "Leading e-commerce platform helping businesses of all sizes sell online and in-person.",
     rating: 4.4,
-    score: 8.3,
+    country: "Canada",
+    link: "https://www.shopify.com",
+    category: "Technology",
     verified: true,
     claimed: true,
-    country: "India",
-    link: "https://nykaa.com",
-    reviewCount: 1234,
-    trustScore: "Great",
-    monthlyVisitors: "15M+",
-    founded: "2012",
-  },
-];
-
-const recentReviews = [
-  {
-    id: "1",
-    storeName: "Amazon India",
-    storeId: "1",
-    rating: 5,
-    review: "Excellent service and lightning-fast delivery to Mumbai. Product quality was exactly as described. Highly recommended!",
-    reviewer: "Priya S.",
-    location: "Mumbai, India",
-    date: "2 hours ago",
-    verified: true,
-    helpful: 12,
-    category: "Electronics",
-  },
-  {
-    id: "2",
-    storeName: "Flipkart",
-    storeId: "2",
-    rating: 4,
-    review: "Good product quality and packaging. Delivery was on time to Bangalore. Customer service was responsive when I had questions.",
-    reviewer: "Rajesh K.",
-    location: "Bangalore, India",
-    date: "5 hours ago",
-    verified: true,
-    helpful: 8,
-    category: "Electronics",
+    trustScore: 89,
+    responseTime: "< 30 min"
   },
   {
     id: "3",
-    storeName: "Myntra",
-    storeId: "3",
-    rating: 5,
-    review: "Amazing collection of ethnic wear! Found the perfect outfit for Diwali. Quality exceeded expectations and delivery to Delhi was super quick.",
-    reviewer: "Anita M.",
-    location: "Delhi, India",
-    date: "1 day ago",
-    verified: true,
-    helpful: 15,
-    category: "Fashion",
-  },
-  {
-    id: "4",
-    storeName: "Nykaa",
-    storeId: "4",
-    rating: 4,
-    review: "Authentic beauty products with great packaging. Love their skincare range. Delivery to Chennai was smooth and products were well-protected.",
-    reviewer: "Kavya R.",
-    location: "Chennai, India",
-    date: "1 day ago",
-    verified: true,
-    helpful: 6,
-    category: "Beauty",
-  },
-  {
-    id: "5",
-    storeName: "Amazon India",
-    storeId: "1",
-    rating: 5,
-    review: "Best online shopping experience! Their return policy is customer-friendly and delivery to Pune is always on time. Trust them completely.",
-    reviewer: "Vikram T.",
-    location: "Pune, India",
-    date: "2 days ago",
-    verified: true,
-    helpful: 9,
-    category: "Electronics",
-  },
-];
-
-const trendingStores = [
-  { 
-    id: "5",
-    name: "Meesho", 
-    category: "Social Commerce", 
-    growth: "+45%", 
-    reviews: 1834,
-    rating: 4.2,
-    link: "https://meesho.com",
-    description: "India's fastest-growing social commerce platform",
-    trustScore: "Great",
-    isRising: true,
-  },
-  { 
-    id: "6",
-    name: "Swiggy Instamart", 
-    category: "Quick Commerce", 
-    growth: "+38%", 
-    reviews: 987,
-    rating: 4.1,
-    link: "https://swiggy.com",
-    description: "10-minute grocery delivery across major Indian cities",
-    trustScore: "Good",
-    isRising: true,
-  },
-  { 
-    id: "7",
-    name: "Boat", 
-    category: "Electronics", 
-    growth: "+32%", 
-    reviews: 756,
-    rating: 4.3,
-    link: "https://boat-lifestyle.com",
-    description: "India's leading audio and wearables brand",
-    trustScore: "Great",
-    isRising: true,
-  },
-  { 
-    id: "8",
-    name: "Lenskart", 
-    category: "Eyewear", 
-    growth: "+28%", 
-    reviews: 543,
-    rating: 4.0,
-    link: "https://lenskart.com",
-    description: "India's largest eyewear retailer with home try-on",
-    trustScore: "Good",
-    isRising: true,
-  },
-  { 
-    id: "9",
-    name: "BigBasket", 
-    category: "Groceries", 
-    growth: "+25%", 
-    reviews: 432,
-    rating: 4.2,
-    link: "https://bigbasket.com",
-    description: "India's largest online grocery store",
-    trustScore: "Great",
-    isRising: true,
-  },
-  { 
-    id: "10",
-    name: "Zomato", 
-    category: "Food Delivery", 
-    growth: "+22%", 
-    reviews: 321,
+    name: "Etsy",
+    desc: "Global marketplace for unique and creative goods made by independent sellers.",
     rating: 3.9,
-    link: "https://zomato.com",
-    description: "Food delivery and restaurant discovery platform",
-    trustScore: "Good",
-    isRising: false,
-  },
+    country: "United States",
+    link: "https://www.etsy.com",
+    category: "Marketplace",
+    verified: true,
+    claimed: true,
+    trustScore: 85,
+    responseTime: "2-6 hours"
+  }
 ];
 
-const trustStats = [
-  { label: "Verified Stores", value: "50K+", icon: Shield },
-  { label: "User Reviews", value: "2M+", icon: MessageSquare },
-  { label: "Countries", value: "180+", icon: Globe },
-  { label: "Daily Visitors", value: "100K+", icon: Users },
+const categories = [
+  { name: "Electronics", icon: "📱", count: "2.3k", color: "bg-blue-50 text-blue-700" },
+  { name: "Fashion", icon: "👕", count: "1.8k", color: "bg-purple-50 text-purple-700" },
+  { name: "Home & Living", icon: "🏠", count: "1.2k", color: "bg-green-50 text-green-700" },
+  { name: "Food & Beverages", icon: "🍕", count: "950", color: "bg-orange-50 text-orange-700" },
+  { name: "Beauty", icon: "💄", count: "780", color: "bg-pink-50 text-pink-700" },
+  { name: "Sports", icon: "⚽", count: "650", color: "bg-indigo-50 text-indigo-700" }
 ];
 
-const howItWorks = [
+const trendingSearches = [
+  "Amazon reviews", "Best electronics stores", "Fashion retailers", "Local businesses",
+  "Online shopping", "Customer service", "Delivery reviews", "Product quality"
+];
+
+const stats = [
+  { label: "Verified Stores", value: "10,000+", icon: Shield, color: "text-green-600" },
+  { label: "Customer Reviews", value: "2.5M+", icon: MessageSquare, color: "text-blue-600" },
+  { label: "Countries Covered", value: "50+", icon: Globe, color: "text-purple-600" },
+  { label: "Trust Score Avg", value: "87%", icon: Award, color: "text-orange-600" }
+];
+
+const features = [
   {
-    step: 1,
-    title: "Search & Discover",
-    description: "Find stores by category, name, or browse our curated lists of verified retailers",
-    icon: Search,
-  },
-  {
-    step: 2,
-    title: "Read Reviews",
-    description: "Check authentic customer reviews, ratings, and detailed trust scores",
-    icon: Eye,
-  },
-  {
-    step: 3,
-    title: "Shop Safely",
-    description: "Make informed decisions with verified store information and safety ratings",
     icon: Shield,
+    title: "Verified Reviews",
+    description: "All reviews are verified from real customers who made actual purchases",
+    color: "bg-green-50 text-green-600"
   },
+  {
+    icon: BarChart3,
+    title: "Trust Scores",
+    description: "AI-powered trust scores based on multiple factors and customer feedback",
+    color: "bg-blue-50 text-blue-600"
+  },
+  {
+    icon: Zap,
+    title: "Real-time Updates",
+    description: "Get instant notifications about store responses and review updates",
+    color: "bg-yellow-50 text-yellow-600"
+  },
+  {
+    icon: Target,
+    title: "Smart Matching",
+    description: "Find stores that match your preferences and shopping behavior",
+    color: "bg-purple-50 text-purple-600"
+  }
 ];
-
-const industryInsights = [
-  {
-    title: "Festival Shopping Surge",
-    value: "Electronics up 45%",
-    description: "Diwali season driving massive growth in electronics and home appliances",
-    icon: Monitor,
-    trend: "+45%",
-    trendColor: "text-green-600",
-  },
-  {
-    title: "Most Popular Category",
-    value: "Fashion & Lifestyle",
-    description: "Leading category with 3.2M searches this month across India",
-    icon: Shirt,
-    trend: "3.2M searches",
-    trendColor: "text-blue-600",
-  },
-  {
-    title: "Trust Score Average",
-    value: "4.3/5.0",
-    description: "Indian e-commerce trust rating shows strong consumer confidence",
-    icon: Award,
-    trend: "+0.4 this month",
-    trendColor: "text-green-600",
-  },
-  {
-    title: "Mobile Commerce",
-    value: "78% of users",
-    description: "Mobile-first shopping dominates Indian e-commerce landscape",
-    icon: Activity,
-    trend: "+15% vs last year",
-    trendColor: "text-green-600",
-  },
-];
-
-const successStories = [
-  {
-    id: "1",
-    name: "Arjun P.",
-    location: "Bangalore, India",
-    story: "StoreRankly helped me identify a fake electronics store that was using stolen product images. The community reviews warned about their poor delivery and fake products. Saved me ₹25,000!",
-    outcome: "Avoided scam",
-    avatar: "A",
-    verified: true,
-  },
-  {
-    id: "2",
-    name: "Sneha M.",
-    location: "Delhi, India",
-    story: "Found an amazing local handicrafts store through StoreRankly's verified listings. The reviews were accurate about their authentic products and fast shipping. Now my go-to for gifts!",
-    outcome: "Found trusted store",
-    avatar: "S",
-    verified: true,
-  },
-  {
-    id: "3",
-    name: "Rohit K.",
-    location: "Mumbai, India",
-    story: "The platform's trust scores helped me choose between similar fashion stores. Went with the higher-rated one and had an excellent experience. The detailed reviews made all the difference.",
-    outcome: "Better shopping decision",
-    avatar: "R",
-    verified: true,
-  },
-];
-
-const iconMap: Record<string, React.ElementType> = {
-  Shirt,
-  Monitor,
-  Utensils,
-  Sofa,
-  BookOpen,
-  Sparkles,
-  Dumbbell,
-  Gamepad2,
-  Heart,
-  Car,
-  Store, // Default icon
-};
-
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  icon: string;
-  parentId: string | null;
-}
-
-interface StoreSearchResult {
-  type: "store";
-  id: string;
-  name: string;
-  description: string | null;
-}
-
-interface CategorySearchResult {
-  type: "category";
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
-}
-
-type SearchResult = StoreSearchResult | CategorySearchResult;
 
 export default function HomePage() {
-  const [search, setSearch] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState("India");
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const locationRef = useRef<HTMLDivElement>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const router = useRouter();
 
-  const locations = ["India", "United States", "United Kingdom", "Canada", "Australia"];
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoadingCategories(true);
-        const data = await categoryApi.getAll();
-        setCategories(data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        setCategoryError("Failed to load categories. Please try again later.");
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (search.length === 0) {
-      setFilteredResults([]);
-      return;
-    }
-
-    const lowerCaseSearch = search.toLowerCase();
-    const results: SearchResult[] = [];
-
-    // Filter Categories
-    categories
-      .filter((category) => !category.parentId)
-      .forEach((category) => {
-        if (category.name.toLowerCase().includes(lowerCaseSearch)) {
-          results.push({
-            type: "category",
-            id: category.id,
-            name: category.name,
-            icon: category.icon || "Store",
-            description: `The best companies in the category '${category.name}'`,
-          });
-        }
-      });
-
-    // Filter Stores
-    featuredStores.forEach((store) => {
-      if (
-        store.name.toLowerCase().includes(lowerCaseSearch) ||
-        store.desc.toLowerCase().includes(lowerCaseSearch)
-      ) {
-        results.push({
-          type: "store",
-          id: store.id,
-          name: store.name,
-          description: store.desc || null,
-        });
-      }
-    });
-
-    setFilteredResults(results);
-  }, [search, categories, featuredStores]);
-
-  useEffect(() => {
-    if (!showDropdown) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node) &&
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDropdown]);
-
-  useEffect(() => {
-    if (!showLocationDropdown) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        locationRef.current &&
-        !locationRef.current.contains(event.target as Node)
-      ) {
-        setShowLocationDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showLocationDropdown]);
-
-  useEffect(() => {
-    if (isSearchModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isSearchModalOpen]);
-
-  const getTrustScoreColor = (score: string) => {
-    switch (score) {
-      case "Excellent":
-        return "text-green-600 bg-green-100";
-      case "Great":
-        return "text-blue-600 bg-blue-100";
-      case "Good":
-        return "text-yellow-600 bg-yellow-100";
-      default:
-        return "text-gray-600 bg-gray-100";
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/stores?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
-  const SectionContainer = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-    <section className={`py-12 sm:py-16 ${className}`}>
-      <div className="container mx-auto px-4 sm:px-6">
-        {children}
-      </div>
-    </section>
-  );
-
-  const SectionHeader = ({ 
-    title, 
-    subtitle, 
-    linkText, 
-    linkHref 
-  }: { 
-    title: string; 
-    subtitle: string; 
-    linkText?: string; 
-    linkHref?: string; 
-  }) => (
-    <div className="flex justify-between items-end mb-8 sm:mb-12">
-      <div>
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-gray-900">{title}</h2>
-        <p className="text-gray-600 text-lg max-w-2xl">{subtitle}</p>
-      </div>
-      {linkText && linkHref && (
-        <Link
-          href={linkHref}
-          className="text-blue-600 hover:text-blue-700 flex items-center text-sm sm:text-base font-medium group"
-        >
-          {linkText}
-          <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-        </Link>
-      )}
-    </div>
-  );
+  const handleTrendingSearch = (query: string) => {
+    router.push(`/stores?search=${encodeURIComponent(query)}`);
+  };
 
   return (
-    <div className="bg-white min-h-screen flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="flex-1">
-
-        {/* 1. Search Section */}
-        <SectionContainer className="bg-gradient-to-br from-blue-50 via-white to-purple-50">
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-8 sm:mb-10">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-                Find Trusted Online Stores in
-                <br className="hidden sm:block" />
-                <span className="text-blue-600">{selectedLocation}</span>
+      
+      {/* Hero Section - Mobile First */}
+      <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+        
+        <div className="relative container mx-auto px-4 py-12 sm:py-16 lg:py-20">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Mobile-First Headlines */}
+            <div className="mb-6 sm:mb-8">
+              <Badge className="bg-white/10 text-white border-white/20 mb-4 px-3 py-1">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Trusted by 2.5M+ shoppers
+              </Badge>
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
+                Find Trusted Stores
+                <span className="block text-2xl sm:text-3xl lg:text-5xl text-blue-200 mt-2">
+                  Make Smart Purchases
+                </span>
               </h1>
-              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-6 sm:mb-8">
-                Discover verified e-commerce stores, read authentic customer reviews, and make informed shopping decisions. 
-                Join millions of shoppers who trust our platform.
+              <p className="text-lg sm:text-xl lg:text-2xl text-blue-100 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed">
+                Discover verified reviews, trust scores, and detailed insights about online stores before you buy
               </p>
             </div>
 
-            {/* Main Search Input */}
-            <div className={`w-full max-w-2xl relative mb-6 sm:mb-8 ${isSearchModalOpen ? "hidden sm:block" : ""}`}>
-              <form
-                className="flex items-center relative"
-                autoComplete="off"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setShowDropdown(false);
-                }}
-              >
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Search for stores, brands, or categories..."
-                  className="w-full h-12 sm:h-14 text-base sm:text-lg pl-4 pr-12 rounded-lg border-2 focus:border-blue-500 shadow-lg"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => {
-                    if (window.innerWidth < 640) {
-                      setIsSearchModalOpen(true);
-                    } else {
-                      setShowDropdown(true);
-                    }
-                  }}
-                />
-                <Button
-                  type="submit"
-                  className="absolute right-2 h-8 sm:h-10 w-8 sm:w-10 p-0 bg-blue-600 hover:bg-blue-700"
-                >
-                  <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
-              </form>
-
-              {/* Search Dropdown */}
-              {showDropdown && filteredResults.length > 0 && !isSearchModalOpen && (
-                <div
-                  ref={dropdownRef}
-                  className="absolute w-full mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto z-50"
-                >
-                  {filteredResults.some((result) => result.type === "store") && (
-                    <>
-                      <div className="px-4 py-2 text-xs text-gray-500 font-semibold bg-gray-50">
-                        Companies
-                      </div>
-                      {filteredResults
-                        .filter((result) => result.type === "store")
-                        .map((result) => {
-                          const storeResult = result as StoreSearchResult;
-                          const store = featuredStores.find(s => s.id === storeResult.id);
-                          return (
-                            <Link
-                              key={storeResult.id}
-                              href={`/stores/${storeResult.id}`}
-                              className="w-full px-4 py-3 text-left hover:bg-gray-100 text-sm flex items-center justify-between border-b border-gray-100 last:border-b-0"
-                              onClick={() => setShowDropdown(false)}
-                            >
-                              <div className="flex items-center">
-                                <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
-                                  {storeResult.name.charAt(0)}
-                                </div>
-                                <div>
-                                  <div className="font-medium">{storeResult.name}</div>
-                                  <div className="text-xs text-gray-500">{store?.country}</div>
-                                </div>
-                              </div>
-                              {store && (
-                                <div className="flex items-center gap-2">
-                                  <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(store.trustScore)}`}>
-                                    {store.trustScore}
-                                  </span>
-                                  <div className="flex items-center">
-                                    <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                                    <span className="text-xs ml-1">{store.rating}</span>
-                                  </div>
-                                </div>
-                              )}
-                            </Link>
-                          );
-                        })}
-                    </>
-                  )}
-
-                  {filteredResults.some((result) => result.type === "category") && (
-                    <>
-                      <div className="px-4 py-2 text-xs text-gray-500 font-semibold bg-gray-50">
-                        Categories
-                      </div>
-                      {filteredResults
-                        .filter((result) => result.type === "category")
-                        .map((result) => {
-                          const categoryResult = result as CategorySearchResult;
-                          const Icon = iconMap[categoryResult.icon] || Store;
-                          return (
-                            <Link
-                              key={categoryResult.id}
-                              href={`/stores?categoryId=${categoryResult.id}`}
-                              className="flex items-center px-4 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
-                              onClick={() => setShowDropdown(false)}
-                            >
-                              <Icon className="h-5 w-5 text-gray-600 mr-3" />
-                              <div>
-                                <div className="text-sm font-medium">{categoryResult.name}</div>
-                                <div className="text-xs text-gray-500">{categoryResult.description}</div>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Quick Action Buttons */}
-            <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-              <Link href="/categories">
-                <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
-                  <Store className="h-4 w-4" />
-                  Browse Categories
-                </Button>
-              </Link>
-              <Link href="/trending">
-                <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
-                  <TrendingUp className="h-4 w-4" />
-                  Trending Stores
-                </Button>
-              </Link>
-              <Link href="/verified">
-                <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
-                  <Shield className="h-4 w-4" />
-                  Verified Only
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </SectionContainer>
-
-        {/* Full Page Search Modal for Small Screens */}
-        {isSearchModalOpen && (
-          <div className="fixed inset-0 bg-white z-[100] flex flex-col">
-            <div className="flex items-center px-4 py-3 border-b border-gray-200">
-              <div className="relative flex-1 mr-3">
-                <Input
-                  autoFocus
-                  type="text"
-                  placeholder="Search for stores, brands, or categories..."
-                  className="w-full h-12 text-base pl-4 pr-10 rounded-lg border focus:border-blue-500"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              </div>
-              <Button
-                variant="ghost"
-                onClick={() => setIsSearchModalOpen(false)}
-                className="p-2 text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4">
-              {filteredResults.length > 0 ? (
-                <div className="space-y-1">
-                  {filteredResults.some((result) => result.type === "store") && (
-                    <>
-                      <div className="px-4 py-2 text-xs text-gray-500 font-semibold">Companies</div>
-                      {filteredResults
-                        .filter((result) => result.type === "store")
-                        .map((result) => {
-                          const storeResult = result as StoreSearchResult;
-                          const store = featuredStores.find(s => s.id === storeResult.id);
-                          return (
-                            <Link
-                              key={storeResult.id}
-                              href={`/stores/${storeResult.id}`}
-                              className="block w-full px-4 py-3 text-left hover:bg-gray-100 rounded-lg"
-                              onClick={() => setIsSearchModalOpen(false)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
-                                    {storeResult.name.charAt(0)}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium">{storeResult.name}</div>
-                                    <div className="text-xs text-gray-500">{store?.country}</div>
-                                  </div>
-                                </div>
-                                {store && (
-                                  <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(store.trustScore)}`}>
-                                      {store.trustScore}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </Link>
-                          );
-                        })}
-                    </>
-                  )}
-
-                  {filteredResults.some((result) => result.type === "category") && (
-                    <>
-                      <div className="px-4 py-2 text-xs text-gray-500 font-semibold">Categories</div>
-                      {filteredResults
-                        .filter((result) => result.type === "category")
-                        .map((result) => {
-                          const categoryResult = result as CategorySearchResult;
-                          const Icon = iconMap[categoryResult.icon] || Store;
-                          return (
-                            <Link
-                              key={categoryResult.id}
-                              href={`/stores?categoryId=${categoryResult.id}`}
-                              className="flex items-center px-4 py-3 hover:bg-gray-100 rounded-lg"
-                              onClick={() => setIsSearchModalOpen(false)}
-                            >
-                              <Icon className="h-5 w-5 text-gray-600 mr-3" />
-                              <div>
-                                <div className="text-sm font-medium">{categoryResult.name}</div>
-                                <div className="text-xs text-gray-500">{categoryResult.description}</div>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                    </>
-                  )}
-                </div>
-              ) : (
-                search.length > 0 && !loadingCategories && (
-                  <div className="text-center text-gray-500 mt-8">
-                    <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No results found for "{search}"</p>
-                    <p className="text-sm mt-2">Try searching for a different store or category</p>
+            {/* Enhanced Search Bar */}
+            <div className="max-w-2xl mx-auto mb-8 sm:mb-12">
+              <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-0">
+                  <div className="relative flex-1">
+                    <Input
+                      type="text"
+                      placeholder="Search stores, brands, or products..."
+                      className="w-full h-12 sm:h-14 text-base sm:text-lg pl-12 sm:pl-14 pr-4 sm:pr-6 rounded-xl sm:rounded-l-xl sm:rounded-r-none border-2 border-white/20 bg-white/10 backdrop-blur-sm text-white placeholder-white/70 focus:border-white/40 focus:bg-white/20 transition-all"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => setIsSearchFocused(true)}
+                      onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                    <Search className="absolute left-4 sm:left-5 top-1/2 transform -translate-y-1/2 text-white/70 h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                )
-              )}
-            </div>
-          </div>
-        )}
+                  <Button 
+                    size="lg" 
+                    className="h-12 sm:h-14 px-6 sm:px-8 bg-white text-blue-700 hover:bg-blue-50 font-semibold text-base sm:text-lg rounded-xl sm:rounded-l-none sm:rounded-r-xl shadow-lg hover:shadow-xl transition-all"
+                    onClick={handleSearch}
+                  >
+                    <Search className="w-5 h-5 mr-2" />
+                    Search
+                  </Button>
+                </div>
+              </div>
 
-        {/* 2. Browse by Category Section */}
-        <SectionContainer className="bg-white">
-          <SectionHeader
-            title="Browse by Category"
-            subtitle="Find stores in your favorite shopping categories"
-            linkText="View All"
-            linkHref="/categories"
-          />
-          {loadingCategories ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-              {[...Array(10)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="bg-gray-200 rounded-lg h-24 sm:h-28"></div>
+              {/* Trending Searches - Mobile Optimized */}
+              <div className="mt-4 sm:mt-6">
+                <p className="text-sm text-blue-200 mb-3">Trending searches:</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {trendingSearches.slice(0, 4).map((search) => (
+                    <button
+                      key={search}
+                      className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm rounded-full border border-white/20 hover:border-white/40 transition-all"
+                      onClick={() => handleTrendingSearch(search)}
+                    >
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats - Mobile Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 mb-2 sm:mb-3`}>
+                    <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color.replace('text-', 'text-white')}`} />
+                  </div>
+                  <div className="text-xl sm:text-2xl lg:text-3xl font-bold">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-blue-200">{stat.label}</div>
                 </div>
               ))}
             </div>
-          ) : categoryError ? (
-            <p className="text-red-500 text-center">{categoryError}</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-              {categories
-                .filter((category) => !category.parentId)
-                .slice(0, 10)
-                .map((category) => {
-                  const Icon = iconMap[category.icon] || Store;
-                  return (
-                    <Link
-                      key={category.id}
-                      href={`/stores?categoryId=${category.id}`}
-                      className="group flex flex-col items-center justify-center p-4 sm:p-6 bg-white rounded-xl hover:bg-blue-50 hover:shadow-lg transition-all duration-300 text-center border border-gray-100 hover:border-blue-200"
-                    >
-                      <Icon className="h-8 w-8 sm:h-10 sm:w-10 mb-2 sm:mb-3 text-blue-600 group-hover:text-blue-700 transition-colors group-hover:scale-110 transform duration-300" />
-                      <span className="text-sm sm:text-base font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
-                        {category.name}
-                      </span>
-                    </Link>
-                  );
-                })}
-            </div>
-          )}
-        </SectionContainer>
 
-        {/* 3. Top Rated Stores Section */}
-        <SectionContainer className="bg-gray-50">
-          <SectionHeader
-            title="Top Rated Stores"
-            subtitle="Discover the most trusted online stores with excellent reviews"
-            linkText="View All"
-            linkHref="/stores"
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredStores.map((store) => (
-              <div key={store.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center text-blue-600 text-lg font-bold mr-3">
-                      {store.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{store.name}</h3>
-                      <p className="text-sm text-gray-500">{store.country}</p>
-                    </div>
-                  </div>
-                  {store.verified && (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  )}
-                </div>
-                
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{store.desc}</p>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${i < store.rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="ml-2 text-sm font-medium">{store.rating}</span>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(store.trustScore)}`}>
-                    {store.trustScore}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-500">{store.reviewCount} reviews</span>
-                  <span className="text-sm text-gray-500">{store.monthlyVisitors} monthly</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <a
-                    href={store.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    Visit Store
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
-                  <Link href={`/stores/${store.id}`}>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionContainer>
-
-        {/* 4. Recent Reviews Section */}
-        <SectionContainer className="bg-white">
-          <SectionHeader
-            title="Recent Reviews"
-            subtitle="Latest authentic reviews from verified customers across India"
-            linkText="View All Reviews"
-            linkHref="/reviews"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentReviews.slice(0, 6).map((review) => (
-              <div key={review.id} className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm mr-3">
-                      {review.reviewer.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="flex items-center">
-                        <span className="font-medium text-gray-900">{review.reviewer}</span>
-                        {review.verified && (
-                          <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-500">{review.location}</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-400">{review.date}</div>
-                </div>
-
-                <div className="mb-3">
-                  <Link href={`/stores/${review.storeId}`} className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                    {review.storeName}
-                  </Link>
-                  <span className="mx-2 text-gray-300">•</span>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{review.category}</span>
-                </div>
-
-                <div className="flex items-center mb-3">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${i < review.rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                      />
-                    ))}
-                  </div>
-                  <span className="ml-2 text-sm font-medium">{review.rating}/5</span>
-                </div>
-
-                <p className="text-gray-700 text-sm mb-4 line-clamp-3">{review.review}</p>
-
-                <div className="flex items-center justify-between">
-                  <button className="flex items-center text-gray-500 hover:text-blue-600 text-sm">
-                    <ThumbsUp className="h-4 w-4 mr-1" />
-                    Helpful ({review.helpful})
-                  </button>
-                  <Link href={`/stores/${review.storeId}`} className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                    Read More
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionContainer>
-
-        {/* 5. Trending Stores Section */}
-        <SectionContainer className="bg-gray-50">
-          <SectionHeader
-            title="Trending Stores"
-            subtitle="Fastest growing and most popular stores in India right now"
-            linkText="View All Trending"
-            linkHref="/trending"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trendingStores.map((store, index) => (
-              <div key={store.id} className="bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 relative overflow-hidden">
-                {index < 3 && (
-                  <div className="absolute top-0 right-0 bg-gradient-to-l from-orange-500 to-red-500 text-white px-3 py-1 text-xs font-bold rounded-bl-lg">
-                    <Flame className="h-3 w-3 inline mr-1" />
-                    HOT
-                  </div>
-                )}
-                
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center text-green-600 text-lg font-bold mr-3">
-                      {store.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{store.name}</h3>
-                      <p className="text-sm text-gray-500">{store.category}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    {store.isRising ? (
-                      <TrendingUp className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <TrendingDown className="h-5 w-5 text-red-500" />
-                    )}
-                  </div>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-4">{store.description}</p>
-
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${i < store.rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="ml-2 text-sm font-medium">{store.rating}</span>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(store.trustScore)}`}>
-                    {store.trustScore}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-sm text-gray-500">{store.reviews} reviews</span>
-                  <span className={`text-sm font-semibold ${store.isRising ? 'text-green-600' : 'text-red-600'}`}>
-                    {store.growth} growth
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <a
-                    href={store.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    Visit Store
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
-                  <Link href={`/stores/${store.id}`}>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionContainer>
-
-        {/* 6. Industry Insights Section */}
-        <SectionContainer className="bg-white">
-          <SectionHeader
-            title="Industry Insights"
-            subtitle="Stay ahead with the latest shopping trends and market insights from India"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {industryInsights.map((insight, index) => {
-              const Icon = insight.icon;
-              return (
-                <div key={index} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100 hover:shadow-lg transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <Icon className="h-8 w-8 text-blue-600" />
-                    <span className={`text-sm font-semibold px-2 py-1 rounded-full bg-white ${insight.trendColor}`}>
-                      {insight.trend}
-                    </span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{insight.title}</h3>
-                  <div className="text-2xl font-bold text-blue-600 mb-2">{insight.value}</div>
-                  <p className="text-gray-600 text-sm">{insight.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </SectionContainer>
-
-        {/* 7. How StoreRankly Works Section */}
-        <SectionContainer className="bg-gray-50">
-          <SectionHeader
-            title="How StoreRankly Works"
-            subtitle="Making online shopping safer and smarter with verified reviews and trusted store information"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {howItWorks.map((step) => {
-              const Icon = step.icon;
-              return (
-                <div key={step.step} className="text-center">
-                  <div className="relative mb-6">
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto">
-                      <Icon className="h-10 w-10 text-blue-600" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                      {step.step}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                  <p className="text-gray-600">{step.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </SectionContainer>
-
-        {/* 8. Success Stories Section */}
-        <SectionContainer className="bg-white">
-          <SectionHeader
-            title="Success Stories"
-            subtitle="Real stories from our community about how StoreRankly helped them shop smarter and safer"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {successStories.map((story) => (
-              <div key={story.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-start mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
-                    {story.avatar}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <h3 className="font-semibold">{story.name}</h3>
-                      {story.verified && (
-                        <CheckCircle className="h-4 w-4 text-green-500 ml-2" />
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">{story.location}</p>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <Quote className="h-5 w-5 text-gray-400 mb-2" />
-                  <p className="text-gray-700 italic">"{story.story}"</p>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <ThumbsUp className="h-3 w-3 mr-1" />
-                    {story.outcome}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SectionContainer>
-
-        {/* 9. Trust & Safety Section */}
-        <SectionContainer className="bg-gray-50">
-          <SectionHeader
-            title="Trust & Safety"
-            subtitle="We're committed to helping you make safe and informed shopping decisions with verified reviews and store ratings"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 bg-green-50 rounded-xl border border-green-100 hover:shadow-lg transition-all duration-300">
-              <Shield className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2 text-green-800">Verified Stores</h3>
-              <p className="text-green-700 text-sm">
-                All stores undergo verification to ensure legitimacy and trustworthiness before listing.
-              </p>
-            </div>
-            
-            <div className="text-center p-6 bg-blue-50 rounded-xl border border-blue-100 hover:shadow-lg transition-all duration-300">
-              <Award className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2 text-blue-800">Authentic Reviews</h3>
-              <p className="text-blue-700 text-sm">
-                Only verified customers can leave reviews, ensuring authentic and helpful feedback.
-              </p>
-            </div>
-            
-            <div className="text-center p-6 bg-red-50 rounded-xl border border-red-100 hover:shadow-lg transition-all duration-300">
-              <AlertTriangle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2 text-red-800">Fraud Protection</h3>
-              <p className="text-red-700 text-sm">
-                We actively monitor and flag suspicious stores to protect our community from scams.
-              </p>
+            {/* CTA Buttons - Mobile Stack */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transition-all"
+                asChild
+              >
+                <Link href="/categories">
+                  <Shield className="w-5 h-5 mr-2" />
+                  Browse Categories
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 font-semibold px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg rounded-xl transition-all"
+                asChild
+              >
+                <Link href="/stores">
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  View All Stores
+                </Link>
+              </Button>
             </div>
           </div>
-        </SectionContainer>
+        </div>
 
-        {/* 10. Trusted by Millions Section */}
-        <SectionContainer className="bg-white">
-          <SectionHeader
-            title="Trusted by Millions"
-            subtitle="Join our growing community of smart shoppers making informed decisions every day"
-          />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-blue-600 mb-2">50K+</div>
-              <div className="text-gray-600">Verified Stores</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-green-600 mb-2">2M+</div>
-              <div className="text-gray-600">Customer Reviews</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-purple-600 mb-2">180+</div>
-              <div className="text-gray-600">Countries</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-orange-600 mb-2">100K+</div>
-              <div className="text-gray-600">Daily Visitors</div>
-            </div>
-          </div>
-        </SectionContainer>
+        {/* Decorative Elements */}
+        <div className="absolute top-20 left-10 w-20 h-20 bg-white/5 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 bg-white/5 rounded-full blur-xl animate-pulse delay-1000"></div>
+      </section>
 
-        {/* CTA Section */}
-        <SectionContainer className="bg-gradient-to-r from-blue-600 to-purple-600">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-              Join Our Community of Smart Shoppers
+      {/* Categories Section - Mobile Optimized */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Shop by Category
             </h2>
-            <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-              Share your shopping experiences, help others make better decisions, and discover new trusted stores in India.
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Discover trusted stores across different categories with verified reviews and ratings
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
+            {categories.map((category) => (
+              <Link
+                key={category.name}
+                href={`/stores?category=${category.name.toLowerCase()}`}
+                className="group"
+              >
+                <Card className="h-full hover:shadow-lg transition-all duration-300 group-hover:scale-105 border-2 hover:border-blue-200">
+                  <CardContent className="p-4 sm:p-6 text-center">
+                    <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">{category.icon}</div>
+                    <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{category.name}</h3>
+                    <Badge className={`${category.color} text-xs`}>
+                      {category.count} stores
+                    </Badge>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center mt-8 sm:mt-12">
+            <Button variant="outline" size="lg" asChild className="px-6 sm:px-8">
+              <Link href="/categories">
+                View All Categories
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Stores - Mobile Carousel */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Featured Stores
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Top-rated stores with excellent customer service and verified reviews
+            </p>
+          </div>
+
+          {/* Mobile: Stack, Desktop: Grid */}
+          <div className="block sm:hidden space-y-4">
+            {featuredStores.map((store) => (
+              <HomeList
+                key={store.id}
+                id={store.id}
+                name={store.name}
+                desc={store.desc}
+                rating={store.rating}
+                country={store.country}
+                link={store.link}
+                buttonLabel="View Reviews"
+              />
+            ))}
+          </div>
+
+          <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredStores.map((store) => (
+              <HomeList
+                key={store.id}
+                id={store.id}
+                name={store.name}
+                desc={store.desc}
+                rating={store.rating}
+                country={store.country}
+                link={store.link}
+                buttonLabel="View Reviews"
+              />
+            ))}
+          </div>
+
+          <div className="text-center mt-8 sm:mt-12">
+            <Button size="lg" asChild className="px-6 sm:px-8">
+              <Link href="/stores">
+                Explore All Stores
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section - Mobile Cards */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose StoreRankly?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              We provide comprehensive insights to help you make informed shopping decisions
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {features.map((feature) => (
+              <Card key={feature.title} className="text-center hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full ${feature.color} mb-4`}>
+                    <feature.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 text-sm">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Mobile Optimized */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">
+              Ready to Find Your Perfect Store?
+            </h2>
+            <p className="text-lg sm:text-xl text-blue-100 mb-8 sm:mb-10">
+              Join millions of smart shoppers who trust StoreRankly for their purchasing decisions
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="bg-white text-blue-600 hover:bg-gray-100 border-white">
-                  Write a Review
-                </Button>
-              </Link>
-              <Link href="/business/register">
-                <Button size="lg" className="bg-blue-700 hover:bg-blue-800 text-white">
-                  List Your Store
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg"
+                asChild
+              >
+                <Link href="/stores">
+                  <Search className="w-5 h-5 mr-2" />
+                  Start Exploring
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-white/30 text-white hover:bg-white/10 font-semibold px-6 sm:px-8 h-12 sm:h-14 text-base sm:text-lg"
+                asChild
+              >
+                <Link href="/business/register">
+                  <Building2 className="w-5 h-5 mr-2" />
+                  List Your Business
+                </Link>
+              </Button>
             </div>
           </div>
-        </SectionContainer>
-      </main>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="border-t py-8 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8">
+      <footer className="bg-gray-900 text-white py-8 sm:py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 mb-8">
             <div>
-              <h3 className="font-semibold mb-3">For Shoppers</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link href="/categories" className="hover:text-blue-600">Browse Categories</Link></li>
-                <li><Link href="/trending" className="hover:text-blue-600">Trending Stores</Link></li>
-                <li><Link href="/verified" className="hover:text-blue-600">Verified Stores</Link></li>
-                <li><Link href="/reviews" className="hover:text-blue-600">Recent Reviews</Link></li>
+              <h3 className="font-semibold mb-3 text-sm sm:text-base">Company</h3>
+              <ul className="space-y-2 text-xs sm:text-sm text-gray-400">
+                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-3">For Businesses</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link href="/business/register" className="hover:text-blue-600">List Your Store</Link></li>
-                <li><Link href="/business/pricing" className="hover:text-blue-600">Pricing</Link></li>
-                <li><Link href="/business/features" className="hover:text-blue-600">Features</Link></li>
-                <li><Link href="/business/support" className="hover:text-blue-600">Business Support</Link></li>
+              <h3 className="font-semibold mb-3 text-sm sm:text-base">Features</h3>
+              <ul className="space-y-2 text-xs sm:text-sm text-gray-400">
+                <li><Link href="/stores" className="hover:text-white transition-colors">Store Reviews</Link></li>
+                <li><Link href="/categories" className="hover:text-white transition-colors">Categories</Link></li>
+                <li><Link href="/trust-score" className="hover:text-white transition-colors">Trust Scores</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-3">Support</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link href="/help" className="hover:text-blue-600">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-blue-600">Contact Us</Link></li>
-                <li><Link href="/report" className="hover:text-blue-600">Report a Store</Link></li>
-                <li><Link href="/guidelines" className="hover:text-blue-600">Community Guidelines</Link></li>
+              <h3 className="font-semibold mb-3 text-sm sm:text-base">Support</h3>
+              <ul className="space-y-2 text-xs sm:text-sm text-gray-400">
+                <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link href="/guidelines" className="hover:text-white transition-colors">Guidelines</Link></li>
+                <li><Link href="/report" className="hover:text-white transition-colors">Report Issue</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-3">Company</h3>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link href="/about" className="hover:text-blue-600">About Us</Link></li>
-                <li><Link href="/careers" className="hover:text-blue-600">Careers</Link></li>
-                <li><Link href="/press" className="hover:text-blue-600">Press</Link></li>
-                <li><Link href="/blog" className="hover:text-blue-600">Blog</Link></li>
+              <h3 className="font-semibold mb-3 text-sm sm:text-base">Legal</h3>
+              <ul className="space-y-2 text-xs sm:text-sm text-gray-400">
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="/cookies" className="hover:text-white transition-colors">Cookie Policy</Link></li>
               </ul>
             </div>
           </div>
           
-          <div className="border-t pt-6 flex flex-col sm:flex-row justify-between items-center text-sm text-gray-600">
-            <div className="flex items-center gap-6 mb-4 sm:mb-0">
-              <Link href="/privacy" className="hover:text-blue-600">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-blue-600">Terms of Service</Link>
-              <Link href="/cookies" className="hover:text-blue-600">Cookie Policy</Link>
+          <div className="border-t border-gray-800 pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center">
+            <div className="flex items-center gap-2 mb-4 sm:mb-0">
+              <div className="flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+              </div>
+              <span className="font-bold text-sm sm:text-base">StoreRankly</span>
             </div>
-            <div className="text-center sm:text-right">
+            <p className="text-xs sm:text-sm text-gray-400">
               © 2024 StoreRankly. All rights reserved.
-            </div>
+            </p>
           </div>
         </div>
       </footer>
