@@ -1,8 +1,8 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import {
   ArrowLeft,
   Store as StoreIcon,
   TrendingUp,
@@ -13,7 +13,18 @@ import {
   MessageSquare,
   Star,
   Filter,
-  Eye
+  Eye,
+  ExternalLink,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Users,
+  ShieldCheck,
+  AlertTriangle,
+  Loader2,
+  Link as LinkIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,204 +32,152 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/header";
 import { StoreHeader } from "@/components/store-detail/StoreHeader";
-import { ReviewCard } from "@/components/store-detail/ReviewCard";
+
 import { RatingBreakdown } from "@/components/store-detail/RatingBreakdown";
-import { WriteReviewModal } from "@/components/store-detail/WriteReviewModal";
+import { ReviewModal } from "@/components/store-detail/ReviewModal";
 import { MobileNavTabs } from "@/components/store-detail/MobileNavTabs";
 import { StoreSidebar } from "@/components/store-detail/StoreSidebar";
+import { useStoreDetails } from "@/stores/storeDetailsStore";
+import { useReviewStore, type Review } from "@/stores/reviewStore";
+import { useAuthStore } from "@/stores/authStore";
+import Link from "next/link";
 
-// Enhanced mock data
-const mockStores = [
-  {
-    id: "1",
-    name: "Amazon",
-    description: "World's largest online marketplace with millions of products and fast delivery worldwide. Founded in 1994 by Jeff Bezos, Amazon has grown from an online bookstore to a global e-commerce and cloud computing giant serving customers in over 100 countries.",
-    logo: null,
-    website: "https://www.amazon.com",
-    category: "E-commerce",
-    rating: 4.2,
-    totalReviews: 125847,
-    verified: true,
-    claimed: true,
-    country: "United States",
-    founded: "1994",
-    employees: "1.5M+",
-    headquarters: "Seattle, WA, USA",
-    phone: "+1-888-280-4331",
-    email: "customer-service@amazon.com",
-    responseTime: "< 1 hour",
-    responseRate: 95,
-    tags: ["Free Shipping", "Prime Delivery", "Easy Returns", "24/7 Support"],
-    trustScore: 92,
-    businessType: "Public Company",
-    certifications: ["ISO 27001", "SOC 2", "PCI DSS", "Better Business Bureau A+"],
-    keyFeatures: [
-      "Prime membership with free shipping",
-      "Same-day delivery in select areas",
-      "30-day return policy",
-      "24/7 customer support",
-      "Secure payment processing",
-      "Product reviews and ratings",
-      "Amazon Web Services (AWS)",
-      "Alexa voice assistant integration"
-    ],
-    popularProducts: [
-      { name: "Echo Dot (5th Gen)", price: "$49.99", rating: 4.6, reviews: 45231, category: "Smart Home" },
-      { name: "Fire TV Stick 4K Max", price: "$54.99", rating: 4.5, reviews: 32145, category: "Electronics" },
-      { name: "Kindle Paperwhite", price: "$139.99", rating: 4.7, reviews: 28934, category: "Books & Media" },
-      { name: "AmazonBasics USB Cable", price: "$8.99", rating: 4.3, reviews: 15678, category: "Accessories" }
-    ],
-    recentNews: [
-      {
-        title: "Amazon announces new sustainability initiatives",
-        date: "2024-01-15",
-        summary: "Company commits to carbon neutrality by 2040 with $10 billion investment in clean energy"
-      },
-      {
-        title: "Prime membership benefits expanded",
-        date: "2024-01-10",
-        summary: "New perks added for Prime subscribers including exclusive deals and faster delivery"
-      },
-      {
-        title: "Amazon opens new fulfillment centers",
-        date: "2024-01-05",
-        summary: "Five new facilities to improve delivery times and create 10,000 jobs"
-      }
-    ],
-    ratingBreakdown: {
-      5: 65234,
-      4: 32145,
-      3: 18765,
-      2: 6543,
-      1: 3160
-    },
-    reviewTrends: {
-      lastMonth: 4.3,
-      last3Months: 4.2,
-      last6Months: 4.1,
-      lastYear: 4.0
-    },
-    businessMetrics: {
-      monthlyVisitors: "2.8B",
-      marketShare: "38%",
-      customerSatisfaction: "87%",
-      returnRate: "8.5%"
-    },
-    awards: [
-      "Fortune 500 #2",
-      "Best Employer 2024",
-      "Innovation Leader",
-      "Customer Choice Award"
-    ]
+function ensureHttps(url: string) {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
   }
-];
+  return `https://${url}`;
+}
 
-const mockReviews = [
-  {
-    id: "1",
-    author: "Sarah Johnson",
-    avatar: null,
-    rating: 5,
-    title: "Excellent service and fast delivery",
-    content: "I've been shopping with Amazon for over 5 years and they consistently deliver excellent service. The Prime membership is worth every penny - free shipping, fast delivery, and great customer service. Recently ordered a laptop and it arrived the next day in perfect condition. The packaging was secure and the product exactly as described. Customer support was helpful when I had questions about warranty coverage.",
-    date: "2024-01-20",
-    verified: true,
-    helpful: 24,
-    location: "New York, USA",
-    orderValue: "$1,299",
-    productCategory: "Electronics",
-    pros: ["Fast delivery", "Great customer service", "Secure packaging"],
-    cons: ["Prices could be better"],
-    wouldRecommend: true
-  },
-  {
-    id: "2",
-    author: "Mike Chen",
-    avatar: null,
-    rating: 4,
-    title: "Good overall experience with minor issues",
-    content: "Amazon has a vast selection and competitive prices. Delivery is usually fast with Prime. Had one issue with a damaged package but customer service resolved it quickly with a full refund. The return process is straightforward and hassle-free. Website is easy to navigate and product descriptions are detailed.",
-    date: "2024-01-18",
-    verified: true,
-    helpful: 18,
-    location: "California, USA",
-    orderValue: "$89",
-    productCategory: "Home & Garden",
-    pros: ["Wide selection", "Easy returns", "Competitive prices"],
-    cons: ["Occasional packaging issues"],
-    wouldRecommend: true
-  },
-  {
-    id: "3",
-    author: "Emma Wilson",
-    avatar: null,
-    rating: 5,
-    title: "Outstanding customer support",
-    content: "Had an issue with my order and contacted customer support through chat. The representative was knowledgeable, friendly, and resolved my issue within minutes. This is why I keep coming back to Amazon. They really care about customer satisfaction and it shows in every interaction.",
-    date: "2024-01-15",
-    verified: true,
-    helpful: 31,
-    location: "London, UK",
-    orderValue: "$156",
-    productCategory: "Books",
-    pros: ["Excellent support", "Quick resolution", "Friendly staff"],
-    cons: ["None"],
-    wouldRecommend: true
-  },
-  {
-    id: "4",
-    author: "David Rodriguez",
-    avatar: null,
-    rating: 3,
-    title: "Mixed experience - good products, delivery delays",
-    content: "Product quality is generally good and prices are competitive. However, I've experienced several delivery delays recently, even with Prime. Customer service is helpful but sometimes takes time to respond. The mobile app could use some improvements for better user experience.",
-    date: "2024-01-12",
-    verified: true,
-    helpful: 12,
-    location: "Texas, USA",
-    orderValue: "$234",
-    productCategory: "Sports & Outdoors",
-    pros: ["Good product quality", "Competitive prices"],
-    cons: ["Delivery delays", "App issues"],
-    wouldRecommend: true
-  },
-  {
-    id: "5",
-    author: "Lisa Thompson",
-    avatar: null,
-    rating: 5,
-    title: "Love the convenience and selection",
-    content: "Amazon makes shopping so convenient. The mobile app is user-friendly, product descriptions are detailed, and the review system helps make informed decisions. Prime Video is a nice bonus too! The recommendation engine is surprisingly accurate.",
-    date: "2024-01-10",
-    verified: true,
-    helpful: 19,
-    location: "Ontario, Canada",
-    orderValue: "$67",
-    productCategory: "Beauty & Personal Care",
-    pros: ["Convenient", "Great selection", "Good recommendations"],
-    cons: ["Can be addictive"],
-    wouldRecommend: true
-  }
-];
-
-function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-5 h-5"
+function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: { 
+  review: Review; 
+  isUserReview?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+}) {
+  const { user } = useAuthStore();
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
+  // Use authState user info if it's the current user's review
+  const displayUser = isUserReview && user ? user : review.user;
+  const displayName = isUserReview && user ? user.name : (review.user?.name || 'Anonymous');
+
   return (
-    <div className="flex items-center">
-      {[...Array(5)].map((_, i) => (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+      {/* Header with user info and actions */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+            {displayUser?.picture ? (
+              <img
+                src={displayUser.picture}
+                alt={displayName}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-sm font-semibold text-blue-600">
+                {displayName?.charAt(0) || 'U'}
+              </span>
+            )}
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">{displayName}</h4>
+            <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
+          </div>
+        </div>
+
+        {/* Edit/Delete actions for user's own reviews */}
+        {isUserReview && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              className="text-red-600 hover:text-red-700"
+            >
+              Delete
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Rating */}
+      <div className="flex items-center gap-2">
+        <div className="flex">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={`w-4 h-4 ${
+                star <= review.rating
+                  ? 'text-yellow-400 fill-yellow-400'
+                  : 'text-gray-300'
+              }`}
+            />
+          ))}
+        </div>
+        <span className="font-medium text-gray-900">{review.rating}</span>
+        <span className="text-gray-500">•</span>
+        <span className="text-sm text-gray-600">{review.title}</span>
+      </div>
+
+      {/* Review content */}
+      <div className="space-y-3">
+        <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+        
+        {/* Purchase details */}
+        {(review.orderNumber || review.dateOfPurchase) && (
+          <div className="bg-gray-50 rounded-lg p-3 text-sm">
+            <div className="flex flex-wrap gap-4 text-gray-600">
+              {review.orderNumber && (
+                <span>Order #: {review.orderNumber}</span>
+              )}
+              {review.dateOfPurchase && (
+                <span>Purchased: {formatDate(review.dateOfPurchase)}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Attachments */}
+        {review.attachments && review.attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {review.attachments.map((attachment, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                📎 {attachment}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+  const starSize = size === "sm" ? "w-4 h-4" : "w-5 h-5";
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
         <Star
-          key={i}
-          className={`${sizeClasses[size]} ${
-            i < Math.floor(rating) 
-              ? "text-yellow-400 fill-yellow-400" 
-              : i === Math.floor(rating) && rating % 1 >= 0.5
-              ? "text-yellow-400 fill-yellow-400"
-              : "text-gray-300"
-          }`}
+          key={star}
+          className={`${starSize} ${star <= rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
         />
       ))}
     </div>
@@ -236,24 +195,160 @@ export default function StoreDetailPage({
   const [reviewFilter, setReviewFilter] = useState("all");
   const [reviewSort, setReviewSort] = useState("newest");
   const [showWriteReview, setShowWriteReview] = useState(false);
+  const [showEditReview, setShowEditReview] = useState(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
+  
+  const { storeDetails, fetchStore } = useStoreDetails();
+  const { data: store, loading, error } = storeDetails;
+  
+  const { 
+    storeReviews, 
+    userReviews,
+    fetchStoreReviews, 
+    fetchUserReviews,
+    removeReview,
+    deleteReview 
+  } = useReviewStore();
+  const { data: reviews, loading: reviewsLoading, error: reviewsError } = storeReviews;
+  const { data: userReviewsData, loading: userReviewsLoading, error: userReviewsError } = userReviews;
 
-  const store = mockStores.find((s) => s.id === storeId);
+  // Get user and token from authStore
+  const { user, accessToken } = useAuthStore();
+  const currentUserId = user?.id || "d9c9e39d-b50d-40be-9974-880bb2fe8c57"; // fallback
+  
+  console.log('Current user from authStore:', user);
+  console.log('Access token from authStore:', accessToken ? 'Present' : 'Missing');
+
+  useEffect(() => {
+    if (storeId) {
+      fetchStore(storeId);
+      fetchStoreReviews(storeId, accessToken);
+      
+      // Fetch user reviews with token
+      console.log('Fetching user reviews', currentUserId, accessToken);
+      if (accessToken && currentUserId) {
+        fetchUserReviews(currentUserId, accessToken);
+      }
+    }
+  }, [storeId, fetchStore, fetchStoreReviews, fetchUserReviews, currentUserId, accessToken]);
+
+  // Refetch user reviews when page comes into focus
+  useEffect(() => {
+    const handleFocus = () => {
+      if (accessToken && currentUserId && storeId) {
+        console.log('Page focused - refetching user reviews');
+        fetchUserReviews(currentUserId, accessToken);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleFocus();
+      }
+    };
+
+    // Listen for window focus and page visibility changes
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentUserId, storeId, fetchUserReviews, accessToken]);
+
+  const handleEditReview = (review: Review) => {
+    setEditingReview(review);
+    setShowEditReview(true);
+  };
+
+  const handleDeleteConfirm = (reviewId: string) => {
+    setDeletingReviewId(reviewId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteReview = async () => {
+    if (!deletingReviewId) return;
+    
+    const success = await removeReview(deletingReviewId, accessToken || '');
+    
+    if (success) {
+      setShowDeleteConfirm(false);
+      setDeletingReviewId(null);
+    }
+  };
+
+  // Filter user reviews for this store
+  const storeUserReviews = userReviewsData.filter(review => review.storeId === storeId);
+  
+  // Filter out user's reviews from store reviews to avoid duplicates
+  const otherReviews = reviews.filter(review => review.userId !== currentUserId);
+  
+  // Debug logging
+  console.log('Current User ID:', currentUserId);
+  console.log('Store ID:', storeId);
+  console.log('User Reviews Data:', userReviewsData);
+  console.log('Filtered Store User Reviews:', storeUserReviews);
+  console.log('Other Reviews (excluding user):', otherReviews);
+  console.log('Auth Token:', accessToken ? 'Present' : 'Missing');
+  
+  // Combine reviews with user reviews at top
+  const allReviews = [...storeUserReviews, ...otherReviews];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
+              <p className="text-gray-600 text-lg">Loading store details...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Store</h2>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={() => fetchStore(storeId)} className="mr-4">
+                Try Again
+              </Button>
+              <Button variant="outline" onClick={() => router.back()}>
+                Go Back
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!store) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header />
         <main className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <StoreIcon className="w-8 h-8 text-gray-400" />
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <StoreIcon className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Store Not Found</h2>
+              <p className="text-gray-600 mb-4">The store you're looking for doesn't exist.</p>
+              <Button onClick={() => router.back()}>
+                Go Back
+              </Button>
             </div>
-            <h1 className="text-2xl font-bold mb-4">Store not found</h1>
-            <p className="text-gray-600 mb-6">The store you're looking for doesn't exist or has been removed.</p>
-            <Button onClick={() => router.push("/stores")}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Stores
-            </Button>
           </div>
         </main>
       </div>
@@ -261,308 +356,463 @@ export default function StoreDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">      
-      <main className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4 sm:mb-6">
-          <button onClick={() => router.push("/stores")} className="hover:text-gray-700">
-            Stores
-          </button>
-          <span>/</span>
-          <span className="text-gray-900 font-medium truncate">{store.name}</span>
-        </nav>
+    <div className="min-h-screen bg-gray-50">
+
+
+      <main className="container mx-auto px-4 py-6">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Search
+          </Button>
+        </div>
 
         {/* Store Header */}
-        <div className="mb-6 sm:mb-8">
-          <StoreHeader store={store} onWriteReview={() => setShowWriteReview(true)} />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-shrink-0">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center">
+                {store.logo ? (
+                  <img
+                    src={store.logo}
+                    alt={`${store.name} logo`}
+                    className="w-16 h-16 object-contain rounded-lg"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-blue-600">
+                    {store.name.charAt(0)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                    {store.name}
+                  </h1>
+                  <div className="flex items-center gap-3 mb-3">
+                    {store.verified && (
+                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Verified
+                      </Badge>
+                    )}
+                    {store.claimed && (
+                      <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                        <ShieldCheck className="w-3 h-3 mr-1" />
+                        Claimed
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="flex items-center gap-2">
+                      <StarRating rating={store.rating} size="md" />
+                      <span className="text-xl font-bold text-gray-900">
+                        {store.rating.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {store.totalRatings} review{store.totalRatings !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {store.description && (
+                <p className="text-gray-600 mb-4 leading-relaxed">
+                  {store.description}
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {store.tags.map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                {store.website && (
+                  <a
+                    href={store.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 hover:text-blue-600"
+                  >
+                    <Globe className="w-4 h-4" />
+                    Website
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {store.email && (
+                  <div className="flex items-center gap-1">
+                    <Mail className="w-4 h-4" />
+                    {store.email}
+                  </div>
+                )}
+                {store.mobile && (
+                  <div className="flex items-center gap-1">
+                    <Phone className="w-4 h-4" />
+                    {store.mobile}
+                  </div>
+                )}
+                {store.country && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {store.country}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="mb-6 sm:mb-8">
-          <MobileNavTabs 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-            reviewCount={store.totalReviews}
-          />
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+          <div className="border-b border-gray-200">
+            <nav className="flex overflow-x-auto">
+              {[
+                { id: "overview", label: "Overview", icon: Eye },
+                { id: "company", label: "Company", icon: Building },
+                { id: "reviews", label: "Reviews", icon: MessageSquare },
+                { id: "contact", label: "Contact", icon: Phone },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-6 py-4 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+                      activeTab === tab.id
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
         </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-3">
+        {/* Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             {activeTab === "overview" && (
               <div className="space-y-6">
-                {/* Rating Breakdown */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <TrendingUp className="w-5 h-5" />
-                      Rating Breakdown
+                    <CardTitle className="flex items-center gap-2">
+                      <StoreIcon className="w-5 h-5" />
+                      Store Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <RatingBreakdown breakdown={store.ratingBreakdown} totalReviews={store.totalReviews} />
-                  </CardContent>
-                </Card>
-
-                {/* Business Metrics */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <TrendingUp className="w-5 h-5" />
-                      Business Metrics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                      <div className="text-center">
-                        <div className="text-xl sm:text-2xl font-bold text-blue-600">{store.businessMetrics.monthlyVisitors}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Monthly Visitors</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-xl sm:text-2xl font-bold text-green-600">{store.businessMetrics.marketShare}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Market Share</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-xl sm:text-2xl font-bold text-purple-600">{store.businessMetrics.customerSatisfaction}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Customer Satisfaction</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-xl sm:text-2xl font-bold text-orange-600">{store.businessMetrics.returnRate}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Return Rate</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Key Features */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Award className="w-5 h-5" />
-                      Key Features & Services
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {store.keyFeatures.map((feature, index) => (
-                        <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Store Name</label>
+                          <div className="text-gray-900 font-medium">{store.name}</div>
                         </div>
-                      ))}
+                        {store.foundedYear && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Founded</label>
+                            <div className="text-gray-900 font-medium">{store.foundedYear}</div>
+                          </div>
+                        )}
+                        {store.employeeCount && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">Employee Count</label>
+                            <div className="text-gray-900 font-medium">{store.employeeCount}</div>
+                          </div>
+                        )}
+                        {store.ceoOwner && (
+                          <div>
+                            <label className="text-sm font-medium text-gray-500">CEO/Owner</label>
+                            <div className="text-gray-900 font-medium">{store.ceoOwner}</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Created</label>
+                          <div className="text-gray-900 font-medium">
+                            {new Date(store.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Last Updated</label>
+                          <div className="text-gray-900 font-medium">
+                            {new Date(store.updatedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Total Ratings</label>
+                          <div className="text-gray-900 font-medium">{store.totalRatings}</div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Recent Reviews Preview */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5" />
-                        Recent Reviews
+                {store.storeCategories && store.storeCategories.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Package className="w-5 h-5" />
+                        Categories
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {store?.storeCategories?.map((category, index) => (
+                          <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {category.name || category}
+                          </Badge>
+                        ))}
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setActiveTab("reviews")}>
-                        View All
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4 sm:space-y-6">
-                      {mockReviews.slice(0, 2).map((review) => (
-                        <ReviewCard key={review.id} review={review} />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
-            )}
-
-            {activeTab === "reviews" && (
-              <div className="space-y-6">
-                {/* Review Filters */}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      <div className="flex-1">
-                        <Select value={reviewFilter} onValueChange={setReviewFilter}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Filter reviews" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Reviews</SelectItem>
-                            <SelectItem value="5">5 Stars</SelectItem>
-                            <SelectItem value="4">4 Stars</SelectItem>
-                            <SelectItem value="3">3 Stars</SelectItem>
-                            <SelectItem value="2">2 Stars</SelectItem>
-                            <SelectItem value="1">1 Star</SelectItem>
-                            <SelectItem value="verified">Verified Only</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-1">
-                        <Select value={reviewSort} onValueChange={setReviewSort}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sort by" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="newest">Newest First</SelectItem>
-                            <SelectItem value="oldest">Oldest First</SelectItem>
-                            <SelectItem value="highest">Highest Rated</SelectItem>
-                            <SelectItem value="lowest">Lowest Rated</SelectItem>
-                            <SelectItem value="helpful">Most Helpful</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <Button onClick={() => setShowWriteReview(true)} className="sm:w-auto">
-                        <Star className="w-4 h-4 mr-2" />
-                        Write Review
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Reviews List */}
-                <div className="space-y-4 sm:space-y-6">
-                  {mockReviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
-                  ))}
-                </div>
-
-                {/* Load More */}
-                <div className="text-center">
-                  <Button variant="outline" size="lg">
-                    Load More Reviews
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "products" && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Package className="w-5 h-5" />
-                    Popular Products
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    {store.popularProducts.map((product, index) => (
-                      <Card key={index} className="border border-gray-200">
-                        <CardContent className="p-4">
-                          <div className="flex justify-between items-start mb-3">
-                            <h4 className="font-semibold text-gray-900 flex-1 text-sm sm:text-base">{product.name}</h4>
-                            <Badge variant="outline" className="ml-2 text-xs">{product.category}</Badge>
-                          </div>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-lg sm:text-xl font-bold text-green-600">{product.price}</span>
-                            <StarRating rating={product.rating} size="sm" />
-                          </div>
-                          <div className="text-xs sm:text-sm text-gray-500">
-                            {product.reviews.toLocaleString()} reviews
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
             )}
 
             {activeTab === "company" && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
+                  <CardTitle className="flex items-center gap-2">
                     <Building className="w-5 h-5" />
                     Company Information
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                    <div className="space-y-4 sm:space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Founded</label>
-                        <div className="text-gray-900 font-medium">{store.founded}</div>
+                        <label className="text-sm font-medium text-gray-500">Company Name</label>
+                        <div className="text-gray-900 font-medium">{store.name}</div>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Employees</label>
-                        <div className="text-gray-900 font-medium">{store.employees}</div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Headquarters</label>
-                        <div className="text-gray-900 font-medium">{store.headquarters}</div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Business Type</label>
-                        <div className="text-gray-900 font-medium">{store.businessType}</div>
-                      </div>
+                      {store.website && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Website</label>
+                          <a
+                            href={ensureHttps(store.website)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                          >
+                            {store.website}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      )}
+                      {store.foundedYear && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Founded</label>
+                          <div className="text-gray-900 font-medium">{store.foundedYear}</div>
+                        </div>
+                      )}
+                      {store.employeeCount && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Employee Count</label>
+                          <div className="text-gray-900 font-medium">{store.employeeCount}</div>
+                        </div>
+                      )}
                     </div>
-                    <div className="space-y-4 sm:space-y-6">
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Phone</label>
-                        <div className="text-gray-900 font-medium">{store.phone}</div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-1">Email</label>
-                        <div className="text-gray-900 font-medium">{store.email}</div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-2">Certifications</label>
-                        <div className="flex flex-wrap gap-2">
-                          {store.certifications.map((cert) => (
-                            <Badge key={cert} variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                              {cert}
-                            </Badge>
-                          ))}
+                    <div className="space-y-4">
+                      {store.ceoOwner && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">CEO/Owner</label>
+                          <div className="text-gray-900 font-medium">{store.ceoOwner}</div>
                         </div>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-500 block mb-2">Awards & Recognition</label>
-                        <div className="flex flex-wrap gap-2">
-                          {store.awards.map((award) => (
-                            <Badge key={award} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs">
-                              <Award className="w-3 h-3 mr-1" />
-                              {award}
-                            </Badge>
-                          ))}
+                      )}
+                      {store.users && store.users.length > 0 && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Business Users</label>
+                          <div className="space-y-2">
+                            {store.users.map((user) => (
+                              <div key={user.id} className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <span className="text-sm font-medium text-blue-600">
+                                    {user.name.charAt(0)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium">{user.name}</div>
+                                  <div className="text-xs text-gray-500">{user.role}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
               </Card>
             )}
 
-            {activeTab === "news" && (
+            {activeTab === "reviews" && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <TrendingUp className="w-5 h-5" />
-                    Recent News & Updates
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5" />
+                      Customer Reviews ({storeUserReviews.length + otherReviews.length})
+                    </div>
+                    <Button 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setShowWriteReview(true)}
+                    >
+                      Write a Review
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {store.recentNews.map((news, index) => (
-                      <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
-                        <div className="flex items-start gap-4">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{news.title}</h4>
-                            <p className="text-gray-600 text-sm leading-relaxed mb-3">{news.summary}</p>
-                            <div className="text-xs text-gray-500">
-                              {new Date(news.date).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                              })}
+                  {reviewsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                      <span className="ml-2 text-gray-600">Loading reviews...</span>
+                    </div>
+                  ) : reviewsError ? (
+                    <div className="text-center py-8">
+                      <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Reviews</h3>
+                      <p className="text-gray-600 mb-4">{reviewsError}</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => fetchStoreReviews(storeId)}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  ) : otherReviews.length === 0 && storeUserReviews.length === 0 ? (
+                    <div className="text-center py-8">
+                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
+                      <p className="text-gray-600 mb-4">Be the first to review this store</p>
+                      <Button 
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => setShowWriteReview(true)}
+                      >
+                        Write a Review
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* User's Own Reviews - Show at top */}
+                      {storeUserReviews.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-2 mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Your Review</h3>
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                              Your Review
+                            </Badge>
+                          </div>
+                          {storeUserReviews.map((review) => (
+                            <ReviewCard 
+                              key={review.id} 
+                              review={review}
+                              isUserReview={true}
+                              onEdit={() => handleEditReview(review)}
+                              onDelete={() => handleDeleteConfirm(review.id)}
+                            />
+                          ))}
+                          
+                          {/* Separator */}
+                          {otherReviews.length > 0 && (
+                            <div className="border-t border-gray-200 pt-6 mt-6">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-4">Other Reviews</h3>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Other Store Reviews */}
+                      {otherReviews.map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {activeTab === "contact" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Phone className="w-5 h-5" />
+                    Contact Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {store.email && (
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-gray-500" />
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Email</label>
+                          <div className="text-gray-900 font-medium">{store.email}</div>
+                        </div>
+                      </div>
+                    )}
+                    {store.mobile && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="w-5 h-5 text-gray-500" />
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Mobile</label>
+                          <div className="text-gray-900 font-medium">{store.mobile}</div>
+                        </div>
+                      </div>
+                    )}
+                    {store.website && (
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-gray-500" />
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Website</label>
+                          <a
+                            href={ensureHttps(store.website)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                          >
+                            {store.website}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    {(store.address1 || store.city || store.state || store.country) && (
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Address</label>
+                          <div className="text-gray-900 font-medium">
+                            {store.address1 && <div>{store.address1}</div>}
+                            {store.address2 && <div>{store.address2}</div>}
+                            <div>
+                              {[store.city, store.state, store.pincode, store.country]
+                                .filter(Boolean)
+                                .join(', ')}
                             </div>
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -570,16 +820,122 @@ export default function StoreDetailPage({
           </div>
 
           {/* Sidebar */}
-          <StoreSidebar store={store} />
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {store.website && (
+                  <Button
+                    asChild
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    <a href={ensureHttps(store.website)} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Visit Website
+                    </a>
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setShowWriteReview(true)}
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Write Review
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Share Store
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Store Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Overall Rating</span>
+                    <div className="flex items-center gap-2">
+                      <StarRating rating={store.rating} size="sm" />
+                      <span className="font-medium">{store.rating.toFixed(1)}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Reviews</span>
+                    <span className="font-medium">{store.totalRatings}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Verified</span>
+                    <Badge variant={store.verified ? "default" : "secondary"}>
+                      {store.verified ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Claimed</span>
+                    <Badge variant={store.claimed ? "default" : "secondary"}>
+                      {store.claimed ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
 
-      {/* Write Review Modal */}
-      <WriteReviewModal 
-        isOpen={showWriteReview} 
-        onClose={() => setShowWriteReview(false)} 
+      {/* Review Modal - Unified for both create and edit */}
+      <ReviewModal
+        isOpen={showWriteReview || showEditReview}
+        onClose={() => {
+          setShowWriteReview(false);
+          setShowEditReview(false);
+          setEditingReview(null);
+        }}
+        isEdit={showEditReview}
+        review={editingReview || undefined}
         storeName={store.name}
+        storeId={storeId}
       />
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md shadow-2xl border-0">
+            <CardHeader>
+              <CardTitle className="text-lg">Delete Review</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-600">
+                Are you sure you want to delete this review? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeletingReviewId(null);
+                  }}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleDeleteReview}
+                  disabled={deleteReview.loading}
+                  className="flex-1 bg-red-600 hover:bg-red-700"
+                >
+                  {deleteReview.loading ? 'Deleting...' : 'Delete'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
