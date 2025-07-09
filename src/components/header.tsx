@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Menu, X, Shield, User, Building2, MapPin, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/authStore";
 import {
@@ -18,8 +18,14 @@ import {
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState("IN");
+  const [isHydrated, setIsHydrated] = useState(false);
   const { user, logout, accessToken } = useAuth();
   const router = useRouter();
+
+  // Prevent hydration mismatch by only showing auth state after client hydration
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const handleBusinessClick = () => {
     router.push("/business/register");
@@ -70,7 +76,7 @@ export function Header() {
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Desktop Auth Buttons */}
             <div className="hidden lg:flex items-center gap-3">
-              {user && accessToken ? (
+              {isHydrated && user && accessToken ? (
                 <div className="flex items-center gap-3">
                   {user?.role === "BUSINESS" && (
                     <Link
@@ -180,7 +186,7 @@ export function Header() {
 
               {/* Auth Section */}
               <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                {user && accessToken ? (
+                {isHydrated && user && accessToken ? (
                   <div className="space-y-3">
                     {/* User Info */}
                     <div className="flex items-center gap-3 p-3 bg-white rounded-lg border">
