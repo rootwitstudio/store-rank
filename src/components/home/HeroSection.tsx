@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Search, 
   Store, 
-  TrendingUp, 
   Shield, 
   ArrowRight, 
   Loader2, 
@@ -43,11 +42,6 @@ const iconMap: Record<string, React.ElementType> = {
   Car: () => <div className="w-4 h-4 bg-blue-700 rounded" />,
   Store: () => <div className="w-4 h-4 bg-gray-500 rounded" />,
 };
-
-// Trending searches data
-const trendingSearches = [
-  "Amazon India", "Flipkart", "Myntra", "Nykaa"
-];
 
 // Quick stats data
 const quickStats = [
@@ -114,12 +108,6 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
     }
   }, []);
 
-  const handleTrendingClick = (searchTerm: string) => {
-    setQuery(searchTerm);
-    search(searchTerm);
-    setShowDropdown(true);
-  };
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -177,12 +165,12 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
             </div>
           </div>
 
-          {/* Enhanced Search Section - Compact */}
+          {/* Enhanced Search Section - Compact with Fixed Focus */}
           <div className={`w-full max-w-2xl relative mb-6 ${isSearchModalOpen ? "hidden sm:block" : ""}`}>
             {/* Search Input */}
             <div className="relative">
               <form
-                className="flex items-center relative bg-white rounded-xl shadow-lg border-2 border-gray-200 focus-within:border-blue-500 transition-all duration-300"
+                className="flex items-center relative bg-white rounded-xl shadow-lg border-2 border-gray-200 hover:border-blue-400 focus-within:border-blue-500 transition-all duration-300"
                 autoComplete="off"
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -195,7 +183,7 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                     ref={inputRef}
                     type="text"
                     placeholder="Search stores, brands, or categories..."
-                    className="w-full h-12 text-base pl-4 pr-16 border-0 rounded-xl bg-transparent focus:ring-0 focus:border-0 placeholder:text-gray-400"
+                    className="w-full h-12 text-base pl-4 pr-16 border-0 rounded-xl bg-transparent focus:ring-0 focus:outline-none focus:border-0 focus:shadow-none placeholder:text-gray-400"
                     value={query}
                     onChange={handleSearchChange}
                     onFocus={handleSearchFocus}
@@ -269,20 +257,6 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Search Suggestions - Compact */}
-            <div className="flex flex-wrap justify-center gap-2 mt-3">
-              <span className="text-xs text-gray-500 mr-1">Trending:</span>
-              {trendingSearches.map((term, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleTrendingClick(term)}
-                  className="text-xs bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-700 px-2.5 py-1 rounded-full transition-colors duration-200"
-                >
-                  {term}
-                </button>
-              ))}
             </div>
 
             {/* Search Dropdown - Optimized */}
@@ -424,16 +398,10 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                 Browse Categories
               </Button>
             </Link>
-            <Link href="/trending">
-              <Button variant="outline" className="flex items-center gap-2 hover:bg-gray-50 hover:border-gray-300 h-10 px-4 rounded-lg text-sm">
-                <TrendingUp className="h-4 w-4" />
-                Trending
-              </Button>
-            </Link>
             <Link href="/verified">
               <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300 h-10 px-4 rounded-lg text-sm">
                 <Shield className="h-4 w-4" />
-                Verified
+                Verified Stores
               </Button>
             </Link>
           </div>
@@ -476,7 +444,7 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                 autoFocus
                 type="text"
                 placeholder="Search stores, brands, or categories..."
-                className="w-full h-11 text-base pl-4 pr-10 rounded-lg border focus:border-blue-500"
+                className="w-full h-11 text-base pl-4 pr-10 rounded-lg border focus:border-blue-500 focus:ring-0 focus:outline-none focus:shadow-none"
                 value={query}
                 onChange={handleSearchChange}
               />
