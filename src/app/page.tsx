@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/header";
 import { categoryApi } from "@/lib/api";
-import { useSearch } from "@/stores/searchStore";
 
 // Import all the new components
 import { HeroSection } from "@/components/home/HeroSection";
@@ -37,13 +36,10 @@ interface Category {
 }
 
 export default function HomePage() {
-  const [selectedLocation, setSelectedLocation] = useState("India");
+  const [selectedLocation] = useState("India");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
-
-  // Use search store
-  const { query, results, loading, error, setQuery, search, clearResults } = useSearch();
 
   const getTrustScoreColor = useCallback((score: number | string) => {
     const numericScore = typeof score === 'string' ? parseFloat(score) : score;

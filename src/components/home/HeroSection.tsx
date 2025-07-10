@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Store, TrendingUp, Shield, ArrowRight, Loader2, Star } from "lucide-react";
+import { Search, Store, TrendingUp, Shield, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import { useSearch } from "@/stores/searchStore";
 
@@ -52,7 +52,7 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
 
   const handleSearchFocus = useCallback(() => {
     setIsInputFocused(true);
-    if (window.innerWidth < 640) {
+    if (window.innerWidth < 768) {
       setIsSearchModalOpen(true);
     } else {
       if (query.length >= 3) {
@@ -89,6 +89,15 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
     };
   }, []);
 
+  // Show dropdown when results are available and input is focused
+  useEffect(() => {
+    if (isInputFocused && query.length >= 3 && !isSearchModalOpen) {
+      if (results.length > 0 || (!loading && !error)) {
+        setShowDropdown(true);
+      }
+    }
+  }, [results, loading, error, isInputFocused, query, isSearchModalOpen]);
+
   return (
     <section className="py-12 sm:py-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 sm:px-6">
@@ -106,7 +115,7 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
           </div>
 
           {/* Main Search Input */}
-          <div className={`w-full max-w-2xl relative mb-6 sm:mb-8 ${isSearchModalOpen ? "hidden sm:block" : ""}`}>
+          <div className={`w-full max-w-2xl relative mb-6 sm:mb-8 ${isSearchModalOpen ? "hidden md:block" : ""}`}>
             <form
               className="flex items-center relative"
               autoComplete="off"
@@ -165,7 +174,7 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                 {!loading && !error && results.length === 0 && query.length >= 3 && (
                   <div className="px-4 py-8 text-center">
                     <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm text-gray-500">No results found for "{query}"</p>
+                    <p className="text-sm text-gray-500">No results found for &quot;{query}&quot;</p>
                     <p className="text-xs text-gray-400 mt-1">Try searching for a different store or category</p>
                   </div>
                 )}
@@ -278,19 +287,19 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
       {/* Full Page Search Modal for Small Screens */}
       {isSearchModalOpen && (
         <div className="fixed inset-0 bg-white z-[100] flex flex-col">
-          <div className="flex items-center px-4 py-3 border-b border-gray-200">
+          <div className="flex items-center px-4 py-4 border-b border-gray-200 bg-gray-50">
             <div className="relative flex-1 mr-3">
               <Input
                 autoFocus
                 type="text"
-                placeholder="Search for stores, brands, or categories..."
-                className="w-full h-12 text-base pl-4 pr-10 rounded-lg border focus:border-blue-500"
+                placeholder="Search stores, brands, or categories..."
+                className="w-full h-12 text-base pl-4 pr-12 rounded-lg border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 value={query}
                 onChange={handleSearchChange}
               />
               <Button
                 type="submit"
-                className="absolute right-2 h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700"
+                className="absolute right-2 top-2 h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 rounded-md"
                 disabled={loading}
               >
                 {loading ? (
@@ -303,93 +312,110 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
             <Button
               variant="ghost"
               onClick={() => setIsSearchModalOpen(false)}
-              className="p-2"
+              className="h-10 w-10 p-0 flex items-center justify-center rounded-lg hover:bg-gray-200"
             >
-              ✕
+              <span className="text-lg">✕</span>
             </Button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
             {loading && (
-              <div className="text-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-blue-600" />
-                <p className="text-sm text-gray-500">Searching...</p>
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+                <p className="text-base text-gray-600">Searching stores...</p>
+                <p className="text-sm text-gray-500 mt-1">Finding the best matches for you</p>
               </div>
             )}
 
             {error && (
-              <div className="text-center text-red-600 text-sm py-4">
-                {error}
+              <div className="text-center py-8">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
               </div>
             )}
 
             {!loading && !error && results.length > 0 && (
               <>
                 {results.some((result) => result.type === "store") && (
-                  <>
-                    <div className="text-sm text-gray-500 font-semibold mb-2">Companies</div>
-                    {results
-                      .filter((result) => result.type === "store")
-                      .map((result) => (
-                        <Link
-                          key={result.id}
-                          href={`/stores/${result.id}`}
-                          className="flex items-center p-3 hover:bg-gray-100 rounded-lg mb-2"
-                          onClick={() => setIsSearchModalOpen(false)}
-                        >
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold mr-3">
-                              {result.name.charAt(0)}
+                  <div className="mb-6">
+                    <div className="text-sm text-gray-500 font-semibold mb-3 px-1">🏪 Companies</div>
+                    <div className="space-y-2">
+                      {results
+                        .filter((result) => result.type === "store")
+                        .map((result) => (
+                          <Link
+                            key={result.id}
+                            href={`/stores/${result.id}`}
+                            className="flex items-center justify-between p-4 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-colors"
+                            onClick={() => setIsSearchModalOpen(false)}
+                          >
+                            <div className="flex items-center flex-1">
+                              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white text-sm font-bold mr-3 shadow-sm">
+                                {result.name.charAt(0)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium text-gray-800">{result.name}</div>
+                                <div className="text-xs text-gray-500">{result.country}</div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="font-medium">{result.name}</div>
-                              <div className="text-xs text-gray-500">{result.country}</div>
+                            <div className="flex items-center gap-2 ml-2">
+                              {result.rating && (
+                                <div className="flex items-center">
+                                  <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                                  <span className="text-xs ml-1 text-gray-600">{result.rating}</span>
+                                </div>
+                              )}
+                              {result.trustScore && (
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(result.trustScore)}`}>
+                                  {result.trustScore}
+                                </span>
+                              )}
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {result.trustScore && (
-                              <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(result.trustScore)}`}>
-                                {result.trustScore}
-                              </span>
-                            )}
-                          </div>
-                        </Link>
-                      ))}
-                  </>
+                          </Link>
+                        ))}
+                    </div>
+                  </div>
                 )}
 
                 {results.some((result) => result.type === "category") && (
-                  <>
-                    <div className="text-sm text-gray-500 font-semibold mb-2">Categories</div>
-                    {results
-                      .filter((result) => result.type === "category")
-                      .map((result) => {
-                        const Icon = iconMap[result.icon || "Store"] || iconMap.Store;
-                        return (
-                          <Link
-                            key={result.id}
-                            href={`/stores?categoryId=${result.id}`}
-                            className="flex items-center p-3 hover:bg-gray-100 rounded-lg mb-2"
-                            onClick={() => setIsSearchModalOpen(false)}
-                          >
-                            <Icon />
-                            <div>
-                              <div className="text-sm font-medium">{result.name}</div>
-                              <div className="text-xs text-gray-500">{result.description}</div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                  </>
+                  <div className="mb-6">
+                    <div className="text-sm text-gray-500 font-semibold mb-3 px-1">🏷️ Categories</div>
+                    <div className="space-y-2">
+                      {results
+                        .filter((result) => result.type === "category")
+                        .map((result) => {
+                          const Icon = iconMap[result.icon || "Store"] || iconMap.Store;
+                          return (
+                            <Link
+                              key={result.id}
+                              href={`/stores?categoryId=${result.id}`}
+                              className="flex items-center p-4 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-colors"
+                              onClick={() => setIsSearchModalOpen(false)}
+                            >
+                              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center mr-3 shadow-sm">
+                                <Icon />
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-800">{result.name}</div>
+                                <div className="text-xs text-gray-500 mt-1">{result.description}</div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                    </div>
+                  </div>
                 )}
               </>
             )}
 
             {!loading && !error && results.length === 0 && query.length >= 3 && (
-              <div className="text-center text-gray-500 mt-8">
-                <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No results found for "{query}"</p>
-                <p className="text-sm mt-2">Try searching for a different store or category</p>
+              <div className="text-center py-12">
+                <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+                  <Search className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-gray-600 text-lg mb-2">No results found for &quot;{query}&quot;</p>
+                  <p className="text-sm text-gray-500">Try searching for a different store or category</p>
+                </div>
               </div>
             )}
           </div>

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Jost } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const jost = Jost({ 
+  subsets: ["latin"],
+  variable: "--font-jost",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap"
+});
 
 export const metadata: Metadata = {
   title: "StoreRankly - Trusted E-commerce Store Reviews",
@@ -17,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${jost.variable} font-sans antialiased`}>
         <main className="min-h-screen bg-background">{children}</main>
       </body>
     </html>
