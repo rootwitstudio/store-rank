@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @custom-variant dark (&:is(.dark *));
 
@@ -361,11 +362,11 @@
   
   /* Icon and button contrast fixes */
   .text-blue-600 {
-    @apply text-primary;
+    color: hsl(var(--primary));
   }
   
   .text-blue-500 {
-    @apply text-primary;
+    color: hsl(var(--primary));
   }
   
   /* Ensure buttons with blue backgrounds have white text */
