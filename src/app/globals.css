@@ -114,8 +114,8 @@
   --sidebar-ring: 212.7 26.8% 83.9%;
 }
 
-  @layer base {
-    * {
+@layer base {
+  * {
       border-color: hsl(var(--border));
       outline-color: hsl(var(--ring) / 0.5);
     }

@@ -9,14 +9,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const allTags = [
-  "Free Shipping",
-  "Eco-friendly",
-  "Online Only",
-  "Local",
-  "Discounts",
-];
-
 const countries = [
   "United States",
   "United Kingdom",
@@ -38,6 +30,7 @@ interface FilterPanelProps {
   setSelectedTags: (tags: string[]) => void;
   subcategories?: Array<{ id: string; name: string }>;
   className?: string;
+  allTags: string[];
 }
 
 export default function FilterPanel({
@@ -53,6 +46,7 @@ export default function FilterPanel({
   setSelectedTags,
   subcategories,
   className = "",
+  allTags,
 }: FilterPanelProps) {
   return (
     <div className={`space-y-6 ${className}`}>
@@ -80,10 +74,10 @@ export default function FilterPanel({
       <div>
         <h3 className="text-base font-semibold mb-2">Location</h3>
         <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder="All Countries" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             <SelectItem value="all">All Countries</SelectItem>
             {countries.map((c) => (
               <SelectItem key={c} value={c}>
