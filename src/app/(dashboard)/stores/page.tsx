@@ -344,8 +344,8 @@ export default function StoresPage() {
                   </p>
                 )}
               </div>
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                {/* Sort Dropdown - visible on all screens, but styled for desktop */}
+              <div className="hidden lg:flex items-center gap-3 w-full sm:w-auto">
+                {/* Sort Dropdown - only on lg+ */}
                 <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as any)}>
                   <SelectTrigger className="bg-white min-w-[160px]">
                     <SelectValue placeholder="Sort by" />

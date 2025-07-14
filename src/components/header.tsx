@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Menu, X, Shield, User, Building2, MapPin, ChevronDown } from "lucide-react";
+import { Search, Menu, X, Shield, User, Building2, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/stores/authStore";
@@ -12,7 +11,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 
 export function Header() {
@@ -123,18 +121,18 @@ export function Header() {
 
             {/* Country Selection */}
             <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-              <SelectTrigger className="w-auto border-0 shadow-none hover:bg-gray-100 px-2 py-1 h-auto gap-1 text-xs sm:text-sm">
+              <SelectTrigger className="w-auto border-0 shadow-none bg-white hover:bg-gray-100 px-2 py-1 h-auto gap-1 text-xs sm:text-sm">
                 <div className="flex items-center gap-1">
                   <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
-                  <span className="hidden sm:inline font-medium">{currentCountry.code}</span>
-                  <span className="sm:hidden text-lg">{currentCountry.flag}</span>
+                  {/* <span className="text-lg">{currentCountry.flag}</span> */}
+                  <span className="font-medium">{currentCountry.name}</span>
                 </div>
               </SelectTrigger>
               <SelectContent>
                 {countries.map((country) => (
                   <SelectItem key={country.code} value={country.code}>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{country.flag}</span>
+                      {/* <span className="text-lg">{country.flag}</span> */}
                       <span>{country.name}</span>
                     </div>
                   </SelectItem>
