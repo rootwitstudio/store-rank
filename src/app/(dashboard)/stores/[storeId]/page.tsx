@@ -30,17 +30,23 @@ import {
   Tag,
   X,
   ThumbsUp,
-  Share2
+  Share2,
+  Pencil,
+  Trash2,
+  XCircle,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ReviewModal } from "@/components/store-detail/ReviewModal";
-import { useStoreDetails } from "@/stores/storeDetailsStore";
+import { useStoreDetails, type StoreDetails } from "@/stores/storeDetailsStore";
 import { useReviewStore, type Review as BaseReview } from "@/stores/reviewStore";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore, type User } from "@/stores/authStore";
+import { useQuery } from "@tanstack/react-query";
+import { reviewApi } from "@/lib/api";
 
 // Remove the Review interface and keep only ReviewResponse
 interface ReviewResponse {
@@ -92,92 +98,6 @@ function safeStringify(value: any, fallback: string = 'Unknown'): string {
   }
 }
 
-function generateDummyReviews(count: number): ExtendedReview[] {
-  const reviewTitles = [
-    "Great experience!",
-    "Excellent service",
-    "Could be better",
-    "Outstanding quality",
-    "Highly recommended",
-    "Not what I expected",
-    "Amazing customer service",
-    "Will shop again",
-    "Mixed feelings",
-    "Fantastic store"
-  ];
-
-  const reviewComments = [
-    "The products arrived quickly and were exactly as described. Very satisfied with my purchase! The packaging was excellent and everything arrived in perfect condition. The customer service team was also very helpful when I had questions about my order. I would definitely recommend this store to others looking for quality products and reliable service. The prices were competitive and the shipping was fast.",
-    "Customer service was exceptional. They went above and beyond to help me with my purchase. The team was knowledgeable and patient in answering all my questions. The product quality exceeded my expectations and arrived earlier than expected. I've already recommended this store to several friends and family members.",
-    "Quality is good but shipping took longer than expected. While the product itself meets my needs, I think there could be improvements in the delivery process. Communication about shipping delays could have been better. However, the customer service team was responsive when I reached out about the delay.",
-    "One of the best online shopping experiences I've had. Will definitely return! The website was easy to navigate, the checkout process was smooth, and the product arrived well-packaged and on time. The quality is excellent and exactly as described in the product details.",
-    "Great selection of products and competitive prices. The store offers a wide range of options to choose from, and their prices are very reasonable compared to other retailers. The quality of the items I received was excellent, and the shipping was fast and reliable.",
-    "Had some issues with my order but customer service resolved them quickly. While there was an initial problem with my delivery, the support team was very professional and efficient in handling the situation. They provided regular updates and made sure I was satisfied with the resolution.",
-    "Everything was perfect from ordering to delivery. The website is user-friendly, the product descriptions are accurate, and the checkout process is seamless. The packaging was secure, and the delivery was right on schedule. I'm very impressed with the overall service.",
-    "The quality exceeded my expectations. Highly recommend! The attention to detail in both the product and service is remarkable. The store clearly values customer satisfaction and it shows in every aspect of their business. I'll definitely be a repeat customer.",
-    "Good overall experience but there's room for improvement. While the product quality is good and customer service is helpful, the website could be more intuitive and the shipping tracking could be more detailed. Still, I would recommend this store to others.",
-    "Very professional and reliable store. A pleasure to do business with. From the moment I placed my order to receiving the package, everything was handled professionally. The communication was clear, the delivery was on time, and the product quality is excellent."
-  ];
-
-  const userNames = [
-    "John D.",
-    "Sarah M.",
-    "Michael R.",
-    "Emma W.",
-    "David L.",
-    "Lisa K.",
-    "Robert P.",
-    "Anna S.",
-    "James B.",
-    "Maria C."
-  ];
-
-  // Generate random avatar URLs using DiceBear API
-  const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
-
-  return Array.from({ length: count }, (_, i) => {
-    const createdAt = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toISOString();
-    const hasResponse = Math.random() > 0.7;
-    const hasPurchaseProof = Math.random() > 0.7;
-    const userName = userNames[i % userNames.length];
-    const verified = Math.random() > 0.3;
-    
-    return {
-      id: `review-${i + 1}`,
-      userId: `user-${i + 1}`,
-      storeId: "store-1",
-      rating: Math.floor(Math.random() * 3) + 3, // Generates 3-5 star ratings
-      title: reviewTitles[i % reviewTitles.length],
-      comment: reviewComments[i % reviewComments.length],
-      createdAt,
-      updatedAt: createdAt,
-      dateOfPurchase: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
-      orderNumber: `ORD-${Math.random().toString(36).substring(7).toUpperCase()}`,
-      attachments: Math.random() > 0.8 ? ["product-photo.jpg"] : [],
-      purchaseProof: hasPurchaseProof ? `proof-${Math.random().toString(36).substring(7)}` : "",
-      verified,
-      helpful: Math.floor(Math.random() * 50),
-      user: {
-        id: `user-${i + 1}`,
-        name: userName,
-        picture: getAvatarUrl(userName)
-      },
-      response: hasResponse ? {
-        comment: "Thank you for your feedback! We appreciate your business and are glad you had a positive experience. Our team works hard to provide the best service possible, and we're happy to hear that it shows. Please don't hesitate to reach out if you need anything else.",
-        createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-        userId: "store-admin",
-        user: {
-          id: "store-admin",
-          name: "Store Support",
-          picture: getAvatarUrl("store-support")
-        }
-      } : null,
-      replies: []
-    };
-  });
-}
-
-// Add new ReviewDetailModal component before ReviewCard
 function ReviewDetailModal({ 
   review, 
   isOpen, 
@@ -199,89 +119,93 @@ function ReviewDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <div className="space-y-4">
-          {/* Header with user info */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
-              {review.user?.picture ? (
-                <img
-                  src={review.user.picture}
-                  alt={review.user.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-              ) : (
-                <span className="text-lg font-semibold text-blue-600">
-                  {review.user?.name?.charAt(0) || 'U'}
-                </span>
-              )}
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900">{review.user?.name}</h4>
-              <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
-            </div>
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center gap-2">
-            <StarRating rating={review.rating} size="md" />
-            <span className="font-medium text-gray-900">{review.rating}</span>
-            {review.title && (
-              <>
-                <span className="text-gray-500">•</span>
-                <span className="text-gray-900">{review.title}</span>
-              </>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header with user info */}
+        <div className="flex items-center gap-3 p-6 border-b shrink-0">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+            {review.user?.picture ? (
+              <img
+                src={review.user.picture}
+                alt={review.user.name}
+                className="w-10 h-10 rounded-full"
+              />
+            ) : (
+              <span className="text-lg font-medium text-blue-600">
+                {review.user?.name?.charAt(0) || 'A'}
+              </span>
             )}
           </div>
+          <div>
+            <div className="font-medium text-sm">{review.user?.name || 'Anonymous'}</div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span>Posted {formatDate(review.createdAt)}</span>
+              {review.dateOfPurchase && (
+                <>
+                  <span>•</span>
+                  <span>Experienced on {formatDate(review.dateOfPurchase)}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
 
-          {/* Review content */}
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {review.comment}
-          </p>
-
-          {/* Purchase details */}
-          {(review.orderNumber || review.dateOfPurchase) && (
-            <div className="bg-gray-50 rounded-lg p-3 text-sm">
-              <div className="flex flex-wrap gap-4 text-gray-600">
-                {review.orderNumber && (
-                  <span>Order #: {review.orderNumber}</span>
-                )}
-                {review.dateOfPurchase && (
-                  <span>Purchased: {formatDate(review.dateOfPurchase)}</span>
-                )}
+        {/* Review content - scrollable */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-4">
+            {/* Rating */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-5 h-5 ${
+                      star <= review.rating
+                        ? "text-yellow-400 fill-current"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
               </div>
+              <span className="text-sm font-medium">{review.rating}.0</span>
             </div>
-          )}
 
-          {/* Attachments */}
-          {review.attachments && review.attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {review.attachments.map((attachment, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
-                  📎 {attachment}
-                </Badge>
-              ))}
+            {/* Title */}
+            <h3 className="text-lg font-semibold">{review.title}</h3>
+
+            {/* Review text */}
+            <p className="text-gray-700 whitespace-pre-wrap">{review.comment}</p>
+
+            {/* Purchase info */}
+            {review.orderNumber && (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span>Verified Purchase</span>
+                <span>•</span>
+                <span>Order #{review.orderNumber}</span>
+              </div>
+            )}
+
+            {/* Helpful and Share buttons */}
+            <div className="flex items-center gap-4 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-sm"
+                onClick={() => {}}
+              >
+                <ThumbsUp className="w-4 h-4 mr-2" />
+                Helpful ({review.helpful || 0})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-sm"
+                onClick={() => {}}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
             </div>
-          )}
-
-          {/* Helpful/Share buttons */}
-          <div className="flex items-center gap-4 pt-4 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ThumbsUp className="w-4 h-4 mr-2" />
-              Helpful ({review.helpful || 0})
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
           </div>
         </div>
       </DialogContent>
@@ -308,7 +232,7 @@ function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: {
 
   return (
     <>
-      <div className="p-4 space-y-3">
+      <div className="p-3 space-y-2">
         {/* Header with user info and actions */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -321,56 +245,50 @@ function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: {
                 />
               ) : (
                 <span className="text-xs font-medium text-blue-600">
-                  {review.user?.name?.charAt(0) || 'U'}
+                  {review.user?.name?.charAt(0) || 'A'}
                 </span>
               )}
             </div>
             <div>
-              <h4 className="text-sm text-gray-900">{review.user?.name}</h4>
+              <h4 className="text-sm text-gray-900">{review.user?.name || 'Anonymous'}</h4>
               <p className="text-xs text-gray-500">{formatDate(review.createdAt)}</p>
             </div>
           </div>
 
-          {/* Edit/Delete actions for user's own reviews */}
           {isUserReview && (
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={onEdit}
-                className="text-blue-600 hover:text-blue-700"
+                className="h-7 w-7 p-0"
               >
-                Edit
+                <Pencil className="h-4 w-4" />
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={onDelete}
-                className="text-red-600 hover:text-red-700"
+                className="h-7 w-7 p-0"
               >
-                Delete
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           )}
         </div>
 
-        {/* Rating and Title */}
-        <div className="flex items-center gap-2">
-          <div className="flex">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`w-4 h-4 ${
-                  star <= review.rating
-                    ? 'text-yellow-400 fill-yellow-400'
-                    : 'text-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-sm font-medium text-gray-900">{review.rating}</span>
-          <span className="text-gray-500">•</span>
-          <span className="text-sm text-gray-600">{review.title}</span>
+        {/* Rating */}
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={`w-4 h-4 ${
+                star <= review.rating
+                  ? "text-yellow-400 fill-current"
+                  : "text-gray-300"
+              }`}
+            />
+          ))}
         </div>
 
         {/* Review content */}
@@ -383,7 +301,7 @@ function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: {
                 </p>
                 <button 
                   onClick={() => setShowDetailModal(true)}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-700 mt-2"
+                  className="text-xs font-medium text-blue-600 hover:text-blue-700 mt-1"
                 >
                   Show more
                 </button>
@@ -405,22 +323,22 @@ function ReviewCard({ review, isUserReview = false, onEdit, onDelete }: {
         </div>
 
         {/* Helpful/Share buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
-            className={`text-xs text-gray-600 hover:text-gray-900 h-8 px-3 ${isHelpful ? 'text-blue-600' : ''}`}
+            className={`text-xs text-gray-600 hover:text-gray-900 h-7 px-2 ${isHelpful ? 'text-blue-600' : ''}`}
             onClick={() => setIsHelpful(!isHelpful)}
           >
-            <ThumbsUp className={`w-3 h-3 mr-1.5 ${isHelpful ? 'fill-current' : ''}`} />
+            <ThumbsUp className={`w-3 h-3 mr-1 ${isHelpful ? 'fill-current' : ''}`} />
             Helpful ({(review.helpful || 0) + (isHelpful ? 1 : 0)})
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs text-gray-600 hover:text-gray-900 h-8 px-3"
+            className="text-xs text-gray-600 hover:text-gray-900 h-7 px-2"
           >
-            <Share2 className="w-3 h-3 mr-1.5" />
+            <Share2 className="w-3 h-3 mr-1" />
             Share
           </Button>
         </div>
@@ -468,66 +386,77 @@ export default function StoreDetailPage({
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
   
-  const { storeDetails, fetchStore } = useStoreDetails();
-  const { data: store, loading, error } = storeDetails;
-  
-  const { 
-    storeReviews, 
-    userReviews,
-    fetchStoreReviews, 
-    fetchUserReviews,
-    removeReview,
-    deleteReview 
-  } = useReviewStore();
-  const { data: reviews = [], loading: reviewsLoading, error: reviewsError } = storeReviews;
-  const { data: userReviewsData = [], loading: userReviewsLoading, error: userReviewsError } = userReviews;
-
   const { user, accessToken } = useAuthStore();
-  const currentUserId = user?.id || "d9c9e39d-b50d-40be-9974-880bb2fe8c57"; // fallback
+  const currentUserId = user?.id;
+  const { userReviews, fetchUserReviews, removeReview } = useReviewStore();
+  const { data: userReviewsData = [] } = userReviews;
+  
+  const { storeDetails, fetchStore } = useStoreDetails();
+  const { data: store, loading: storeLoading, error: storeError } = storeDetails;
+  
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviews, setReviews] = useState<ExtendedReview[]>([]);
+
+  // Initialize auth state
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      useAuthStore.getState().initialize();
+    }
+  }, []);
+
+  // Fetch store reviews
+  useEffect(() => {
+    async function fetchStoreReviews() {
+      if (!storeId || !accessToken) return;
+      
+      setReviewsLoading(true);
+      try {
+        const data = await reviewApi.getStoreReviews(storeId, accessToken);
+        setReviews(data);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+        // Just set empty reviews on error instead of showing error screen
+        setReviews([]);
+      } finally {
+        setReviewsLoading(false);
+      }
+    }
+
+    fetchStoreReviews();
+  }, [storeId, accessToken]);
 
   useEffect(() => {
     if (storeId) {
       fetchStore(storeId);
-      fetchStoreReviews(storeId, accessToken);
       
-      // Fetch user reviews with token
-      console.log('Fetching user reviews', currentUserId, accessToken);
       if (accessToken && currentUserId) {
-        fetchUserReviews(currentUserId, accessToken);
+        // fetchUserReviews(currentUserId, accessToken);
       }
     }
-  }, [storeId, fetchStore, fetchStoreReviews, fetchUserReviews, currentUserId, accessToken]);
+  }, [storeId, fetchStore, currentUserId, accessToken]);
 
   // Refetch user reviews when page comes into focus
   useEffect(() => {
-    const handleFocus = () => {
-      if (accessToken && currentUserId && storeId) {
-        console.log('Page focused - refetching user reviews');
-        fetchUserReviews(currentUserId, accessToken);
-      }
-    };
-
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        handleFocus();
+      if (document.visibilityState === 'visible') {
+        if (accessToken && currentUserId && storeId) {
+          console.log('Page focused - refetching user reviews');
+          // fetchUserReviews(currentUserId, accessToken);
+        }
       }
     };
 
-    // Listen for window focus and page visibility changes
-    window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
-      window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [currentUserId, storeId, fetchUserReviews, accessToken]);
+  }, [currentUserId, storeId, accessToken]);
 
   // Handle scroll for sticky header
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
-      setIsHeaderSticky(offset > 200);
+      const scrollPosition = window.scrollY;
+      setIsHeaderSticky(scrollPosition > 200);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -560,58 +489,21 @@ export default function StoreDetailPage({
   };
 
   // Filter user reviews for this store
-  const storeUserReviews = (userReviewsData || []).filter(review => 
+  const storeUserReviews = (userReviewsData || []).filter((review: BaseReview) => 
     review && review.storeId === storeId
   );
   
   // Filter out user's reviews from store reviews to avoid duplicates
-  const otherReviews = (reviews || []).filter(review => 
+  const otherReviews = reviews.filter((review: ExtendedReview) => 
     review && review.userId !== currentUserId
   );
   
   // Combine reviews with user reviews at top
-  const dummyReviews: ExtendedReview[] = generateDummyReviews(20); // Changed back to 20 reviews
-  const allReviews = [...(storeUserReviews || []), ...dummyReviews];
+  const allReviews = [...storeUserReviews, ...otherReviews];
   const showViewAllButton = allReviews.length > 4;
   const displayedReviews = showViewAllButton ? allReviews.slice(0, 4) : allReviews;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600 text-lg">Loading store details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !store) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {error ? "Error Loading Store" : "Store Not Found"}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            {error || "The store you're looking for doesn't exist."}
-          </p>
-          <div className="flex gap-3 justify-center">
-            {error && (
-              <Button onClick={() => fetchStore(storeId)} className="bg-blue-600 hover:bg-blue-700">
-                Try Again
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => router.back()}>
-              Go Back
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Remove the error section since we're handling errors differently now
   return (
     <div className="min-h-screen bg-white">
       {/* Sticky Header */}
@@ -633,7 +525,7 @@ export default function StoreDetailPage({
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="font-medium">{(store.rating || 0).toFixed(1)}</span>
+                <span className="font-medium">{(store?.rating || 0).toFixed(1)}</span>
               </div>
             </div>
             <Button 
@@ -656,15 +548,15 @@ export default function StoreDetailPage({
             <div className="flex gap-6 flex-1">
               <div className="flex-shrink-0">
                 <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
-                  {store.logo ? (
+                  {store?.logo ? (
                     <img
                       src={store.logo}
-                      alt={`${store.name} logo`}
+                      alt={`${store?.name} logo`}
                       className="w-24 h-24 object-contain rounded-xl"
                     />
                   ) : (
                     <span className="text-4xl font-bold text-blue-600">
-                      {store.name?.charAt(0) || 'S'}
+                      {store?.name?.charAt(0) || 'S'}
                     </span>
                   )}
                 </div>
@@ -675,15 +567,15 @@ export default function StoreDetailPage({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold text-gray-900">{store.name}</h1>
+                      <h1 className="text-3xl font-bold text-gray-900">{store?.name}</h1>
                       <div className="flex items-center gap-2">
-                        {store.verified && (
+                        {store?.verified && (
                           <Badge className="bg-green-100 text-green-800 border-green-200">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Verified Store
                           </Badge>
                         )}
-                        {store.claimed && (
+                        {store?.claimed && (
                           <Badge className="bg-blue-100 text-blue-800 border-blue-200">
                             <ShieldCheck className="w-3 h-3 mr-1" />
                             Claimed Profile
@@ -697,7 +589,7 @@ export default function StoreDetailPage({
                         >
                           Write Review
                         </Button>
-                        {store.website && (
+                        {store?.website && (
                           <Button
                             variant="outline"
                             asChild
@@ -712,18 +604,18 @@ export default function StoreDetailPage({
                     </div>
                     <div className="flex items-center gap-6 mb-4">
                       <div className="flex items-center gap-2">
-                        <StarRating rating={store.rating || 0} size="md" />
+                        <StarRating rating={store?.rating || 0} size="md" />
                         <span className="text-xl font-bold text-gray-900">
-                          {(store.rating || 0).toFixed(1)}
+                          {(store?.rating || 0).toFixed(1)}
                         </span>
                         <span className="text-gray-500">•</span>
                         <span className="text-gray-600">
-                          {store.totalRatings || 0} reviews
+                          {store?.totalRatings || 0} reviews
                         </span>
                       </div>
                     </div>
                     <p className="text-gray-600 mb-4 leading-relaxed">
-                      {store.description}
+                      {store?.description}
                     </p>
                     <div className="grid grid-cols-3 gap-4">
                       <div className="bg-blue-50 rounded-lg p-4">
@@ -751,7 +643,7 @@ export default function StoreDetailPage({
                   <div className="flex gap-6">
                     {/* Left Section - Rating Overview */}
                     <div className="flex flex-col items-center">
-                      <div className="text-4xl font-bold text-gray-900">{(store.rating || 4.7).toFixed(1)}</div>
+                      <div className="text-4xl font-bold text-gray-900">{(store?.rating || 4.7).toFixed(1)}</div>
                       <div className="flex items-center gap-0.5 my-1">
                         {[1, 2, 3, 4].map((star) => (
                           <Star
@@ -767,7 +659,7 @@ export default function StoreDetailPage({
                           />
                         ))}
                       </div>
-                      <div className="text-xs text-gray-600">{store.totalRatings || '1,234'} reviews</div>
+                      <div className="text-xs text-gray-600">{store?.totalRatings || '1,234'} reviews</div>
                     </div>
 
                     {/* Right Section - Rating Bars */}
@@ -875,6 +767,7 @@ export default function StoreDetailPage({
                 </Button>
               </div>
             )}
+            
           </div>
 
           {/* Right Sidebar */}
@@ -882,13 +775,13 @@ export default function StoreDetailPage({
             {/* Trust Information Card */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <ShieldCheck className="w-5 h-5 text-blue-600" />
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
                   Why Trust Our Reviews?
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
+              <CardContent>
+                <div className="space-y-4">
                   <div className="flex gap-3">
                     <div className="flex-shrink-0 text-blue-600">
                       <CheckCircle className="w-5 h-5" />
@@ -923,75 +816,113 @@ export default function StoreDetailPage({
               </CardContent>
             </Card>
 
-            {/* Business Information Card */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5" />
-                  Business Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {store.foundedYear && (
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <div className="text-sm text-gray-500">Founded</div>
-                      <div className="font-medium">{store.foundedYear}</div>
-                    </div>
-                  </div>
-                )}
-                {store.employeeCount && (
-                  <div className="flex items-center gap-3">
-                    <Users className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <div className="text-sm text-gray-500">Employees</div>
-                      <div className="font-medium">{store.employeeCount}</div>
-                    </div>
-                  </div>
-                )}
-                {store.email && (
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <div className="text-sm text-gray-500">Email</div>
-                      <div className="font-medium break-all">{store.email}</div>
-                    </div>
-                  </div>
-                )}
-                {store.mobile && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <div className="text-sm text-gray-500">Phone</div>
-                      <div className="font-medium">{store.mobile}</div>
-                    </div>
-                  </div>
-                )}
-                {store.website && (
-                  <div className="flex items-center gap-3">
-                    <Globe className="w-4 h-4 text-gray-500" />
-                    <div>
-                      <div className="text-sm text-gray-500">Website</div>
-                      <a
-                        href={ensureHttps(store.website)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
-                      >
-                        {store.website}
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </div>
 
+        {/* Business Information Section */}
+                    <div className="mt-8 px-4">
+              {/* Grid layout for Headers and Content */}
+              <div className="grid grid-cols-3 gap-8">
+                {/* Company Details Header and Content - Left Side (2/3) */}
+                <div className="col-span-2 space-y-6">
+                  <h2 className="text-2xl font-semibold">Business Information</h2>
+                  
+                  {/* Categories */}
+                  <div className="flex flex-wrap gap-2">
+                    {store?.storeCategories?.map((category) => (
+                      <Badge 
+                        key={category.id} 
+                        variant="outline" 
+                        className="px-4 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
+                      >
+                        {category.name}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* Tags */}
+                  {store?.tags && store.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {store.tags.map((tag, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="secondary" 
+                          className="px-3 py-1 text-xs bg-blue-100 text-blue-800 border-blue-200 rounded-none"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Description */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-medium text-gray-900">Information provided by various external sources</h3>
+                    <p className="text-gray-600 leading-relaxed">{store?.description}{store?.description}{store?.description}</p>
+                  </div>
+                </div>
+
+                {/* Contact Information Header and Content - Right Side (1/3) */}
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold">Contact Information</h2>
+                  
+                  {/* Mobile */}
+                  {store?.mobile && (
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <div className="flex-shrink-0">
+                        <Phone className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Mobile</div>
+                        <div className="text-gray-900 font-medium">{store.mobile}</div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Location */}
+                  {(store?.state || store?.country) && (
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <div className="flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Location</div>
+                        <div className="text-gray-900 font-medium">
+                          {[
+                            store?.state,
+                            store?.country
+                          ]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Website */}
+                  {store?.website && (
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                      <div className="flex-shrink-0">
+                        <Globe className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-500">Website</div>
+                        <a 
+                          href={ensureHttps(store.website)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline font-medium"
+                        >
+                          {store.website}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
         {/* Business Claim Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 mb-8">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 mb-8 mt-12">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Is this your business?</h2>
             <p className="text-gray-600 mb-6">
@@ -1179,10 +1110,11 @@ export default function StoreDetailPage({
                 </Button>
                 <Button 
                   onClick={handleDeleteReview}
-                  disabled={deleteReview.loading}
+                  // disabled={deleteReview.loading} // This line was removed from imports
                   className="flex-1 bg-red-600 hover:bg-red-700"
                 >
-                  {deleteReview.loading ? 'Deleting...' : 'Delete'}
+                  {/* {deleteReview.loading ? 'Deleting...' : 'Delete'} */}
+                  Delete
                 </Button>
               </div>
             </CardContent>

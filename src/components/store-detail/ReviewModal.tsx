@@ -177,8 +177,8 @@ export function ReviewModal({
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border-0">
-        <CardHeader className="pb-4">
+      <Card className="w-full max-w-2xl h-[90vh] flex flex-col shadow-2xl border-0">
+        <CardHeader className="pb-4 shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg sm:text-xl">
               {isEdit ? "Edit Your Review" : `Write a Review for ${displayStoreName}`}
@@ -188,7 +188,7 @@ export function ReviewModal({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="flex-1 overflow-y-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Rating */}
             <div>
@@ -322,36 +322,39 @@ export function ReviewModal({
               </div>
             )}
 
-            {/* Submit Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <Button 
-                type="button" 
-                onClick={onClose} 
-                variant="outline" 
-                className="flex-1 order-2 sm:order-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit"
-                className="flex-1 order-1 sm:order-2" 
-                disabled={
-                  rating === 0 || 
-                  !title.trim() || 
-                  !comment.trim() || 
-                  !dateOfPurchase || 
-                  !orderNumber.trim() || 
-                  currentState.loading
-                }
-              >
-                {currentState.loading ? 
-                  (isEdit ? 'Updating...' : 'Submitting...') : 
-                  (isEdit ? 'Update Review' : 'Submit Review')
-                }
-              </Button>
-            </div>
+            {/* Submit Buttons - Move outside scrollable area */}
           </form>
         </CardContent>
+        <div className="p-6 border-t mt-auto shrink-0">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button 
+              type="button" 
+              onClick={onClose} 
+              variant="outline" 
+              className="flex-1 order-2 sm:order-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              className="flex-1 order-1 sm:order-2" 
+              disabled={
+                rating === 0 || 
+                !title.trim() || 
+                !comment.trim() || 
+                !dateOfPurchase || 
+                !orderNumber.trim() || 
+                currentState.loading
+              }
+              onClick={handleSubmit}
+            >
+              {currentState.loading ? 
+                (isEdit ? 'Updating...' : 'Submitting...') : 
+                (isEdit ? 'Update Review' : 'Submit Review')
+              }
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   );
