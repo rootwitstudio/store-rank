@@ -385,6 +385,7 @@ export default function StoreDetailPage({
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
+  const [showFullSummary, setShowFullSummary] = useState(false);
   
   const { user, accessToken } = useAuthStore();
   const currentUserId = user?.id;
@@ -615,29 +616,15 @@ export default function StoreDetailPage({
                       </div>
                     </div>
                     <p className="text-gray-600 mb-4 leading-relaxed">
-                      {store?.description}
+                      {store?.description} {store?.description} 
                     </p>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-blue-700">98%</div>
-                        <div className="text-sm text-blue-600">Trust Score</div>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-blue-700">95%</div>
-                        <div className="text-sm text-blue-600">Response Rate</div>
-                      </div>
-                      <div className="bg-blue-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-blue-700">2h</div>
-                        <div className="text-sm text-blue-600">Avg. Response Time</div>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right Section - Rating Distribution */}
-            <div className="w-96 flex-shrink-0">
+            <div className="w-96 flex-shrink-0 space-y-6">
               <Card className="bg-white shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex gap-6">
@@ -693,14 +680,38 @@ export default function StoreDetailPage({
                   </div>
                 </CardContent>
               </Card>
+
             </div>
           </div>
         </div>
 
         {/* Reviews Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Reviews List */}
           <div className="lg:col-span-2">
+            {/* Review Summary Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Review Summary</h2>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className={`text-sm text-gray-700 leading-relaxed ${showFullSummary ? '' : 'line-clamp-[10]'}`}>
+                  <p>
+                    Based on customer feedback, this store consistently delivers excellent service with fast shipping and quality products, with most customers praising the responsive customer support team and easy return process. Common positive themes include prompt delivery times, accurate product descriptions, professional packaging, and helpful customer service representatives who resolve issues quickly. Customers frequently mention the store's competitive pricing and regular promotional offers, and many appreciate the detailed product information and high-quality images that help with purchase decisions. The checkout process is described as smooth and secure, with multiple payment options available, while the mobile experience receives particular praise for its user-friendly interface. While most reviews are positive, some customers mention occasional delays during peak seasons, however, the store's proactive communication about shipping updates is well-received. Customer loyalty is high, with many reviewers mentioning repeat purchases and recommendations to friends and family, as the store's consistent quality standards contribute to this trust. Product quality meets or exceeds expectations in most cases, and customers appreciate the accurate sizing information and detailed specifications provided for each item. The return and exchange policy is straightforward and customer-friendly, with hassle-free processes that enhance overall satisfaction. International shipping options are available and generally reliable, though some customers note longer delivery times for overseas orders. Customer service response time is typically within 24 hours, with knowledgeable staff who provide helpful solutions to inquiries and concerns.
+                    {showFullSummary && (
+                      <span>
+                        {" "}The store's website navigation is intuitive, making it easy for customers to find products and complete purchases without confusion. Packaging quality receives consistent praise, with items arriving well-protected and in excellent condition, reflecting the store's attention to detail. Email notifications and order tracking systems keep customers informed throughout the fulfillment process, enhancing the overall shopping experience. Customers value the store's commitment to quality control and the careful selection of products offered in their catalog. The store's social media presence and community engagement contribute to building trust and maintaining customer relationships over time. Seasonal promotions and special offers are well-timed and provide genuine value to customers, encouraging repeat business and brand loyalty. The store's commitment to sustainability and ethical practices resonates with environmentally conscious customers who appreciate responsible business operations. Customer feedback is actively collected and used to improve services, showing the store's dedication to continuous improvement and customer satisfaction. The store's comprehensive FAQ section and help resources demonstrate their commitment to customer support and self-service options. Overall, customers consistently rate their experience highly, with many expressing satisfaction with their purchases and willingness to shop again, establishing this store as a trusted retailer through consistent delivery of quality products and excellent customer service.
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowFullSummary(!showFullSummary)}
+                  className="mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm"
+                >
+                  {showFullSummary ? 'Show less' : 'Show more'}
+                </button>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">See what customer says</h2>
               <div className="flex items-center gap-4">
@@ -769,9 +780,40 @@ export default function StoreDetailPage({
             )}
             
           </div>
+        
 
           {/* Right Sidebar */}
           <div>
+
+          <div className="bg-white shadow-sm rounded-lg border">
+                <div className="p-3 pb-2">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                    Store Analytics
+                  </h3>
+                </div>
+                <div className="px-3 pb-3">
+                  <div className="grid grid-cols-3 divide-x divide-gray-200">
+                    {/* Trust Score */}
+                    <div className="text-center px-2">
+                      <div className="text-2xl font-bold text-gray-900">98%</div>
+                      <div className="text-xs text-gray-600">Trust Score</div>
+                    </div>
+                    
+                    {/* Response Rate */}
+                    <div className="text-center px-2">
+                      <div className="text-2xl font-bold text-gray-900">95%</div>
+                      <div className="text-xs text-gray-600">Response Rate</div>
+                    </div>
+                    
+                    {/* Average Response Time */}
+                    <div className="text-center px-2">
+                      <div className="text-2xl font-bold text-gray-900">2h</div>
+                      <div className="text-xs text-gray-600">Avg. Response Time</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             {/* Trust Information Card */}
             <Card className="mt-6">
               <CardHeader>
@@ -820,109 +862,109 @@ export default function StoreDetailPage({
         </div>
 
         {/* Business Information Section */}
-                    <div className="mt-8 px-4">
-              {/* Grid layout for Headers and Content */}
-              <div className="grid grid-cols-3 gap-8">
-                {/* Company Details Header and Content - Left Side (2/3) */}
-                <div className="col-span-2 space-y-6">
-                  <h2 className="text-2xl font-semibold">Business Information</h2>
-                  
-                  {/* Categories */}
-                  <div className="flex flex-wrap gap-2">
-                    {store?.storeCategories?.map((category) => (
-                      <Badge 
-                        key={category.id} 
-                        variant="outline" 
-                        className="px-4 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
-                      >
-                        {category.name}
-                      </Badge>
-                    ))}
-                  </div>
+        <div className="px-4">
+          {/* Grid layout for Headers and Content */}
+          <div className="grid grid-cols-3 gap-8">
+            {/* Company Details Header and Content - Left Side (2/3) */}
+            <div className="col-span-2 space-y-6">
+              <h2 className="text-2xl font-semibold">Business Information</h2>
+              
+              {/* Categories */}
+              <div className="flex flex-wrap gap-2">
+                {store?.storeCategories?.map((category) => (
+                  <Badge 
+                    key={category.id} 
+                    variant="outline" 
+                    className="px-4 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
+                  >
+                    {category.name}
+                  </Badge>
+                ))}
+              </div>
 
-                  {/* Tags */}
-                  {store?.tags && store.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {store.tags.map((tag, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="secondary" 
-                          className="px-3 py-1 text-xs bg-blue-100 text-blue-800 border-blue-200 rounded-none"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Description */}
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-medium text-gray-900">Information provided by various external sources</h3>
-                    <p className="text-gray-600 leading-relaxed">{store?.description}{store?.description}{store?.description}</p>
-                  </div>
+              {/* Tags */}
+              {store?.tags && store.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {store.tags.map((tag, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className="px-3 py-1 text-xs bg-blue-100 text-blue-800 border-blue-200 rounded-none"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
+              )}
 
-                {/* Contact Information Header and Content - Right Side (1/3) */}
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-semibold">Contact Information</h2>
-                  
-                  {/* Mobile */}
-                  {store?.mobile && (
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                      <div className="flex-shrink-0">
-                        <Phone className="w-5 h-5 text-gray-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">Mobile</div>
-                        <div className="text-gray-900 font-medium">{store.mobile}</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Location */}
-                  {(store?.state || store?.country) && (
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                      <div className="flex-shrink-0">
-                        <MapPin className="w-5 h-5 text-gray-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">Location</div>
-                        <div className="text-gray-900 font-medium">
-                          {[
-                            store?.state,
-                            store?.country
-                          ]
-                            .filter(Boolean)
-                            .join(', ')}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Website */}
-                  {store?.website && (
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
-                      <div className="flex-shrink-0">
-                        <Globe className="w-5 h-5 text-gray-400" />
-                      </div>
-                      <div>
-                        <div className="text-sm text-gray-500">Website</div>
-                        <a 
-                          href={ensureHttps(store.website)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline font-medium"
-                        >
-                          {store.website}
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
+              {/* Description */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-900">Information provided by various external sources</h3>
+                <p className="text-gray-600 leading-relaxed">{store?.description}{store?.description}{store?.description}</p>
               </div>
             </div>
+
+            {/* Contact Information Header and Content - Right Side (1/3) */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold">Contact Information</h2>
+              
+              {/* Mobile */}
+              {store?.mobile && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="flex-shrink-0">
+                    <Phone className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Mobile</div>
+                    <div className="text-gray-900 font-medium">{store.mobile}</div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Location */}
+              {(store?.state || store?.country) && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Location</div>
+                    <div className="text-gray-900 font-medium">
+                      {[
+                        store?.state,
+                        store?.country
+                      ]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Website */}
+              {store?.website && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="flex-shrink-0">
+                    <Globe className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Website</div>
+                    <a 
+                      href={ensureHttps(store.website)} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline font-medium"
+                    >
+                      {store.website}
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         {/* Business Claim Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 mb-8 mt-12">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 mt-8">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Is this your business?</h2>
             <p className="text-gray-600 mb-6">
@@ -935,7 +977,7 @@ export default function StoreDetailPage({
         </div>
 
         {/* Similar Businesses Section */}
-        <div className="mb-12">
+        <div className="mb-12 mt-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Similar businesses you may also like</h2>
             <Button variant="link" className="text-blue-600 hover:text-blue-700">
@@ -1029,13 +1071,6 @@ export default function StoreDetailPage({
           <div className="p-6 border-b">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold">All Reviews</h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowAllReviews(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
             </div>
             <div className="flex items-center gap-4 mt-4">
               <Select
