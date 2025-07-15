@@ -131,7 +131,7 @@ export default function HomePage() {
         
         <CTASection />
       </main>
-      
+
       <Footer />
     </div>
   );

@@ -1,4 +1,4 @@
-import { Star, ExternalLink } from "lucide-react";
+import { Star, Globe, Users, Eye, Bookmark } from "lucide-react";
 import { VerifiedTag, ClaimedTag } from "@/components/ui/tags";
 import Link from "next/link";
 
@@ -16,8 +16,16 @@ export interface StoreCardProps {
   getTrustScoreColor: (score: string) => string;
   avatarGradient?: string;
   monthlyVisitors?: string;
-  linkText?: string;
-  showFullLink?: boolean;
+}
+
+// Helper function to extract domain from URL
+function extractDomain(url: string): string {
+  try {
+    const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+    return domain.replace('www.', '');
+  } catch {
+    return url;
+  }
 }
 
 export function StoreCard({
@@ -33,35 +41,48 @@ export function StoreCard({
   isClaimed = false,
   getTrustScoreColor,
   avatarGradient = "from-green-100 to-blue-100 text-green-600",
-  monthlyVisitors,
-  linkText = "Visit Store",
-  showFullLink = false
+  monthlyVisitors
 }: StoreCardProps) {
+  const domain = extractDomain(link);
+  
   return (
-    <div className="relative bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col">
-      {/* Tags in top-right corner */}
-      <div className="absolute top-4 right-4 z-10 flex gap-1">
-        {isVerified && <VerifiedTag size="sm" iconType="guard" />}
-        {isClaimed && <ClaimedTag size="sm" />}
-      </div>
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center h-16">
-          <div className={`w-12 h-12 bg-gradient-to-br ${avatarGradient} rounded-lg flex items-center justify-center text-lg font-bold mr-3`}>
-            {name.charAt(0)}
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-base truncate flex-1">{name}</h3>
-            </div>
-            <p className="text-sm text-gray-500 truncate max-w-[120px]">{category}</p>
+    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col">
+      {/* Store Header */}
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`w-12 h-12 bg-gradient-to-br ${avatarGradient} rounded-lg flex items-center justify-center text-lg font-bold flex-shrink-0`}>
+          {name.charAt(0)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <Link href={`/stores/${id}`}>
+            <h3 className="font-semibold text-lg text-gray-900 mb-1 truncate hover:text-blue-600 transition-colors cursor-pointer">
+              {name}
+            </h3>
+          </Link>
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Globe className="h-4 w-4 flex-shrink-0" />
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="truncate font-medium hover:text-blue-600 transition-colors"
+            >
+              {domain}
+            </a>
           </div>
         </div>
       </div>
 
-      <p className="text-gray-600 text-sm mb-4 line-clamp-2 min-h-[40px]">{description}</p>
+      {/* Status Tags */}
+      {(isVerified || isClaimed) && (
+        <div className="flex gap-1 mb-3">
+          {isVerified && <VerifiedTag size="sm" iconType="guard" />}
+          {isClaimed && <ClaimedTag size="sm" />}
+        </div>
+      )}
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
+      {/* Rating & Trust Score Row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <Star
@@ -70,32 +91,57 @@ export function StoreCard({
               />
             ))}
           </div>
-          <span className="ml-2 text-sm font-medium">{rating}</span>
+          <span className="text-sm font-semibold text-gray-900">{rating}</span>
         </div>
         <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(trustScore)}`}>
           {trustScore}
         </span>
       </div>
 
-      <div className="flex items-center justify-between">
-        <Link href={`/stores/${id}#reviews`} className="text-sm text-gray-500 hover:text-blue-600 transition-colors">
-          {reviewCount} reviews
+      {/* Reviews & Visitors Row */}
+      <div className="flex items-center justify-between mb-4">
+        <Link 
+          href={`/stores/${id}#reviews`} 
+          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+        >
+          <Users className="h-4 w-4" />
+          {reviewCount.toLocaleString()} reviews
         </Link>
         {monthlyVisitors && (
-          <span className="text-sm text-gray-500">{monthlyVisitors} monthly</span>
+          <span className="text-sm text-gray-500 font-medium">{monthlyVisitors} monthly</span>
         )}
       </div>
 
-      <div className="flex items-center mt-auto pt-4">
-        <a
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+      {/* Category */}
+      <div className="mb-3">
+        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+          {category}
+        </span>
+      </div>
+
+      {/* Description */}
+      <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-1">{description}</p>
+
+      {/* Action Buttons */}
+      <div className="mt-auto pt-2 flex items-center justify-between">
+        <button
+          className="flex items-center gap-1 text-gray-600 hover:text-blue-600 text-sm transition-colors"
+          onClick={() => {
+            // Add to favorites functionality
+            console.log('Add to favorites:', id);
+          }}
         >
-          {showFullLink ? link : linkText}
-          <ExternalLink className="h-3 w-3 ml-1" />
-        </a>
+          <Bookmark className="h-4 w-4" />
+          Save
+        </button>
+        
+        <Link
+          href={`/stores/${id}`}
+          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+        >
+          <Eye className="h-4 w-4" />
+          View Details
+        </Link>
       </div>
     </div>
   );

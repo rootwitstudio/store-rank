@@ -5,6 +5,7 @@ import Link from "next/link";
 interface Category {
   id: string;
   name: string;
+  slug: string;
   description: string | null;
   icon: string;
   parentId: string | null;
@@ -73,7 +74,7 @@ export function CategorySection({ categories, loadingCategories, categoryError }
                     return (
                       <Link
                         key={category.id}
-                        href={`/stores?categoryId=${category.id}`}
+                        href={`/stores/category/${category.slug}`}
                         className="group flex flex-col items-center justify-center p-4 bg-white rounded-xl hover:bg-blue-50 hover:shadow-lg transition-all duration-300 text-center border border-gray-100 hover:border-blue-200 flex-shrink-0 w-[140px] h-[140px]"
                       >
                         <Icon className="h-8 w-8 mb-2 text-blue-600 group-hover:text-blue-700 transition-colors group-hover:scale-110 transform duration-300" />
@@ -95,7 +96,7 @@ export function CategorySection({ categories, loadingCategories, categoryError }
                   return (
                     <Link
                       key={category.id}
-                      href={`/stores?categoryId=${category.id}`}
+                      href={`/stores/category/${category.slug}`}
                       className="group flex flex-col items-center justify-center p-6 bg-white rounded-xl hover:bg-blue-50 hover:shadow-lg transition-all duration-300 text-center border border-gray-100 hover:border-blue-200 h-full"
                     >
                       <Icon className="h-10 w-10 mb-3 text-blue-600 group-hover:text-blue-700 transition-colors group-hover:scale-110 transform duration-300" />
