@@ -24,6 +24,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { StoreCard as SharedStoreCard } from '@/components/ui/StoreCard';
 import FilterPanel from '../../FilterPanel';
+import ActiveFilters from '../../ActiveFilters';
+import FilterUrlSync from '../../FilterUrlSync';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import Link from "next/link";
 import { useStoresByCategorySlug } from "@/stores/storeDetailsStore";
@@ -239,8 +241,7 @@ export default function CategoryStoresPage() {
     filteredStores = filteredStores.sort((a, b) => b.totalRatings - a.totalRatings);
   }
 
-  // Get unique tags from stores
-  const allTags = Array.from(new Set(stores.flatMap(store => store.tags)));
+
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -302,6 +303,7 @@ export default function CategoryStoresPage() {
 
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
+      <FilterUrlSync />
       {/* Hero Section - Compact Banner */}
       <section className="bg-white border-b border-gray-200 py-2 md:py-4">
         <div className="container mx-auto px-4">
@@ -347,7 +349,7 @@ export default function CategoryStoresPage() {
             </div>
 
             {/* Subcategories - Smaller and under search */}
-            {categoryHierarchy.subcategories.length > 0 && (
+            {/* {categoryHierarchy.subcategories.length > 0 && (
               <div className="max-w-5xl mx-auto">
                 <div className="flex flex-wrap gap-1.5 justify-center">
                   {categoryHierarchy.subcategories.map((subcat) => (
@@ -361,7 +363,7 @@ export default function CategoryStoresPage() {
                   ))}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </section>
@@ -371,19 +373,7 @@ export default function CategoryStoresPage() {
           {/* Sidebar Filters - Desktop */}
           <div className="hidden lg:block w-72">
             <div className="card bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
-              <FilterPanel
-                minRating={minRating}
-                setMinRating={setMinRating}
-                verifiedOnly={verifiedOnly}
-                setVerifiedOnly={setVerifiedOnly}
-                claimedOnly={claimedOnly}
-                setClaimedOnly={setClaimedOnly}
-                selectedCountry={selectedCountry}
-                setSelectedCountry={setSelectedCountry}
-                selectedTags={selectedTags}
-                setSelectedTags={setSelectedTags}
-                allTags={allTags}
-              />
+              <FilterPanel />
             </div>
           </div>
 
@@ -418,19 +408,7 @@ export default function CategoryStoresPage() {
                   <DialogTitle>Filters</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto p-4">
-                  <FilterPanel
-                    minRating={minRating}
-                    setMinRating={setMinRating}
-                    verifiedOnly={verifiedOnly}
-                    setVerifiedOnly={setVerifiedOnly}
-                    claimedOnly={claimedOnly}
-                    setClaimedOnly={setClaimedOnly}
-                    selectedCountry={selectedCountry}
-                    setSelectedCountry={setSelectedCountry}
-                    selectedTags={selectedTags}
-                    setSelectedTags={setSelectedTags}
-                    allTags={allTags}
-                  />
+                  <FilterPanel />
                 </div>
                 <DialogFooter className="p-4 border-t flex justify-end gap-2">
                   <DialogClose asChild>
@@ -481,6 +459,9 @@ export default function CategoryStoresPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+
+            {/* Active Filters */}
+            <ActiveFilters />
 
             {/* Results Header + Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -572,7 +553,7 @@ export default function CategoryStoresPage() {
                       isClaimed={store.claimed}
                       getTrustScoreColor={() => ''}
                       avatarGradient="from-blue-100 to-purple-100 text-blue-600"
-                      showFullLink={true}
+                      
                     />
                   ))}
                 </div>

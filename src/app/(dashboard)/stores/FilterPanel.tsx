@@ -1,55 +1,95 @@
 "use client";
 
 import { Info } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const countries = [
-  "United States",
-  "United Kingdom",
-  "India",
-  "Germany",
-  "Australia",
-];
+import { useEffect } from "react";
+import { useStoresByCategory } from "@/stores/storesStore";
+import { useSearchParams, useParams } from "next/navigation";
+import { useActiveFilters } from "./useActiveFilters";
 
 interface FilterPanelProps {
-  minRating: number;
-  setMinRating: (rating: number) => void;
-  verifiedOnly: boolean;
-  setVerifiedOnly: (verified: boolean) => void;
-  claimedOnly: boolean;
-  setClaimedOnly: (claimed: boolean) => void;
-  selectedCountry: string;
-  setSelectedCountry: (country: string) => void;
-  selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
-  subcategories?: Array<{ id: string; name: string }>;
   className?: string;
-  allTags: string[];
 }
 
-export default function FilterPanel({
-  minRating,
-  setMinRating,
-  verifiedOnly,
-  setVerifiedOnly,
-  claimedOnly,
-  setClaimedOnly,
-  selectedCountry,
-  setSelectedCountry,
-  selectedTags,
-  setSelectedTags,
-  subcategories,
-  className = "",
-  allTags,
-}: FilterPanelProps) {
+export default function FilterPanel({ className = "" }: FilterPanelProps) {
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const categoryId = searchParams.get("categoryId");
+  const categorySlug = searchParams.get("categorySlug") || (params.slug as string);
+  
+  const { storesByCategory, filterStores } = useStoresByCategory();
+  const { data: stores, loading } = storesByCategory;
+
+  // Filter states - managed by shared hook
+  const {
+    minRating,
+    verifiedOnly,
+    claimedOnly,
+    selectedTags,
+    setMinRating,
+    setVerifiedOnly,
+    setClaimedOnly,
+    setSelectedTags,
+    clearAllFilters,
+    initializeFromUrl
+  } = useActiveFilters();
+
+  // Initialize filters from URL on component mount
+  useEffect(() => {
+    initializeFromUrl();
+  }, [initializeFromUrl]);
+
+  // Get unique tags from current stores
+  const allTags = Array.from(new Set(
+    Array.isArray(stores) 
+      ? stores.filter(store => store && Array.isArray(store.tags)).flatMap(store => store.tags)
+      : []
+  ));
+
+  // Trigger API call when filters change
+  useEffect(() => {
+    const filters = {
+      categorySlug: categorySlug || undefined,
+      category: categoryId || undefined,
+      includeSub: true,
+      claimed: claimedOnly || undefined,
+      verified: verifiedOnly || undefined,
+      minRating: minRating > 0 ? minRating : undefined,
+      page: 1,
+      pageSize: 12,
+    };
+
+    // Only call API if we have a categorySlug or categoryId
+    if (categorySlug || categoryId) {
+      console.log('FilterPanel: Calling API with filters:', filters);
+      filterStores(filters);
+    }
+  }, [minRating, verifiedOnly, claimedOnly, selectedTags, categorySlug, categoryId, filterStores]);
+
+  // Log current filter state for debugging
+  useEffect(() => {
+    console.log('FilterPanel: Current filter state:', {
+      minRating,
+      verifiedOnly,
+      claimedOnly,
+      selectedTags,
+      categorySlug,
+      categoryId
+    });
+    console.log('FilterPanel: Current URL:', window.location.href);
+  }, [minRating, verifiedOnly, claimedOnly, selectedTags, categorySlug, categoryId]);
+
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 ${className} ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+      {/* Loading indicator */}
+      {loading && (
+        <div className="text-center py-2">
+          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Applying filters...
+          </div>
+        </div>
+      )}
+      
       {/* Rating Filter */}
       <div>
         <h3 className="text-base font-semibold mb-2">Rating</h3>
@@ -68,24 +108,6 @@ export default function FilterPanel({
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Location Filter */}
-      <div>
-        <h3 className="text-base font-semibold mb-2">Location</h3>
-        <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-          <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="All Countries" />
-          </SelectTrigger>
-          <SelectContent className="bg-white">
-            <SelectItem value="all">All Countries</SelectItem>
-            {countries.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Company Status Filter */}
@@ -133,7 +155,7 @@ export default function FilterPanel({
                   setSelectedTags(
                     e.target.checked
                       ? [...selectedTags, tag]
-                      : selectedTags.filter((t) => t !== tag)
+                      : selectedTags.filter((t: string) => t !== tag)
                   )
                 }
                 className="accent-blue-600"
@@ -144,23 +166,16 @@ export default function FilterPanel({
         </div>
       </div>
 
-      {/* Related Categories */}
-      {subcategories && (
-        <div>
-          <h3 className="text-base font-semibold mb-2">Related Categories</h3>
-          {subcategories.length > 0 ? (
-            <ul>
-              {subcategories.map((sub) => (
-                <li key={sub.id} className="mb-1">
-                  {sub.name}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-600 text-sm">No related subcategories.</p>
-          )}
-        </div>
-      )}
+      {/* Clear Filters Button */}
+      <div>
+        <button
+          onClick={clearAllFilters}
+          disabled={loading}
+          className="w-full py-2 px-4 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Clear All Filters
+        </button>
+      </div>
     </div>
   );
 }
