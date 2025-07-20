@@ -2,13 +2,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/header";
 import { categoryApi } from "@/lib/api";
+import { customCategoryApi, CustomCategory } from "@/lib/customCategoryApi";
 
 // Import all the new components
 import { HeroSection } from "@/components/home/HeroSection";
 import { CategorySection } from "@/components/home/CategorySection";
-import { TopRatedStoresSection } from "@/components/home/TopRatedStoresSection";
+import { CustomCategorySection } from "@/components/home/CustomCategorySection";
 import { RecentReviewsSection } from "@/components/home/RecentReviewsSection";
-import { TrendingStoresSection } from "@/components/home/TrendingStoresSection";
 import { IndustryInsightsSection } from "@/components/home/IndustryInsightsSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { SuccessStoriesSection } from "@/components/home/SuccessStoriesSection";
@@ -19,9 +19,7 @@ import { Footer } from "@/components/home/Footer";
 
 // Import data
 import {
-  featuredStores,
   recentReviews,
-  trendingStores,
   howItWorks,
   industryInsights,
   successStories,
@@ -30,6 +28,7 @@ import {
 interface Category {
   id: string;
   name: string;
+  slug: string;
   description: string | null;
   icon: string;
   parentId: string | null;
@@ -40,6 +39,9 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  const [loadingCustomCategories, setLoadingCustomCategories] = useState(true);
+  const [customCategoryError, setCustomCategoryError] = useState<string | null>(null);
 
   const getTrustScoreColor = useCallback((score: number | string) => {
     const numericScore = typeof score === 'string' ? parseFloat(score) : score;
@@ -84,6 +86,24 @@ export default function HomePage() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    const fetchCustomCategories = async () => {
+      try {
+        setLoadingCustomCategories(true);
+        const data = await customCategoryApi.getFeatured();
+        console.log("Fetched custom categories:", data);
+        setCustomCategories(data);
+      } catch (error) {
+        console.error("Error fetching custom categories:", error);
+        setCustomCategoryError("Failed to load custom categories. Please try again later.");
+      } finally {
+        setLoadingCustomCategories(false);
+      }
+    };
+
+    fetchCustomCategories();
+  }, []);
+
   return (
     <div className="bg-white min-h-screen flex flex-col">
       <Header />
@@ -99,18 +119,38 @@ export default function HomePage() {
           categoryError={categoryError}
         />
         
-        <TopRatedStoresSection 
-          stores={featuredStores}
-          getTrustScoreColor={getTrustScoreColor}
-        />
+        {/* Dynamic Custom Category Sections */}
+        {loadingCustomCategories ? (
+          <div className="py-12 sm:py-16 bg-white">
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded mb-4 w-1/3"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="bg-gray-200 rounded-lg h-64"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : customCategoryError ? (
+          <div className="py-12 sm:py-16 bg-white">
+            <div className="container mx-auto px-4 sm:px-6">
+              <p className="text-red-500 text-center">{customCategoryError}</p>
+            </div>
+          </div>
+        ) : (
+          customCategories.map((customCategory) => (
+            <CustomCategorySection
+              key={customCategory.id}
+              customCategory={customCategory}
+              getTrustScoreColor={getTrustScoreColor}
+            />
+          ))
+        )}
         
         <RecentReviewsSection 
           reviews={recentReviews}
-        />
-        
-        <TrendingStoresSection 
-          stores={trendingStores}
-          getTrustScoreColor={getTrustScoreColor}
         />
         
         <IndustryInsightsSection 

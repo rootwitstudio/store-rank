@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import {
   Store as StoreIcon,
   Filter,
-  Search,
   Grid3X3,
   List,
   Loader2,
@@ -178,11 +177,12 @@ export default function CategoryStoresPage() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
+
   const [includeSub] = useState(true);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Fetch category hierarchy and stores
   useEffect(() => {
@@ -200,9 +200,14 @@ export default function CategoryStoresPage() {
         }
         setCategoryHierarchy(categoryData);
 
-        // Fetch stores by category slug using the store
+        // Fetch stores by category slug using the store with filters
         await fetchStoresByCategorySlug(slug, {
           includeSub,
+          claimed: claimedOnly || undefined,
+          verified: verifiedOnly || undefined,
+          minRating: minRating > 0 ? minRating : undefined,
+          sortBy: sortBy,
+          sortOrder: 'desc', // Always sort in descending order for better UX
           page: currentPage,
           pageSize: 12
         });
@@ -211,51 +216,38 @@ export default function CategoryStoresPage() {
         setCategoryError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setCategoryLoading(false);
+        setIsInitialLoad(false);
       }
     };
 
     fetchData();
-  }, [slug, includeSub, currentPage, fetchStoresByCategorySlug]);
+  }, [slug, includeSub, currentPage, fetchStoresByCategorySlug, minRating, verifiedOnly, claimedOnly, sortBy]);
 
-  // Apply client-side filters
-  let filteredStores = stores.filter(
+  // Apply client-side filters (only for country and tags since these aren't supported by the API yet)
+  // Note: Sorting and rating/verification filters are now handled by the API
+  const filteredStores = stores.filter(
     (s) =>
-      s.rating >= minRating &&
-      (!verifiedOnly || s.verified) &&
-      (!claimedOnly || s.claimed) &&
       (selectedCountry === "all" || (s.country && s.country === selectedCountry)) &&
       (selectedTags.length === 0 ||
-        selectedTags.every((tag) => s.tags.includes(tag))) &&
-      (search === "" ||
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.description.toLowerCase().includes(search.toLowerCase()) ||
-        s.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase())))
+        selectedTags.every((tag) => s.tags.includes(tag)))
   );
-
-  // Apply sorting
-  if (sortBy === "rating") {
-    filteredStores = filteredStores.sort((a, b) => b.rating - a.rating);
-  } else if (sortBy === "name") {
-    filteredStores = filteredStores.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortBy === "reviews") {
-    filteredStores = filteredStores.sort((a, b) => b.totalRatings - a.totalRatings);
-  }
 
 
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [minRating, verifiedOnly, claimedOnly, selectedCountry, selectedTags, search, sortBy]);
+  }, [minRating, verifiedOnly, claimedOnly, selectedCountry, selectedTags, sortBy]);
 
-  if (loading || categoryLoading) {
+  // Only show full page loader on initial load (when we don't have category data yet)
+  if (categoryLoading && !categoryHierarchy) {
     return (
       <div className="bg-gray-50 min-h-screen flex flex-col">
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
-              <p className="text-gray-600">Loading stores...</p>
+              <p className="text-gray-600">Loading category...</p>
             </div>
           </div>
         </main>
@@ -304,67 +296,32 @@ export default function CategoryStoresPage() {
   return (
     <div className="bg-gray-50 min-h-screen flex flex-col">
       <FilterUrlSync />
-      {/* Hero Section - Compact Banner */}
-      <section className="bg-white border-b border-gray-200 py-2 md:py-4">
+      {/* Category Header - Similar to Custom Category Page */}
+      <section className="bg-gradient-to-r from-blue-50 to-indigo-50 py-8 md:py-12">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            <Breadcrumbs breadcrumbs={categoryHierarchy.breadcrumbs} />
-            
-            <div className="text-center mb-3 md:mb-4">
-              <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2 text-gray-900">
-                {categoryHierarchy.category.name} Stores
+          <Breadcrumbs breadcrumbs={categoryHierarchy.breadcrumbs} />
+          
+          <div className="flex items-center gap-4 mb-6 mt-4">
+            <div className="p-3 md:p-4 rounded-xl bg-blue-600">
+              <StoreIcon className="h-6 w-6 md:h-8 md:w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+                {categoryHierarchy.category.name}
               </h1>
               {categoryHierarchy.category.description && (
-                <p className="text-sm md:text-base text-gray-600 mb-2 md:mb-3">
+                <p className="text-gray-600 text-sm md:text-lg max-w-3xl">
                   {categoryHierarchy.category.description}
                 </p>
               )}
             </div>
-
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto relative mb-3">
-              {/* Desktop Search */}
-              <div className="hidden md:block">
-                <Input
-                  type="text"
-                  placeholder="Search stores, brands, or categories..."
-                  className="w-full h-10 text-sm pl-10 pr-4 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white shadow-sm"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              </div>
-
-              {/* Mobile Search Button */}
-              <div className="md:hidden">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowMobileSearch(true)}
-                  className="w-full h-10 text-left justify-start text-gray-500 border-2 border-gray-200 rounded-lg"
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  <span className="text-sm">Search stores...</span>
-                </Button>
-              </div>
-            </div>
-
-            {/* Subcategories - Smaller and under search */}
-            {/* {categoryHierarchy.subcategories.length > 0 && (
-              <div className="max-w-5xl mx-auto">
-                <div className="flex flex-wrap gap-1.5 justify-center">
-                  {categoryHierarchy.subcategories.map((subcat) => (
-                    <Link
-                      key={subcat.id}
-                      href={`/stores/category/${subcat.slug}`}
-                      className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md transition-colors text-xs font-medium"
-                    >
-                      {subcat.name}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )} */}
           </div>
+          
+          {/* <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              {pagination.total} stores found
+            </div>
+          </div> */}
         </div>
       </section>
 
@@ -373,7 +330,14 @@ export default function CategoryStoresPage() {
           {/* Sidebar Filters - Desktop */}
           <div className="hidden lg:block w-72">
             <div className="card bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
-              <FilterPanel />
+              <FilterPanel 
+                loading={loading}
+                onFiltersChange={(filters) => {
+                  setMinRating(filters.minRating);
+                  setVerifiedOnly(filters.verifiedOnly);
+                  setClaimedOnly(filters.claimedOnly);
+                }}
+              />
             </div>
           </div>
 
@@ -389,8 +353,8 @@ export default function CategoryStoresPage() {
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
               </Button>
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as "rating" | "name" | "reviews")}>
-                <SelectTrigger className="flex-1 bg-white">
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as "rating" | "name" | "reviews")} disabled={loading}>
+                <SelectTrigger className={`flex-1 bg-white ${loading ? 'opacity-75' : ''}`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -408,7 +372,14 @@ export default function CategoryStoresPage() {
                   <DialogTitle>Filters</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto p-4">
-                  <FilterPanel />
+                  <FilterPanel 
+                    loading={loading}
+                    onFiltersChange={(filters) => {
+                      setMinRating(filters.minRating);
+                      setVerifiedOnly(filters.verifiedOnly);
+                      setClaimedOnly(filters.claimedOnly);
+                    }}
+                  />
                 </div>
                 <DialogFooter className="p-4 border-t flex justify-end gap-2">
                   <DialogClose asChild>
@@ -418,47 +389,7 @@ export default function CategoryStoresPage() {
               </DialogContent>
             </Dialog>
 
-            {/* Mobile Search Modal */}
-            <Dialog open={showMobileSearch} onOpenChange={setShowMobileSearch}>
-              <DialogContent className="max-w-full w-full h-full p-0 flex flex-col bg-white m-0 rounded-none">
-                <DialogHeader className="p-4 border-b bg-white">
-                  <DialogTitle className="text-lg font-semibold">Search Stores</DialogTitle>
-                </DialogHeader>
-                <div className="flex-1 p-4 bg-gray-50">
-                  <div className="relative mb-4">
-                    <Input
-                      type="text"
-                      placeholder="Search stores, brands, or categories..."
-                      className="w-full h-12 text-base pl-12 pr-4 rounded-lg border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 bg-white shadow-sm"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      autoFocus
-                    />
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  </div>
-                  
-                  {/* Search results preview */}
-                  {search && (
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <p className="text-sm text-gray-600 mb-2">
-                        Searching for &quot;{search}&quot;
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Tap &quot;Search&quot; to see results
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <DialogFooter className="p-4 border-t bg-white flex justify-between gap-3">
-                  <DialogClose asChild>
-                    <Button variant="outline" className="flex-1">Cancel</Button>
-                  </DialogClose>
-                  <DialogClose asChild>
-                    <Button className="flex-1">Search</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+
 
             {/* Active Filters */}
             <ActiveFilters />
@@ -467,18 +398,18 @@ export default function CategoryStoresPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">
-                  {filteredStores.length} Store{filteredStores.length !== 1 ? 's' : ''} Found
+                  {pagination.total} Store{pagination.total !== 1 ? 's' : ''} Found
                 </h2>
-                {search && (
+                {(minRating > 0 || verifiedOnly || claimedOnly) && (
                   <p className="text-sm text-gray-600 mt-1">
-                    Searching for &quot;{search}&quot;
+                    Showing filtered results
                   </p>
                 )}
               </div>
               <div className="hidden lg:flex items-center gap-3 w-full sm:w-auto">
                 {/* Sort Dropdown - only on lg+ */}
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as "rating" | "name" | "reviews")}>
-                  <SelectTrigger className="bg-white min-w-[160px]">
+                <Select value={sortBy} onValueChange={(value) => setSortBy(value as "rating" | "name" | "reviews")} disabled={loading}>
+                  <SelectTrigger className={`bg-white min-w-[160px] ${loading ? 'opacity-75' : ''}`}>
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -509,62 +440,83 @@ export default function CategoryStoresPage() {
               </div>
             </div>
 
-            {/* Stores Grid/List */}
-            {filteredStores.length === 0 ? (
-              <div className="text-center py-12">
-                <StoreIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Stores Found</h3>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your filters or search terms
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSearch("");
-                    setMinRating(0);
-                    setVerifiedOnly(false);
-                    setClaimedOnly(false);
-                    setSelectedCountry("all");
-                    setSelectedTags([]);
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className={
-                  viewMode === 'grid'
-                    ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 md:gap-6"
-                    : "space-y-4 md:space-y-6"
-                }>
-                  {filteredStores.map((store) => (
-                    <SharedStoreCard
-                      key={store.id}
-                      id={store.id}
-                      name={store.name}
-                      description={store.description}
-                      category={store.country || ''}
-                      rating={store.rating}
-                      reviewCount={store.totalRatings || 0}
-                      trustScore={''}
-                      link={store.website || ''}
-                      isVerified={store.verified}
-                      isClaimed={store.claimed}
-                      getTrustScoreColor={() => ''}
-                      avatarGradient="from-blue-100 to-purple-100 text-blue-600"
-                      
-                    />
-                  ))}
+            {/* Stores Grid/List with Loading Overlay */}
+            <div className="relative">
+              {/* Loading Overlay - only show when there are existing stores */}
+              {loading && stores.length > 0 && (
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-10 flex items-start justify-center pt-8">
+                  <div className="bg-white rounded-lg shadow-lg px-6 py-4 flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm font-medium text-gray-700">Updating results...</span>
+                  </div>
                 </div>
+              )}
 
-                <Pagination
-                  currentPage={pagination.page}
-                  totalPages={pagination.totalPages}
-                  onPageChange={setCurrentPage}
-                />
-              </>
-            )}
+              {stores.length === 0 && !loading && !isInitialLoad ? (
+                <div className="text-center py-12">
+                  <StoreIcon className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No Stores Found</h3>
+                  <p className="text-gray-600 mb-4">
+                    {minRating > 0 || verifiedOnly || claimedOnly 
+                      ? "Try adjusting your filters" 
+                      : "No stores available in this category"}
+                  </p>
+                  {(minRating > 0 || verifiedOnly || claimedOnly) && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setMinRating(0);
+                        setVerifiedOnly(false);
+                        setClaimedOnly(false);
+                        setSelectedCountry("all");
+                        setSelectedTags([]);
+                        setCurrentPage(1);
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
+              ) : stores.length === 0 && (loading || isInitialLoad) ? (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading stores...</p>
+                </div>
+              ) : (
+                <>
+                  <div className={
+                    viewMode === 'grid'
+                      ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4 md:gap-6"
+                      : "space-y-4 md:space-y-6"
+                  }>
+                    {filteredStores.map((store) => (
+                      <SharedStoreCard
+                        key={store.id}
+                        id={store.id}
+                        name={store.name}
+                        description={store.description}
+                        category={store.country || ''}
+                        rating={store.rating}
+                        reviewCount={store.totalRatings || 0}
+                        trustScore={''}
+                        link={store.website || ''}
+                        isVerified={store.verified}
+                        isClaimed={store.claimed}
+                        getTrustScoreColor={() => ''}
+                        avatarGradient="from-blue-100 to-purple-100 text-blue-600"
+                        
+                      />
+                    ))}
+                  </div>
+
+                  <Pagination
+                    currentPage={pagination.page}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                </>
+              )}
+            </div>
           </div>
         </div>
       </main>

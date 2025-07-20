@@ -34,6 +34,12 @@ export const storeApi = {
 
   getByCategorySlug: async (categorySlug: string, options?: {
     includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
   }) => {
@@ -43,6 +49,24 @@ export const storeApi = {
       
       if (options?.includeSub !== undefined) {
         params.append('includeSub', options.includeSub.toString());
+      }
+      if (options?.claimed !== undefined) {
+        params.append('claimed', options.claimed.toString());
+      }
+      if (options?.verified !== undefined) {
+        params.append('verified', options.verified.toString());
+      }
+      if (options?.minRating !== undefined) {
+        params.append('minRating', options.minRating.toString());
+      }
+      if (options?.maxRating !== undefined) {
+        params.append('maxRating', options.maxRating.toString());
+      }
+      if (options?.sortBy !== undefined) {
+        params.append('sortBy', options.sortBy);
+      }
+      if (options?.sortOrder !== undefined) {
+        params.append('sortOrder', options.sortOrder);
       }
       if (options?.page !== undefined) {
         params.append('page', options.page.toString());
@@ -71,6 +95,8 @@ export const storeApi = {
     verified?: boolean;
     minRating?: number;
     maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
   }) => {

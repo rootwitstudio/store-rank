@@ -1,5 +1,5 @@
 "use client";
-import { Shirt, Monitor, Utensils, Sofa, BookOpen, Heart, Store, Sparkles, Dumbbell, Gamepad2, Car } from "lucide-react";
+import { getCategoryIcon } from "@/lib/categoryIcons";
 import Link from "next/link";
 
 interface Category {
@@ -16,20 +16,6 @@ interface CategorySectionProps {
   loadingCategories: boolean;
   categoryError: string | null;
 }
-
-const iconMap: Record<string, React.ElementType> = {
-  Shirt,
-  Monitor,
-  Utensils,
-  Sofa,
-  BookOpen,
-  Sparkles,
-  Dumbbell,
-  Gamepad2,
-  Heart,
-  Car,
-  Store, // Default icon
-};
 
 export function CategorySection({ categories, loadingCategories, categoryError }: CategorySectionProps) {
   return (
@@ -70,7 +56,7 @@ export function CategorySection({ categories, loadingCategories, categoryError }
                   .filter((category) => !category.parentId)
                   .slice(0, 10)
                   .map((category) => {
-                    const Icon = iconMap[category.icon] || iconMap.Store;
+                    const Icon = getCategoryIcon(category.slug);
                     return (
                       <Link
                         key={category.id}
@@ -92,7 +78,7 @@ export function CategorySection({ categories, loadingCategories, categoryError }
                 .filter((category) => !category.parentId)
                 .slice(0, 10)
                 .map((category) => {
-                  const Icon = iconMap[category.icon] || iconMap.Store;
+                  const Icon = getCategoryIcon(category.slug);
                   return (
                     <Link
                       key={category.id}

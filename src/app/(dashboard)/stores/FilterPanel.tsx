@@ -8,16 +8,23 @@ import { useActiveFilters } from "./useActiveFilters";
 
 interface FilterPanelProps {
   className?: string;
+  loading?: boolean;
+  onFiltersChange?: (filters: {
+    minRating: number;
+    verifiedOnly: boolean;
+    claimedOnly: boolean;
+  }) => void;
 }
 
-export default function FilterPanel({ className = "" }: FilterPanelProps) {
+export default function FilterPanel({ className = "", loading: externalLoading, onFiltersChange }: FilterPanelProps) {
   const searchParams = useSearchParams();
   const params = useParams();
   const categoryId = searchParams.get("categoryId");
   const categorySlug = searchParams.get("categorySlug") || (params.slug as string);
   
-  const { storesByCategory, filterStores } = useStoresByCategory();
-  const { data: stores, loading } = storesByCategory;
+  const { storesByCategory } = useStoresByCategory();
+  const { data: stores } = storesByCategory;
+  const loading = externalLoading || false;
 
   // Filter states - managed by shared hook
   const {
@@ -45,25 +52,16 @@ export default function FilterPanel({ className = "" }: FilterPanelProps) {
       : []
   ));
 
-  // Trigger API call when filters change
+  // Notify parent component when filters change
   useEffect(() => {
-    const filters = {
-      categorySlug: categorySlug || undefined,
-      category: categoryId || undefined,
-      includeSub: true,
-      claimed: claimedOnly || undefined,
-      verified: verifiedOnly || undefined,
-      minRating: minRating > 0 ? minRating : undefined,
-      page: 1,
-      pageSize: 12,
-    };
-
-    // Only call API if we have a categorySlug or categoryId
-    if (categorySlug || categoryId) {
-      console.log('FilterPanel: Calling API with filters:', filters);
-      filterStores(filters);
+    if (onFiltersChange) {
+      onFiltersChange({
+        minRating,
+        verifiedOnly,
+        claimedOnly,
+      });
     }
-  }, [minRating, verifiedOnly, claimedOnly, selectedTags, categorySlug, categoryId, filterStores]);
+  }, [minRating, verifiedOnly, claimedOnly, onFiltersChange]);
 
   // Log current filter state for debugging
   useEffect(() => {
@@ -79,16 +77,8 @@ export default function FilterPanel({ className = "" }: FilterPanelProps) {
   }, [minRating, verifiedOnly, claimedOnly, selectedTags, categorySlug, categoryId]);
 
   return (
-    <div className={`space-y-6 ${className} ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
-      {/* Loading indicator */}
-      {loading && (
-        <div className="text-center py-2">
-          <div className="inline-flex items-center gap-2 text-sm text-gray-600">
-            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            Applying filters...
-          </div>
-        </div>
-      )}
+    <div className={`space-y-6 ${className}`}>
+
       
       {/* Rating Filter */}
       <div>

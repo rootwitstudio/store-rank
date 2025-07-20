@@ -74,6 +74,12 @@ export type StoreDetailsState = {
   fetchStoresByCategory: (categoryId: string) => Promise<void>;
   fetchStoresByCategorySlug: (categorySlug: string, options?: {
     includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
   }) => Promise<void>;
@@ -158,6 +164,12 @@ export const useStoreDetailsStore = create<StoreDetailsState>((set, get) => ({
 
   fetchStoresByCategorySlug: async (categorySlug: string, options?: {
     includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
   }) => {

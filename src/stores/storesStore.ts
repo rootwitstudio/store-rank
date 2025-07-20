@@ -114,6 +114,12 @@ export interface StoresState {
   fetchStoreById: (id: string) => Promise<void>;
   fetchStoresByCategory: (categorySlug: string, options?: {
     includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
   }) => Promise<void>;
@@ -126,6 +132,8 @@ export interface StoresState {
     verified?: boolean;
     minRating?: number;
     maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
   }) => Promise<void>;
@@ -215,7 +223,17 @@ export const useStoresStore = create<StoresState>((set) => ({
     }
   },
 
-  fetchStoresByCategory: async (categorySlug: string, options = {}) => {
+  fetchStoresByCategory: async (categorySlug: string, options: {
+    includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
+  } = {}) => {
     set((state) => ({
       storesByCategory: { 
         ...state.storesByCategory, 

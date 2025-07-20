@@ -7,6 +7,7 @@ export type SearchResult = {
   name: string;
   description?: string;
   icon?: string;
+  slug?: string;
   rating?: number;
   reviewCount?: number;
   trustScore?: string;
@@ -123,6 +124,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         name: item.name,
         description: item.description,
         icon: item.icon,
+        slug: item.slug,
         rating: item.rating,
         reviewCount: item.reviewCount,
         trustScore: item.trustScore,
