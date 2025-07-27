@@ -408,7 +408,6 @@ export default function StoreDetailPage({
   // Fetch store reviews
   useEffect(() => {
     async function fetchStoreReviews() {
-      if (!storeId || !accessToken) return;
       
       setReviewsLoading(true);
       try {
@@ -431,7 +430,7 @@ export default function StoreDetailPage({
       fetchStore(storeId);
       
       if (accessToken && currentUserId) {
-        // fetchUserReviews(currentUserId, accessToken);
+        fetchUserReviews(currentUserId, accessToken);
       }
     }
   }, [storeId, fetchStore, currentUserId, accessToken]);
@@ -442,7 +441,7 @@ export default function StoreDetailPage({
       if (document.visibilityState === 'visible') {
         if (accessToken && currentUserId && storeId) {
           console.log('Page focused - refetching user reviews');
-          // fetchUserReviews(currentUserId, accessToken);
+          fetchUserReviews(currentUserId, accessToken);
         }
       }
     };
@@ -534,7 +533,8 @@ export default function StoreDetailPage({
               className="bg-blue-600 hover:bg-blue-700"
               onClick={() => setShowWriteReview(true)}
             >
-              Write Review
+              <span className="hidden sm:inline">Write Review</span>
+              <span className="sm:hidden">Review</span>
             </Button>
           </div>
         </div>
@@ -544,19 +544,19 @@ export default function StoreDetailPage({
       <main className="container mx-auto px-4 py-6">
         {/* Store Header */}
         <div className="mb-8">
-          <div className="flex gap-6 justify-between">
+          <div className="flex flex-col lg:flex-row gap-6 justify-between">
             {/* Left Section - Logo and Store Info */}
-            <div className="flex gap-6 flex-1">
-              <div className="flex-shrink-0">
-                <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="flex flex-col sm:flex-row gap-6 flex-1">
+              <div className="flex-shrink-0 self-center sm:self-start">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
                   {store?.logo ? (
                     <img
                       src={store.logo}
                       alt={`${store?.name} logo`}
-                      className="w-24 h-24 object-contain rounded-xl"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-xl"
                     />
                   ) : (
-                    <span className="text-4xl font-bold text-blue-600">
+                    <span className="text-2xl sm:text-4xl font-bold text-blue-600">
                       {store?.name?.charAt(0) || 'S'}
                     </span>
                   )}
@@ -565,11 +565,11 @@ export default function StoreDetailPage({
 
               {/* Middle Section - Store Details */}
               <div className="flex-1">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-3xl font-bold text-gray-900">{store?.name}</h1>
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
+                      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{store?.name}</h1>
+                      <div className="flex flex-wrap items-center gap-2">
                         {store?.verified && (
                           <Badge className="bg-green-100 text-green-800 border-green-200">
                             <CheckCircle className="w-3 h-3 mr-1" />
@@ -583,27 +583,8 @@ export default function StoreDetailPage({
                           </Badge>
                         )}
                       </div>
-                      <div className="flex gap-3 ml-auto">
-                        <Button
-                          className="bg-blue-600 hover:bg-blue-700"
-                          onClick={() => setShowWriteReview(true)}
-                        >
-                          Write Review
-                        </Button>
-                        {store?.website && (
-                          <Button
-                            variant="outline"
-                            asChild
-                          >
-                            <a href={ensureHttps(store.website)} target="_blank" rel="noopener noreferrer">
-                              <Globe className="w-4 h-4 mr-2" />
-                              Visit Website
-                            </a>
-                          </Button>
-                        )}
-                      </div>
                     </div>
-                    <div className="flex items-center gap-6 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-4">
                       <div className="flex items-center gap-2">
                         <StarRating rating={store?.rating || 0} size="md" />
                         <span className="text-xl font-bold text-gray-900">
@@ -615,16 +596,35 @@ export default function StoreDetailPage({
                         </span>
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-4 leading-relaxed">
+                    <p className="text-gray-600 mb-4 leading-relaxed text-sm sm:text-base">
                       {store?.description} {store?.description} 
                     </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => setShowWriteReview(true)}
+                      >
+                        Write Review
+                      </Button>
+                      {store?.website && (
+                        <Button
+                          variant="outline"
+                          asChild
+                        >
+                          <a href={ensureHttps(store.website)} target="_blank" rel="noopener noreferrer">
+                            <Globe className="w-4 h-4 mr-2" />
+                            Visit Website
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right Section - Rating Distribution */}
-            <div className="w-96 flex-shrink-0 space-y-6">
+            <div className="w-full lg:w-96 flex-shrink-0 space-y-6">
               <Card className="bg-white shadow-sm">
                 <CardContent className="p-4">
                   <div className="flex gap-6">
@@ -692,7 +692,7 @@ export default function StoreDetailPage({
             {/* Review Summary Section */}
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Review Summary</h2>
-              <div className="bg-gray-50 rounded-lg p-6">
+              <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
                 <div className={`text-sm text-gray-700 leading-relaxed ${showFullSummary ? '' : 'line-clamp-[10]'}`}>
                   <p>
                     Based on customer feedback, this store consistently delivers excellent service with fast shipping and quality products, with most customers praising the responsive customer support team and easy return process. Common positive themes include prompt delivery times, accurate product descriptions, professional packaging, and helpful customer service representatives who resolve issues quickly. Customers frequently mention the store's competitive pricing and regular promotional offers, and many appreciate the detailed product information and high-quality images that help with purchase decisions. The checkout process is described as smooth and secure, with multiple payment options available, while the mobile experience receives particular praise for its user-friendly interface. While most reviews are positive, some customers mention occasional delays during peak seasons, however, the store's proactive communication about shipping updates is well-received. Customer loyalty is high, with many reviewers mentioning repeat purchases and recommendations to friends and family, as the store's consistent quality standards contribute to this trust. Product quality meets or exceeds expectations in most cases, and customers appreciate the accurate sizing information and detailed specifications provided for each item. The return and exchange policy is straightforward and customer-friendly, with hassle-free processes that enhance overall satisfaction. International shipping options are available and generally reliable, though some customers note longer delivery times for overseas orders. Customer service response time is typically within 24 hours, with knowledgeable staff who provide helpful solutions to inquiries and concerns.
@@ -712,7 +712,7 @@ export default function StoreDetailPage({
               </div>
             </div>
 
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-semibold">See what customer says</h2>
               <div className="flex items-center gap-4">
                 <Select
@@ -735,17 +735,48 @@ export default function StoreDetailPage({
             {/* Reviews Grid with minimum height */}
             <div className="min-h-[600px]">
               {displayedReviews.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {displayedReviews.map((review) => (
-                    <ReviewCard
-                      key={review.id}
-                      review={review}
-                      isUserReview={review.userId === currentUserId}
-                      onEdit={review.userId === currentUserId ? () => handleEditReview(review) : undefined}
-                      onDelete={review.userId === currentUserId ? () => handleDeleteConfirm(review.id) : undefined}
-                    />
-                  ))}
-                </div>
+                <>
+                  {/* Desktop Grid - hidden on mobile */}
+                  <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {displayedReviews.map((review) => (
+                      <div key={review.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <ReviewCard
+                          review={review}
+                          isUserReview={review.userId === currentUserId}
+                          onEdit={review.userId === currentUserId ? () => handleEditReview(review) : undefined}
+                          onDelete={review.userId === currentUserId ? () => handleDeleteConfirm(review.id) : undefined}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Mobile Carousel - visible only on mobile */}
+                  <div className="md:hidden">
+                    <div className="overflow-x-auto scrollbar-hide">
+                      <div className="flex gap-4 pb-4" style={{ width: `${displayedReviews.length * 300}px` }}>
+                        {displayedReviews.map((review) => (
+                          <div key={review.id} className="flex-shrink-0 w-[280px] bg-white border border-gray-200 rounded-lg shadow-sm">
+                            <ReviewCard
+                              review={review}
+                              isUserReview={review.userId === currentUserId}
+                              onEdit={review.userId === currentUserId ? () => handleEditReview(review) : undefined}
+                              onDelete={review.userId === currentUserId ? () => handleDeleteConfirm(review.id) : undefined}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Scroll indicator dots for mobile */}
+                    <div className="flex justify-center gap-2 mt-4">
+                      {displayedReviews.map((_, index) => (
+                        <div
+                          key={index}
+                          className="w-2 h-2 rounded-full bg-gray-300"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
               ) : (
                 <div className="h-[600px] flex flex-col items-center justify-center text-center px-4">
                   <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
@@ -783,7 +814,7 @@ export default function StoreDetailPage({
         
 
           {/* Right Sidebar */}
-          <div>
+          <div className="space-y-6">
 
           <div className="bg-white shadow-sm rounded-lg border">
                 <div className="p-3 pb-2">
@@ -796,19 +827,19 @@ export default function StoreDetailPage({
                   <div className="grid grid-cols-3 divide-x divide-gray-200">
                     {/* Trust Score */}
                     <div className="text-center px-2">
-                      <div className="text-2xl font-bold text-gray-900">98%</div>
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">98%</div>
                       <div className="text-xs text-gray-600">Trust Score</div>
                     </div>
                     
                     {/* Response Rate */}
                     <div className="text-center px-2">
-                      <div className="text-2xl font-bold text-gray-900">95%</div>
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">95%</div>
                       <div className="text-xs text-gray-600">Response Rate</div>
                     </div>
                     
                     {/* Average Response Time */}
                     <div className="text-center px-2">
-                      <div className="text-2xl font-bold text-gray-900">2h</div>
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">2h</div>
                       <div className="text-xs text-gray-600">Avg. Response Time</div>
                     </div>
                   </div>
@@ -817,7 +848,7 @@ export default function StoreDetailPage({
             {/* Trust Information Card */}
             <Card className="mt-6">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <Shield className="w-5 h-5 text-blue-600" />
                   Why Trust Our Reviews?
                 </CardTitle>
@@ -862,12 +893,12 @@ export default function StoreDetailPage({
         </div>
 
         {/* Business Information Section */}
-        <div className="px-4">
+        <div className="px-0 sm:px-4 mt-12">
           {/* Grid layout for Headers and Content */}
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Company Details Header and Content - Left Side (2/3) */}
-            <div className="col-span-2 space-y-6">
-              <h2 className="text-2xl font-semibold">Business Information</h2>
+            <div className="lg:col-span-2 space-y-6">
+              <h2 className="text-xl sm:text-2xl font-semibold">Business Information</h2>
               
               {/* Categories */}
               <div className="flex flex-wrap gap-2">
@@ -875,7 +906,7 @@ export default function StoreDetailPage({
                   <Badge 
                     key={category.id} 
                     variant="outline" 
-                    className="px-4 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
+                    className="px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
                   >
                     {category.name}
                   </Badge>
@@ -889,7 +920,7 @@ export default function StoreDetailPage({
                     <Badge 
                       key={index} 
                       variant="secondary" 
-                      className="px-3 py-1 text-xs bg-blue-100 text-blue-800 border-blue-200 rounded-none"
+                      className="px-2 sm:px-3 py-1 text-xs bg-blue-100 text-blue-800 border-blue-200 rounded-none"
                     >
                       {tag}
                     </Badge>
@@ -899,14 +930,14 @@ export default function StoreDetailPage({
 
               {/* Description */}
               <div className="space-y-3">
-                <h3 className="text-lg font-medium text-gray-900">Information provided by various external sources</h3>
-                <p className="text-gray-600 leading-relaxed">{store?.description}{store?.description}{store?.description}</p>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Information provided by various external sources</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{store?.description}{store?.description}{store?.description}</p>
               </div>
             </div>
 
             {/* Contact Information Header and Content - Right Side (1/3) */}
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold">Contact Information</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold">Contact Information</h2>
               
               {/* Mobile */}
               {store?.mobile && (
@@ -916,7 +947,7 @@ export default function StoreDetailPage({
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Mobile</div>
-                    <div className="text-gray-900 font-medium">{store.mobile}</div>
+                    <div className="text-gray-900 font-medium text-sm sm:text-base">{store.mobile}</div>
                   </div>
                 </div>
               )}
@@ -929,7 +960,7 @@ export default function StoreDetailPage({
                   </div>
                   <div>
                     <div className="text-sm text-gray-500">Location</div>
-                    <div className="text-gray-900 font-medium">
+                    <div className="text-gray-900 font-medium text-sm sm:text-base">
                       {[
                         store?.state,
                         store?.country
@@ -947,13 +978,13 @@ export default function StoreDetailPage({
                   <div className="flex-shrink-0">
                     <Globe className="w-5 h-5 text-gray-400" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="text-sm text-gray-500">Website</div>
                     <a 
                       href={ensureHttps(store.website)} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline font-medium"
+                      className="text-blue-600 hover:underline font-medium text-sm sm:text-base break-all"
                     >
                       {store.website}
                     </a>
@@ -964,13 +995,13 @@ export default function StoreDetailPage({
           </div>
         </div>
         {/* Business Claim Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 mt-8">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Is this your business?</h2>
-            <p className="text-gray-600 mb-6">
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 sm:p-8 mt-8">
+          <div className="max-w-3xl mx-auto text-center sm:text-left">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Is this your business?</h2>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">
               Claim your listing for free to respond to reviews, update your profile and manage your listing.
             </p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
               Claim your business
             </Button>
           </div>
@@ -978,15 +1009,17 @@ export default function StoreDetailPage({
 
         {/* Similar Businesses Section */}
         <div className="mb-12 mt-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Similar businesses you may also like</h2>
-            <Button variant="link" className="text-blue-600 hover:text-blue-700">
-              See more Marketplace Businesses
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Similar businesses you may also like</h2>
+            <Button variant="link" className="text-blue-600 hover:text-blue-700 self-start sm:self-center">
+              <span className="hidden sm:inline">See more Marketplace Businesses</span>
+              <span className="sm:hidden">See more</span>
               <ArrowLeft className="w-4 h-4 ml-2" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Desktop Grid - hidden on mobile */}
+          <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
                 name: "TJ Maxx",
@@ -1008,29 +1041,29 @@ export default function StoreDetailPage({
               }
             ].map((business, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
                       {business.logo ? (
                         <img
                           src={business.logo}
                           alt={`${business.name} logo`}
-                          className="w-12 h-12 object-contain"
+                          className="w-8 h-8 sm:w-12 sm:h-12 object-contain"
                         />
                       ) : (
-                        <span className="text-xl font-bold text-blue-600">
+                        <span className="text-lg sm:text-xl font-bold text-blue-600">
                           {business.name.charAt(0)}
                         </span>
                       )}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{business.name}</h3>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{business.name}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex">
                           {Array.from({ length: 5 }).map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${
+                              className={`w-3 h-3 sm:w-4 sm:h-4 ${
                                 i < business.rating
                                   ? "text-yellow-400 fill-current"
                                   : "text-gray-300"
@@ -1038,7 +1071,7 @@ export default function StoreDetailPage({
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm text-gray-600">
                           {business.reviews} reviews
                         </span>
                       </div>
@@ -1047,6 +1080,83 @@ export default function StoreDetailPage({
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          {/* Mobile Carousel - visible only on mobile */}
+          <div className="sm:hidden">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 pb-4" style={{ width: `${3 * 280}px` }}>
+                {[
+                  {
+                    name: "TJ Maxx",
+                    logo: "/path/to/logo1.png",
+                    rating: 3.5,
+                    reviews: 484
+                  },
+                  {
+                    name: "Skyye",
+                    logo: "/path/to/logo2.png",
+                    rating: 5,
+                    reviews: 1
+                  },
+                  {
+                    name: "BHFO",
+                    logo: "/path/to/logo3.png",
+                    rating: 3,
+                    reviews: 664
+                  }
+                ].map((business, index) => (
+                  <Card key={index} className="flex-shrink-0 w-[260px] hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                          {business.logo ? (
+                            <img
+                              src={business.logo}
+                              alt={`${business.name} logo`}
+                              className="w-8 h-8 object-contain"
+                            />
+                          ) : (
+                            <span className="text-lg font-bold text-blue-600">
+                              {business.name.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-gray-900 text-sm truncate">{business.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < business.rating
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {business.reviews} reviews
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+            {/* Scroll indicator dots for mobile */}
+            <div className="flex justify-center gap-2 mt-4">
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-gray-300"
+                />
+              ))}
+            </div>
           </div>
         </div>
       </main>
