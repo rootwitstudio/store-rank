@@ -155,6 +155,8 @@ export const trendingStores = [
     description: "India's fastest-growing social commerce platform",
     trustScore: "Great",
     isRising: true,
+    isVerified: true,
+    isClaimed: true,
   },
   {
     id: "6",
@@ -167,6 +169,8 @@ export const trendingStores = [
     description: "10-minute grocery delivery across major Indian cities",
     trustScore: "Good",
     isRising: true,
+    isVerified: true,
+    isClaimed: false,
   },
   {
     id: "7",
@@ -179,6 +183,8 @@ export const trendingStores = [
     description: "India's leading audio and wearables brand",
     trustScore: "Great",
     isRising: true,
+    isVerified: false,
+    isClaimed: true,
   },
   {
     id: "8",
@@ -191,6 +197,8 @@ export const trendingStores = [
     description: "India's largest eyewear retailer with home try-on",
     trustScore: "Good",
     isRising: true,
+    isVerified: true,
+    isClaimed: true,
   },
   {
     id: "9",
@@ -203,6 +211,8 @@ export const trendingStores = [
     description: "India's largest online grocery store",
     trustScore: "Great",
     isRising: true,
+    isVerified: true,
+    isClaimed: false,
   },
   {
     id: "10",
@@ -215,6 +225,8 @@ export const trendingStores = [
     description: "Food delivery and restaurant discovery platform",
     trustScore: "Good",
     isRising: false,
+    isVerified: false,
+    isClaimed: false,
   },
 ];
 

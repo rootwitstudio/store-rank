@@ -54,12 +54,38 @@ export type StoreDetailsState = {
     error: string | null;
     categoryId: string | null;
   };
+
+  // Stores by category slug
+  storesByCategorySlug: {
+    data: StoreDetails[];
+    loading: boolean;
+    error: string | null;
+    categorySlug: string | null;
+    pagination: {
+      page: number;
+      pageSize: number;
+      totalPages: number;
+      total: number;
+    };
+  };
   
   // Actions
   fetchStore: (id: string) => Promise<void>;
   fetchStoresByCategory: (categoryId: string) => Promise<void>;
+  fetchStoresByCategorySlug: (categorySlug: string, options?: {
+    includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
+  }) => Promise<void>;
   clearStoreDetails: () => void;
   clearStoresList: () => void;
+  clearStoresByCategorySlug: () => void;
   reset: () => void;
 };
 
@@ -75,6 +101,19 @@ export const useStoreDetailsStore = create<StoreDetailsState>((set, get) => ({
     loading: false,
     error: null,
     categoryId: null,
+  },
+
+  storesByCategorySlug: {
+    data: [],
+    loading: false,
+    error: null,
+    categorySlug: null,
+    pagination: {
+      page: 1,
+      pageSize: 12,
+      totalPages: 1,
+      total: 0,
+    },
   },
 
   fetchStore: async (id: string) => {
@@ -123,6 +162,54 @@ export const useStoreDetailsStore = create<StoreDetailsState>((set, get) => ({
     }
   },
 
+  fetchStoresByCategorySlug: async (categorySlug: string, options?: {
+    includeSub?: boolean;
+    claimed?: boolean;
+    verified?: boolean;
+    minRating?: number;
+    maxRating?: number;
+    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    pageSize?: number;
+  }) => {
+    set((state) => ({
+      storesByCategorySlug: { 
+        ...state.storesByCategorySlug, 
+        loading: true, 
+        error: null, 
+        categorySlug 
+      }
+    }));
+    
+    try {
+      const response = await storeApi.getByCategorySlug(categorySlug, options);
+      set((state) => ({
+        storesByCategorySlug: { 
+          ...state.storesByCategorySlug, 
+          data: response.stores || response, 
+          loading: false,
+          pagination: response.pagination || {
+            page: options?.page || 1,
+            pageSize: options?.pageSize || 12,
+            totalPages: 1,
+            total: response.stores?.length || response.length || 0,
+          }
+        }
+      }));
+    } catch (error) {
+      console.error('Error fetching stores by category slug:', error);
+      set((state) => ({
+        storesByCategorySlug: {
+          ...state.storesByCategorySlug,
+          error: error instanceof Error ? error.message : 'Failed to fetch stores',
+          loading: false,
+          data: []
+        }
+      }));
+    }
+  },
+
   clearStoreDetails: () => {
     set((state) => ({
       storeDetails: { ...state.storeDetails, data: null, error: null }
@@ -135,13 +222,43 @@ export const useStoreDetailsStore = create<StoreDetailsState>((set, get) => ({
     }));
   },
 
+  clearStoresByCategorySlug: () => {
+    set((state) => ({
+      storesByCategorySlug: { 
+        ...state.storesByCategorySlug, 
+        data: [], 
+        error: null,
+        categorySlug: null,
+        pagination: {
+          page: 1,
+          pageSize: 12,
+          totalPages: 1,
+          total: 0,
+        }
+      }
+    }));
+  },
+
   reset: () => {
     set({
       storeDetails: { data: null, loading: false, error: null },
-      storesList: { data: [], loading: false, error: null, categoryId: null }
+      storesList: { data: [], loading: false, error: null, categoryId: null },
+      storesByCategorySlug: {
+        data: [],
+        loading: false,
+        error: null,
+        categorySlug: null,
+        pagination: {
+          page: 1,
+          pageSize: 12,
+          totalPages: 1,
+          total: 0,
+        },
+      }
     });
   },
 }));
 
 export const useStoreDetails = () => useStoreDetailsStore();
-export const useStoresList = () => useStoreDetailsStore(); 
+export const useStoresList = () => useStoreDetailsStore();
+export const useStoresByCategorySlug = () => useStoreDetailsStore(); 

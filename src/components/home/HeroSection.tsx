@@ -237,17 +237,21 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                             return (
                               <Link
                                 key={result.id}
-                                href={`/stores?categoryId=${result.id}`}
-                                className="flex items-center px-4 py-3 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                                href={`/stores/category/${result.slug}`}
+                                className="w-full px-4 py-3 text-left hover:bg-gray-100 text-sm flex items-center justify-between border-b border-gray-100 last:border-b-0"
                                 onClick={() => {
                                   setShowDropdown(false);
                                   setIsInputFocused(false);
                                 }}
                               >
-                                <Icon />
-                                <div>
-                                  <div className="text-sm font-medium">{result.name}</div>
-                                  <div className="text-xs text-gray-500">{result.description}</div>
+                                <div className="flex items-center">
+                                  <div className="w-8 h-8 bg-gray-200 rounded-md flex items-center justify-center text-gray-600 mr-3">
+                                    <Icon />
+                                  </div>
+                                  <div>
+                                    <div className="font-medium">{result.name}</div>
+                                    <div className="text-xs text-gray-500">{result.description}</div>
+                                  </div>
                                 </div>
                               </Link>
                             );
@@ -274,12 +278,12 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                 Trending Stores
               </Button>
             </Link>
-            <Link href="/verified">
+            {/* <Link href="/verified">
               <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
                 <Shield className="h-4 w-4" />
                 Verified Only
               </Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </div>
@@ -389,7 +393,7 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                           return (
                             <Link
                               key={result.id}
-                              href={`/stores?categoryId=${result.id}`}
+                              href={`/stores/category/${result.slug}`}
                               className="flex items-center p-4 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg shadow-sm transition-colors"
                               onClick={() => setIsSearchModalOpen(false)}
                             >

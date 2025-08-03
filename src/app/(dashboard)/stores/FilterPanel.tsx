@@ -1,61 +1,85 @@
 "use client";
 
 import { Info } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-const allTags = [
-  "Free Shipping",
-  "Eco-friendly",
-  "Online Only",
-  "Local",
-  "Discounts",
-];
-
-const countries = [
-  "United States",
-  "United Kingdom",
-  "India",
-  "Germany",
-  "Australia",
-];
+import { useEffect } from "react";
+import { useStoresByCategory } from "@/stores/storesStore";
+import { useSearchParams, useParams } from "next/navigation";
+import { useActiveFilters } from "./useActiveFilters";
 
 interface FilterPanelProps {
-  minRating: number;
-  setMinRating: (rating: number) => void;
-  verifiedOnly: boolean;
-  setVerifiedOnly: (verified: boolean) => void;
-  claimedOnly: boolean;
-  setClaimedOnly: (claimed: boolean) => void;
-  selectedCountry: string;
-  setSelectedCountry: (country: string) => void;
-  selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
-  subcategories?: Array<{ id: string; name: string }>;
   className?: string;
+  loading?: boolean;
+  onFiltersChange?: (filters: {
+    minRating: number;
+    verifiedOnly: boolean;
+    claimedOnly: boolean;
+  }) => void;
 }
 
-export default function FilterPanel({
-  minRating,
-  setMinRating,
-  verifiedOnly,
-  setVerifiedOnly,
-  claimedOnly,
-  setClaimedOnly,
-  selectedCountry,
-  setSelectedCountry,
-  selectedTags,
-  setSelectedTags,
-  subcategories,
-  className = "",
-}: FilterPanelProps) {
+export default function FilterPanel({ className = "", loading: externalLoading, onFiltersChange }: FilterPanelProps) {
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const categoryId = searchParams.get("categoryId");
+  const categorySlug = searchParams.get("categorySlug") || (params.slug as string);
+  
+  const { storesByCategory } = useStoresByCategory();
+  const { data: stores } = storesByCategory;
+  const loading = externalLoading || false;
+
+  // Filter states - managed by shared hook
+  const {
+    minRating,
+    verifiedOnly,
+    claimedOnly,
+    selectedTags,
+    setMinRating,
+    setVerifiedOnly,
+    setClaimedOnly,
+    setSelectedTags,
+    clearAllFilters,
+    initializeFromUrl
+  } = useActiveFilters();
+
+  // Initialize filters from URL on component mount
+  useEffect(() => {
+    initializeFromUrl();
+  }, [initializeFromUrl]);
+
+  // Get unique tags from current stores
+  const allTags = Array.from(new Set(
+    Array.isArray(stores) 
+      ? stores.filter(store => store && Array.isArray(store.tags)).flatMap(store => store.tags)
+      : []
+  ));
+
+  // Notify parent component when filters change
+  useEffect(() => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        minRating,
+        verifiedOnly,
+        claimedOnly,
+      });
+    }
+  }, [minRating, verifiedOnly, claimedOnly, onFiltersChange]);
+
+  // Log current filter state for debugging
+  useEffect(() => {
+    console.log('FilterPanel: Current filter state:', {
+      minRating,
+      verifiedOnly,
+      claimedOnly,
+      selectedTags,
+      categorySlug,
+      categoryId
+    });
+    console.log('FilterPanel: Current URL:', window.location.href);
+  }, [minRating, verifiedOnly, claimedOnly, selectedTags, categorySlug, categoryId]);
+
   return (
     <div className={`space-y-6 ${className}`}>
+
+      
       {/* Rating Filter */}
       <div>
         <h3 className="text-base font-semibold mb-2">Rating</h3>
@@ -74,24 +98,6 @@ export default function FilterPanel({
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Location Filter */}
-      <div>
-        <h3 className="text-base font-semibold mb-2">Location</h3>
-        <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Countries" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Countries</SelectItem>
-            {countries.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Company Status Filter */}
@@ -139,7 +145,7 @@ export default function FilterPanel({
                   setSelectedTags(
                     e.target.checked
                       ? [...selectedTags, tag]
-                      : selectedTags.filter((t) => t !== tag)
+                      : selectedTags.filter((t: string) => t !== tag)
                   )
                 }
                 className="accent-blue-600"
@@ -150,23 +156,16 @@ export default function FilterPanel({
         </div>
       </div>
 
-      {/* Related Categories */}
-      {subcategories && (
-        <div>
-          <h3 className="text-base font-semibold mb-2">Related Categories</h3>
-          {subcategories.length > 0 ? (
-            <ul>
-              {subcategories.map((sub) => (
-                <li key={sub.id} className="mb-1">
-                  {sub.name}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-600 text-sm">No related subcategories.</p>
-          )}
-        </div>
-      )}
+      {/* Clear Filters Button */}
+      <div>
+        <button
+          onClick={clearAllFilters}
+          disabled={loading}
+          className="w-full py-2 px-4 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Clear All Filters
+        </button>
+      </div>
     </div>
   );
 }
