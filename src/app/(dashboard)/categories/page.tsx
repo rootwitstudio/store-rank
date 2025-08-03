@@ -72,6 +72,7 @@ export default function CategoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [animatingCategories, setAnimatingCategories] = useState<Set<string>>(new Set());
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -133,6 +134,16 @@ export default function CategoriesPage() {
   }
 
   const toggleCategory = (categoryId: string) => {
+    // Prevent toggle during animation
+    if (animatingCategories.has(categoryId)) return;
+    
+    // Use functional updates to ensure we get the latest state
+    setAnimatingCategories(prev => {
+      const newSet = new Set(prev);
+      newSet.add(categoryId);
+      return newSet;
+    });
+    
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
       if (newSet.has(categoryId)) {
@@ -142,6 +153,15 @@ export default function CategoriesPage() {
       }
       return newSet;
     });
+
+    // Clear animation state after transition completes
+    setTimeout(() => {
+      setAnimatingCategories(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(categoryId);
+        return newSet;
+      });
+    }, 350); // Slightly longer than transition duration
   };
 
   const handleDropdownItemClick = (item: SearchResultItem) => {
@@ -254,10 +274,10 @@ export default function CategoriesPage() {
             const colorScheme = categoryColors[index % categoryColors.length];
 
             return (
-              <div key={category.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+              <div key={category.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col self-start">
                 {/* Category Header */}
                 <div 
-                  className={`p-6 ${hasSubcategories ? 'cursor-pointer' : ''} transition-all duration-200 ${colorScheme.hover}`}
+                  className={`p-6 ${hasSubcategories ? 'cursor-pointer hover:shadow-sm' : ''} transition-all duration-200 ${hasSubcategories ? colorScheme.hover : ''} ${isExpanded ? 'border-b border-gray-200' : ''}`}
                   onClick={() => hasSubcategories && toggleCategory(category.id)}
                 >
                   <div className="flex items-center justify-between">
@@ -275,8 +295,8 @@ export default function CategoriesPage() {
                       </div>
                     </div>
                     {hasSubcategories && (
-                      <div className={`ml-3 flex-shrink-0 p-2 rounded-full ${colorScheme.bg} transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`}>
-                        <ChevronRight className={`h-4 w-4 ${colorScheme.icon}`} />
+                      <div className={`ml-3 flex-shrink-0 p-2 rounded-full ${colorScheme.bg} transition-all duration-300 ease-in-out ${isExpanded ? 'rotate-90 scale-105' : 'rotate-0 scale-100'}`}>
+                        <ChevronRight className={`h-4 w-4 ${colorScheme.icon} transition-all duration-300`} />
                       </div>
                     )}
                   </div>
@@ -285,11 +305,14 @@ export default function CategoriesPage() {
                 {/* Subcategories - Collapsible */}
                 {hasSubcategories && (
                   <div 
-                    className={`transition-all duration-500 ease-in-out overflow-hidden ${
+                    className={`transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 ${
                       isExpanded 
-                        ? 'max-h-96 opacity-100' 
-                        : 'max-h-0 opacity-0'
+                        ? 'opacity-100' 
+                        : 'opacity-0'
                     }`}
+                    style={{
+                      maxHeight: isExpanded ? `${category.children.length * 48 + 32}px` : '0px'
+                    }}
                   >
                     <div className="bg-gray-50 p-4">
                       <div className="space-y-2">
