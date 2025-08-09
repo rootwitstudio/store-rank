@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from 'js-cookie';
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "http://store-rank-api-1058001898765.asia-southeast1.run.app/api";
 const ACCESS_TOKEN = 'store-rank-token';
 
 const api = axios.create({
