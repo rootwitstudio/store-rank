@@ -2,21 +2,50 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle, MessageSquare, Star, Globe, Phone, MapPin, ShieldCheck, ThumbsUp, Share2, Pencil, Trash2, Mail, MessageCircle, ShoppingCart, Smartphone, Store, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  Store as StoreIcon,
+  TrendingUp,
+  Award,
+  CheckCircle,
+  Package,
+  Building,
+  MessageSquare,
+  Star,
+  Filter,
+  Eye,
+  ExternalLink,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Users,
+  ShieldCheck,
+  AlertTriangle,
+  Loader2,
+  Link as LinkIcon,
+  Clock,
+  Truck,
+  Tag,
+  X,
+  ThumbsUp,
+  Share2,
+  Pencil,
+  Trash2,
+  XCircle,
+  Shield
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ReviewModal } from "@/components/store-detail/ReviewModal";
-// import { StoreDetailTabs } from "@/components/store-detail/StoreDetailTabs";
-import { StoreHighlightsCard } from "@/components/store-detail/StoreHighlightsCard";
-import { OnTheWebCard } from "@/components/store-detail/OnTheWebCard";
-import { StoreAnalyticsCard } from "@/components/store-detail/StoreAnalyticsCard";
-import { WhyTrustReviewsCard } from "@/components/store-detail/WhyTrustReviewsCard";
-import { useStoreDetails } from "@/stores/storeDetailsStore";
+import { useStoreDetails, type StoreDetails } from "@/stores/storeDetailsStore";
 import { useReviewStore, type Review as BaseReview } from "@/stores/reviewStore";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore, type User } from "@/stores/authStore";
+import { useQuery } from "@tanstack/react-query";
 import { reviewApi } from "@/lib/api";
 
 // Remove the Review interface and keep only ReviewResponse
@@ -46,7 +75,28 @@ function ensureHttps(url: string) {
   return `https://${url}`;
 }
 
-
+// Utility function to safely convert any value to a string for rendering
+function safeStringify(value: any, fallback: string = 'Unknown'): string {
+  try {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+    if (value && typeof value === 'object') {
+      // Try common name properties
+      const name = value.name || value.category || value.categoryName || value.title;
+      if (typeof name === 'string' && name.trim()) {
+        return name.trim();
+      }
+      // If nested object, try to get name from it
+      if (name && typeof name === 'object' && name.name && typeof name.name === 'string') {
+        return name.name.trim();
+      }
+    }
+    return fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
 
 function ReviewDetailModal({ 
   review, 
@@ -343,9 +393,9 @@ export default function StoreDetailPage({
   const { data: userReviewsData = [] } = userReviews;
   
   const { storeDetails, fetchStore } = useStoreDetails();
-  const { data: store } = storeDetails;
+  const { data: store, loading: storeLoading, error: storeError } = storeDetails;
   
-  const [, setReviewsLoading] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviews, setReviews] = useState<ExtendedReview[]>([]);
 
   // Initialize auth state
@@ -492,11 +542,11 @@ export default function StoreDetailPage({
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        {/* Store Header - Consistent Left/Right Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
-          {/* LEFT SECTION - Store Info (3/4 width) */}
-          <div className="lg:col-span-3">
-            <div className="flex flex-col sm:flex-row gap-6">
+        {/* Store Header */}
+        <div className="mb-8">
+          <div className="flex flex-col lg:flex-row gap-6 justify-between">
+            {/* Left Section - Logo and Store Info */}
+            <div className="flex flex-col sm:flex-row gap-6 flex-1">
               <div className="flex-shrink-0 self-center sm:self-start">
                 <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
                   {store?.logo ? (
@@ -513,6 +563,7 @@ export default function StoreDetailPage({
                 </div>
               </div>
 
+              {/* Middle Section - Store Details */}
               <div className="flex-1">
                 <div className="flex flex-col gap-4">
                   <div className="flex-1">
@@ -567,183 +618,20 @@ export default function StoreDetailPage({
                         </Button>
                       )}
                     </div>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-          {/* RIGHT SECTION - Contact Information (1/4 width) */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white shadow-sm h-fit">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">Contact Info</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <div className="space-y-4">
-                  {/* Email */}
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0">
-                      <Mail className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Email</div>
-                      <div className="text-sm font-medium text-gray-900 truncate">
-                        {store?.email || 'contact@store.com'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Phone */}
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0">
-                      <Phone className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Phone</div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {store?.mobile || '+1 (555) 123-4567'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Location */}
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-red-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Location</div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {[store?.state, store?.country].filter(Boolean).join(', ') || 'Location not specified'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Chat */}
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
-                    <div className="flex-shrink-0">
-                      <MessageCircle className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-blue-600 uppercase tracking-wide font-medium">Live Chat</div>
-                      <div className="text-sm font-medium text-blue-700">
-                        Chat with us now
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* BUYING OPTIONS SECTION */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Where to Buy</h3>
-          <div className="bg-white rounded-lg border p-4">
-            <div className="flex flex-wrap gap-3">
-              
-              {/* Website */}
-              {store?.website && (
-                <a 
-                  href={ensureHttps(store.website)} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
-                >
-                  <Globe className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">Website</span>
-                  <ExternalLink className="w-3 h-3 text-gray-500" />
-                </a>
-              )}
-
-              {/* Mobile Apps */}
-              {store?.appStores?.ios && (
-                <a 
-                  href={store.appStores.ios} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
-                >
-                  <Smartphone className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">iOS App</span>
-                  <ExternalLink className="w-3 h-3 text-gray-500" />
-                </a>
-              )}
-
-              {store?.appStores?.android && (
-                <a 
-                  href={store.appStores.android} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
-                >
-                  <Smartphone className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900">Android App</span>
-                  <ExternalLink className="w-3 h-3 text-gray-500" />
-                </a>
-              )}
-
-              {/* Marketplaces */}
-              {store?.marketplaces && Object.entries(store.marketplaces).slice(0, 3).map(([platform, url]) => (
-                <a 
-                  key={platform}
-                  href={url as string} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border transition-colors"
-                >
-                  <ShoppingCart className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-900 capitalize">{platform}</span>
-                  <ExternalLink className="w-3 h-3 text-gray-500" />
-                </a>
-              ))}
-
-              {/* Physical Store */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border">
-                <Store className="w-4 h-4 text-gray-600" />
-                <span className="text-sm font-medium text-gray-900">In Store</span>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 1: Review Summary (Left) + Rating Breakdown (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8 mb-8">
-          {/* LEFT - Review Summary */}
-          <div className="lg:col-span-3">
-            <h2 className="text-xl font-semibold mb-4">Review Summary</h2>
-            <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
-              <div className={`text-sm text-gray-700 leading-relaxed ${showFullSummary ? '' : 'line-clamp-[10]'}`}>
-                <p>
-                  Based on customer feedback, this store consistently delivers excellent service with fast shipping and quality products, with most customers praising the responsive customer support team and easy return process. Common positive themes include prompt delivery times, accurate product descriptions, professional packaging, and helpful customer service representatives who resolve issues quickly. Customers frequently mention the store&apos;s competitive pricing and regular promotional offers, and many appreciate the detailed product information and high-quality images that help with purchase decisions. The checkout process is described as smooth and secure, with multiple payment options available, while the mobile experience receives particular praise for its user-friendly interface. While most reviews are positive, some customers mention occasional delays during peak seasons, however, the store&apos;s proactive communication about shipping updates is well-received. Customer loyalty is high, with many reviewers mentioning repeat purchases and recommendations to friends and family, as the store&apos;s consistent quality standards contribute to this trust. Product quality meets or exceeds expectations in most cases, and customers appreciate the accurate sizing information and detailed specifications provided for each item. The return and exchange policy is straightforward and customer-friendly, with hassle-free processes that enhance overall satisfaction. International shipping options are available and generally reliable, though some customers note longer delivery times for overseas orders. Customer service response time is typically within 24 hours, with knowledgeable staff who provide helpful solutions to inquiries and concerns.
-                  {showFullSummary && (
-                    <span>
-                      {" "}The store&apos;s website navigation is intuitive, making it easy for customers to find products and complete purchases without confusion. Packaging quality receives consistent praise, with items arriving well-protected and in excellent condition, reflecting the store&apos;s attention to detail. Email notifications and order tracking systems keep customers informed throughout the fulfillment process, enhancing the overall shopping experience. Customers value the store&apos;s commitment to quality control and the careful selection of products offered in their catalog. The store&apos;s social media presence and community engagement contribute to building trust and maintaining customer relationships over time. Seasonal promotions and special offers are well-timed and provide genuine value to customers, encouraging repeat business and brand loyalty. The store&apos;s commitment to sustainability and ethical practices resonates with environmentally conscious customers who appreciate responsible business operations. Customer feedback is actively collected and used to improve services, showing the store&apos;s dedication to continuous improvement and customer satisfaction. The store&apos;s comprehensive FAQ section and help resources demonstrate their commitment to customer support and self-service options. Overall, customers consistently rate their experience highly, with many expressing satisfaction with their purchases and willingness to shop again, establishing this store as a trusted retailer through consistent delivery of quality products and excellent customer service.
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowFullSummary(!showFullSummary)}
-                className="mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                {showFullSummary ? 'Show less' : 'Show more'}
-              </button>
-            </div>
-          </div>
-
-          {/* RIGHT - Rating Breakdown (moved from header) */}
-          <div className="lg:col-span-1">
-            <Card className="bg-white shadow-sm">
+            {/* Right Section - Rating Distribution */}
+            <div className="w-full lg:w-96 flex-shrink-0 space-y-6">
+              <Card className="bg-white shadow-sm">
                 <CardContent className="p-4">
-                <div className="space-y-4">
-                  {/* Rating Overview */}
-                  <div className="text-center">
+                  <div className="flex gap-6">
+                    {/* Left Section - Rating Overview */}
+                    <div className="flex flex-col items-center">
                       <div className="text-4xl font-bold text-gray-900">{(store?.rating || 4.7).toFixed(1)}</div>
-                    <div className="flex items-center justify-center gap-0.5 my-1">
+                      <div className="flex items-center gap-0.5 my-1">
                         {[1, 2, 3, 4].map((star) => (
                           <Star
                             key={star}
@@ -761,8 +649,8 @@ export default function StoreDetailPage({
                       <div className="text-xs text-gray-600">{store?.totalRatings || '1,234'} reviews</div>
                     </div>
 
-                  {/* Rating Bars */}
-                  <div className="space-y-1">
+                    {/* Right Section - Rating Bars */}
+                    <div className="flex-1 space-y-1">
                       {[5, 4, 3, 2, 1].map((rating) => {
                         const percentage = rating === 5 ? 65 : 
                                        rating === 4 ? 20 : 
@@ -792,11 +680,38 @@ export default function StoreDetailPage({
                   </div>
                 </CardContent>
               </Card>
+
+            </div>
           </div>
         </div>
 
-        {/* SECTION 2: Customer Reviews - Full Width */}
+        {/* Reviews Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Reviews List */}
+          <div className="lg:col-span-2">
+            {/* Review Summary Section */}
             <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-4">Review Summary</h2>
+              <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
+                <div className={`text-sm text-gray-700 leading-relaxed ${showFullSummary ? '' : 'line-clamp-[10]'}`}>
+                  <p>
+                    Based on customer feedback, this store consistently delivers excellent service with fast shipping and quality products, with most customers praising the responsive customer support team and easy return process. Common positive themes include prompt delivery times, accurate product descriptions, professional packaging, and helpful customer service representatives who resolve issues quickly. Customers frequently mention the store's competitive pricing and regular promotional offers, and many appreciate the detailed product information and high-quality images that help with purchase decisions. The checkout process is described as smooth and secure, with multiple payment options available, while the mobile experience receives particular praise for its user-friendly interface. While most reviews are positive, some customers mention occasional delays during peak seasons, however, the store's proactive communication about shipping updates is well-received. Customer loyalty is high, with many reviewers mentioning repeat purchases and recommendations to friends and family, as the store's consistent quality standards contribute to this trust. Product quality meets or exceeds expectations in most cases, and customers appreciate the accurate sizing information and detailed specifications provided for each item. The return and exchange policy is straightforward and customer-friendly, with hassle-free processes that enhance overall satisfaction. International shipping options are available and generally reliable, though some customers note longer delivery times for overseas orders. Customer service response time is typically within 24 hours, with knowledgeable staff who provide helpful solutions to inquiries and concerns.
+                    {showFullSummary && (
+                      <span>
+                        {" "}The store's website navigation is intuitive, making it easy for customers to find products and complete purchases without confusion. Packaging quality receives consistent praise, with items arriving well-protected and in excellent condition, reflecting the store's attention to detail. Email notifications and order tracking systems keep customers informed throughout the fulfillment process, enhancing the overall shopping experience. Customers value the store's commitment to quality control and the careful selection of products offered in their catalog. The store's social media presence and community engagement contribute to building trust and maintaining customer relationships over time. Seasonal promotions and special offers are well-timed and provide genuine value to customers, encouraging repeat business and brand loyalty. The store's commitment to sustainability and ethical practices resonates with environmentally conscious customers who appreciate responsible business operations. Customer feedback is actively collected and used to improve services, showing the store's dedication to continuous improvement and customer satisfaction. The store's comprehensive FAQ section and help resources demonstrate their commitment to customer support and self-service options. Overall, customers consistently rate their experience highly, with many expressing satisfaction with their purchases and willingness to shop again, establishing this store as a trusted retailer through consistent delivery of quality products and excellent customer service.
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowFullSummary(!showFullSummary)}
+                  className="mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm"
+                >
+                  {showFullSummary ? 'Show less' : 'Show more'}
+                </button>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-semibold">See what customer says</h2>
               <div className="flex items-center gap-4">
@@ -817,12 +732,12 @@ export default function StoreDetailPage({
               </div>
             </div>
 
-          {/* Reviews Grid - Full Width with 2 columns */}
+            {/* Reviews Grid with minimum height */}
             <div className="min-h-[600px]">
               {displayedReviews.length > 0 ? (
                 <>
-                {/* Desktop Grid - 2 columns full width */}
-                <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Desktop Grid - hidden on mobile */}
+                  <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
                     {displayedReviews.map((review) => (
                       <div key={review.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
                         <ReviewCard
@@ -835,10 +750,12 @@ export default function StoreDetailPage({
                     ))}
                   </div>
                   
-                {/* Mobile Stack */}
-                <div className="md:hidden space-y-4">
+                  {/* Mobile Carousel - visible only on mobile */}
+                  <div className="md:hidden">
+                    <div className="overflow-x-auto scrollbar-hide">
+                      <div className="flex gap-4 pb-4" style={{ width: `${displayedReviews.length * 300}px` }}>
                         {displayedReviews.map((review) => (
-                    <div key={review.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                          <div key={review.id} className="flex-shrink-0 w-[280px] bg-white border border-gray-200 rounded-lg shadow-sm">
                             <ReviewCard
                               review={review}
                               isUserReview={review.userId === currentUserId}
@@ -847,6 +764,17 @@ export default function StoreDetailPage({
                             />
                           </div>
                         ))}
+                      </div>
+                    </div>
+                    {/* Scroll indicator dots for mobile */}
+                    <div className="flex justify-center gap-2 mt-4">
+                      {displayedReviews.map((_, index) => (
+                        <div
+                          key={index}
+                          className="w-2 h-2 rounded-full bg-gray-300"
+                        />
+                      ))}
+                    </div>
                   </div>
                 </>
               ) : (
@@ -881,90 +809,356 @@ export default function StoreDetailPage({
                 </Button>
               </div>
             )}
+            
           </div>
         
-        {/* SECTION 3: Business Info (Left) + Claim Business (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* LEFT - Business Information */}
-          <div className="lg:col-span-3">
+
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+
           <div className="bg-white shadow-sm rounded-lg border">
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-6">Business Information</h3>
+                <div className="p-3 pb-2">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                    Store Analytics
+                  </h3>
+                </div>
+                <div className="px-3 pb-3">
+                  <div className="grid grid-cols-3 divide-x divide-gray-200">
+                    {/* Trust Score */}
+                    <div className="text-center px-2">
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">98%</div>
+                      <div className="text-xs text-gray-600">Trust Score</div>
+                    </div>
+                    
+                    {/* Response Rate */}
+                    <div className="text-center px-2">
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">95%</div>
+                      <div className="text-xs text-gray-600">Response Rate</div>
+                    </div>
+                    
+                    {/* Average Response Time */}
+                    <div className="text-center px-2">
+                      <div className="text-lg sm:text-2xl font-bold text-gray-900">2h</div>
+                      <div className="text-xs text-gray-600">Avg. Response Time</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {/* Trust Information Card */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  Why Trust Our Reviews?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 text-blue-600">
+                      <CheckCircle className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      Only verified purchases can leave reviews
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 text-blue-600">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      Reviews are collected from real customers across multiple platforms
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 text-blue-600">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      Advanced AI system detects and prevents fake reviews
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg mt-4">
+                  <p className="text-sm text-blue-800">
+                    Want to learn more about our review verification process?{' '}
+                    <a href="/faq" className="text-blue-600 hover:underline">Read our FAQ</a>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
+        </div>
+
+        {/* Business Information Section */}
+        <div className="px-0 sm:px-4 mt-12">
+          {/* Grid layout for Headers and Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Company Details Header and Content - Left Side (2/3) */}
+            <div className="lg:col-span-2 space-y-6">
+              <h2 className="text-xl sm:text-2xl font-semibold">Business Information</h2>
               
               {/* Categories */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Categories</h4>
               <div className="flex flex-wrap gap-2">
                 {store?.storeCategories?.map((category) => (
                   <Badge 
                     key={category.id} 
                     variant="outline" 
-                        className="px-3 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
+                    className="px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors border-blue-200"
                   >
                     {category.name}
                   </Badge>
                 ))}
-                  </div>
               </div>
 
               {/* Tags */}
               {store?.tags && store.tags.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Tags</h4>
                 <div className="flex flex-wrap gap-2">
                   {store.tags.map((tag, index) => (
                     <Badge 
                       key={index} 
                       variant="secondary" 
-                          className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 border-blue-200"
+                      className="px-2 sm:px-3 py-1 text-xs bg-blue-100 text-blue-800 border-blue-200 rounded-none"
                     >
                       {tag}
                     </Badge>
                   ))}
-                    </div>
                 </div>
               )}
 
               {/* Description */}
-                  <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">About This Business</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {store?.description || "No description available for this business."}
-                  </p>
-                  </div>
-                </div>
-                  </div>
-                    </div>
+              <div className="space-y-3">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900">Information provided by various external sources</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{store?.description}{store?.description}{store?.description}</p>
+              </div>
+            </div>
 
-          {/* RIGHT - Claim Business */}
-          <div className="lg:col-span-1">
-            <div className="bg-white shadow-sm rounded-lg border">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Claim Your Business</h3>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ShieldCheck className="w-8 h-8 text-blue-600" />
+            {/* Contact Information Header and Content - Right Side (1/3) */}
+            <div className="space-y-6">
+              <h2 className="text-xl sm:text-2xl font-semibold">Contact Information</h2>
+              
+              {/* Mobile */}
+              {store?.mobile && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="flex-shrink-0">
+                    <Phone className="w-5 h-5 text-gray-400" />
                   </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                    Own this store? Claim it to manage reviews, update information, and respond to customers.
-                  </p>
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Claim Business
-                  </Button>
+                  <div>
+                    <div className="text-sm text-gray-500">Mobile</div>
+                    <div className="text-gray-900 font-medium text-sm sm:text-base">{store.mobile}</div>
                   </div>
                 </div>
+              )}
+              
+              {/* Location */}
+              {(store?.state || store?.country) && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="flex-shrink-0">
+                    <MapPin className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Location</div>
+                    <div className="text-gray-900 font-medium text-sm sm:text-base">
+                      {[
+                        store?.state,
+                        store?.country
+                      ]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Website */}
+              {store?.website && (
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+                  <div className="flex-shrink-0">
+                    <Globe className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm text-gray-500">Website</div>
+                    <a 
+                      href={ensureHttps(store.website)} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline font-medium text-sm sm:text-base break-all"
+                    >
+                      {store.website}
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-
-
-        {/* HIDDEN SECTIONS - Commented out as requested */}
-        {/* 
-        <div className="hidden">
-          Store Detail Tabs, Additional Information, Business Claim Section, Similar Businesses - all hidden
+        {/* Business Claim Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 sm:p-8 mt-8">
+          <div className="max-w-3xl mx-auto text-center sm:text-left">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Is this your business?</h2>
+            <p className="text-gray-600 mb-6 text-sm sm:text-base">
+              Claim your listing for free to respond to reviews, update your profile and manage your listing.
+            </p>
+            <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+              Claim your business
+            </Button>
           </div>
-        */}
+        </div>
+
+        {/* Similar Businesses Section */}
+        <div className="mb-12 mt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Similar businesses you may also like</h2>
+            <Button variant="link" className="text-blue-600 hover:text-blue-700 self-start sm:self-center">
+              <span className="hidden sm:inline">See more Marketplace Businesses</span>
+              <span className="sm:hidden">See more</span>
+              <ArrowLeft className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+
+          {/* Desktop Grid - hidden on mobile */}
+          <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                name: "TJ Maxx",
+                logo: "/path/to/logo1.png",
+                rating: 3.5,
+                reviews: 484
+              },
+              {
+                name: "Skyye",
+                logo: "/path/to/logo2.png",
+                rating: 5,
+                reviews: 1
+              },
+              {
+                name: "BHFO",
+                logo: "/path/to/logo3.png",
+                rating: 3,
+                reviews: 664
+              }
+            ].map((business, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                      {business.logo ? (
+                        <img
+                          src={business.logo}
+                          alt={`${business.name} logo`}
+                          className="w-8 h-8 sm:w-12 sm:h-12 object-contain"
+                        />
+                      ) : (
+                        <span className="text-lg sm:text-xl font-bold text-blue-600">
+                          {business.name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{business.name}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 sm:w-4 sm:h-4 ${
+                                i < business.rating
+                                  ? "text-yellow-400 fill-current"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs sm:text-sm text-gray-600">
+                          {business.reviews} reviews
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Mobile Carousel - visible only on mobile */}
+          <div className="sm:hidden">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 pb-4" style={{ width: `${3 * 280}px` }}>
+                {[
+                  {
+                    name: "TJ Maxx",
+                    logo: "/path/to/logo1.png",
+                    rating: 3.5,
+                    reviews: 484
+                  },
+                  {
+                    name: "Skyye",
+                    logo: "/path/to/logo2.png",
+                    rating: 5,
+                    reviews: 1
+                  },
+                  {
+                    name: "BHFO",
+                    logo: "/path/to/logo3.png",
+                    rating: 3,
+                    reviews: 664
+                  }
+                ].map((business, index) => (
+                  <Card key={index} className="flex-shrink-0 w-[260px] hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
+                          {business.logo ? (
+                            <img
+                              src={business.logo}
+                              alt={`${business.name} logo`}
+                              className="w-8 h-8 object-contain"
+                            />
+                          ) : (
+                            <span className="text-lg font-bold text-blue-600">
+                              {business.name.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-gray-900 text-sm truncate">{business.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < business.rating
+                                      ? "text-yellow-400 fill-current"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {business.reviews} reviews
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+            {/* Scroll indicator dots for mobile */}
+            <div className="flex justify-center gap-2 mt-4">
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-gray-300"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
       </main>
 
       {/* Review Modal */}
