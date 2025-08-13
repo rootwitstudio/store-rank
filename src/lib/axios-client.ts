@@ -1,8 +1,9 @@
 import axios from "axios";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
-const API_URL = "http://store-rank-api-1058001898765.asia-southeast1.run.app/api";
-const ACCESS_TOKEN = 'store-rank-token';
+const API_URL =
+  "http://store-rank-api-1058001898765.asia-southeast1.run.app/api";
+const ACCESS_TOKEN = "store-rank-token";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -15,7 +16,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const cookieToken = Cookies.get(ACCESS_TOKEN);
-    if (cookieToken && cookieToken !== 'undefined') {
+    if (cookieToken && cookieToken !== "undefined") {
       const token = JSON.parse(cookieToken);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -25,4 +26,4 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export default api; 
+export default api;

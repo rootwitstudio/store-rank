@@ -32,54 +32,57 @@ export const storeApi = {
     }
   },
 
-  getByCategorySlug: async (categorySlug: string, options?: {
-    includeSub?: boolean;
-    claimed?: boolean;
-    verified?: boolean;
-    minRating?: number;
-    maxRating?: number;
-    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
-    sortOrder?: 'asc' | 'desc';
-    page?: number;
-    pageSize?: number;
-  }) => {
+  getByCategorySlug: async (
+    categorySlug: string,
+    options?: {
+      includeSub?: boolean;
+      claimed?: boolean;
+      verified?: boolean;
+      minRating?: number;
+      maxRating?: number;
+      sortBy?: "rating" | "name" | "reviews" | "updatedAt";
+      sortOrder?: "asc" | "desc";
+      page?: number;
+      pageSize?: number;
+    }
+  ) => {
     try {
-      console.log("Fetching stores by category slug:", categorySlug);
       const params = new URLSearchParams();
-      
+
       if (options?.includeSub !== undefined) {
-        params.append('includeSub', options.includeSub.toString());
+        params.append("includeSub", options.includeSub.toString());
       }
       if (options?.claimed !== undefined) {
-        params.append('claimed', options.claimed.toString());
+        params.append("claimed", options.claimed.toString());
       }
       if (options?.verified !== undefined) {
-        params.append('verified', options.verified.toString());
+        params.append("verified", options.verified.toString());
       }
       if (options?.minRating !== undefined) {
-        params.append('minRating', options.minRating.toString());
+        params.append("minRating", options.minRating.toString());
       }
       if (options?.maxRating !== undefined) {
-        params.append('maxRating', options.maxRating.toString());
+        params.append("maxRating", options.maxRating.toString());
       }
       if (options?.sortBy !== undefined) {
-        params.append('sortBy', options.sortBy);
+        params.append("sortBy", options.sortBy);
       }
       if (options?.sortOrder !== undefined) {
-        params.append('sortOrder', options.sortOrder);
+        params.append("sortOrder", options.sortOrder);
       }
       if (options?.page !== undefined) {
-        params.append('page', options.page.toString());
+        params.append("page", options.page.toString());
       }
       if (options?.pageSize !== undefined) {
-        params.append('pageSize', options.pageSize.toString());
+        params.append("pageSize", options.pageSize.toString());
       }
 
       const queryString = params.toString();
-      const url = `/stores/category-slug/${categorySlug}${queryString ? `?${queryString}` : ''}`;
-      
+      const url = `/stores/category-slug/${categorySlug}${
+        queryString ? `?${queryString}` : ""
+      }`;
+
       const response = await api.get(url);
-      console.log("Stores by category slug API response status:", response.status);
       return response.data;
     } catch (error) {
       console.error("Error in getByCategorySlug stores:", error);
@@ -95,15 +98,13 @@ export const storeApi = {
     verified?: boolean;
     minRating?: number;
     maxRating?: number;
-    sortBy?: 'rating' | 'name' | 'reviews' | 'updatedAt';
-    sortOrder?: 'asc' | 'desc';
+    sortBy?: "rating" | "name" | "reviews" | "updatedAt";
+    sortOrder?: "asc" | "desc";
     page?: number;
     pageSize?: number;
   }) => {
     try {
-      console.log("Filtering stores with filters:", filters);
       const response = await api.get("/stores/filter", { params: filters });
-      console.log("Filter stores API response status:", response.status);
       return response.data;
     } catch (error) {
       console.error("Error in filterStores:", error);
@@ -142,7 +143,7 @@ export const authApi = {
     const response = await api.post("/auth/email/login", data);
     return response.data;
   },
-  verifyGoogleAuth: async (data: {idToken: string;}) => {
+  verifyGoogleAuth: async (data: { idToken: string }) => {
     try {
       const response = await api.post("/auth/google", data);
       return response.data;
@@ -168,9 +169,11 @@ export const authApi = {
   },
 
   verifyLoginLink: async (token: string) => {
-    const response = await api.get(`/auth/email/login-link/verify?token=${token}`);
+    const response = await api.get(
+      `/auth/email/login-link/verify?token=${token}`
+    );
     return response.data;
-  }
+  },
 };
 
 // Category API
@@ -184,12 +187,10 @@ export const categoryApi = {
       throw error;
     }
   },
-  
+
   getById: async (id: string) => {
     try {
-      console.log("Fetching category with ID:", id); // Debug log
       const response = await api.get(`/categories/${id}`);
-      console.log("Category API response status:", response.status); // Debug log
       return response.data;
     } catch (error) {
       console.error("Error in getById category:", error);
@@ -202,9 +203,7 @@ export const categoryApi = {
 
   getBySlug: async (slug: string) => {
     try {
-      console.log("Fetching category with slug:", slug);
       const response = await api.get(`/categories/slug/${slug}`);
-      console.log("Category slug API response status:", response.status);
       return response.data;
     } catch (error) {
       console.error("Error in getBySlug category:", error);
@@ -217,9 +216,7 @@ export const categoryApi = {
 
   getHierarchyBySlug: async (slug: string) => {
     try {
-      console.log("Fetching category hierarchy with slug:", slug);
       const response = await api.get(`/categories/slug/${slug}/hierarchy`);
-      console.log("Category hierarchy API response status:", response.status);
       return response.data;
     } catch (error) {
       console.error("Error in getHierarchyBySlug category:", error);
@@ -232,9 +229,7 @@ export const categoryApi = {
 
   getBreadcrumbs: async (slug: string) => {
     try {
-      console.log("Fetching breadcrumbs for slug:", slug);
       const response = await api.get(`/categories/slug/${slug}/breadcrumbs`);
-      console.log("Breadcrumbs API response status:", response.status);
       return response.data;
     } catch (error) {
       console.error("Error in getBreadcrumbs:", error);
@@ -250,13 +245,11 @@ export const categoryApi = {
 export const reviewApi = {
   getStoreReviews: async (storeId: string, token?: string) => {
     try {
-      console.log("Fetching reviews for store ID:", storeId);
       const headers: any = {};
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
       const response = await api.get(`/reviews/store/${storeId}`, { headers });
-      console.log("Store reviews API response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching store reviews:", error);
@@ -264,25 +257,36 @@ export const reviewApi = {
     }
   },
 
-  createReview: async (reviewData: {
-    storeId: string;
-    title: string;
-    comment: string;
-    rating: number;
-    dateOfPurchase: string;
-    orderNumber: string;
-    attachments: string[];
-    purchaseProof: string;
-  }, token: string) => {
+  getReviewSummary: async (storeId: string) => {
     try {
-      console.log("Creating review:", reviewData);
-      const response = await api.post('/reviews', reviewData, {
+      const response = await api.get(`/reviews/store/${storeId}/summary`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching review summary:", error);
+      throw error;
+    }
+  },
+
+  createReview: async (
+    reviewData: {
+      storeId: string;
+      title: string;
+      comment: string;
+      rating: number;
+      dateOfPurchase: string;
+      orderNumber: string;
+      attachments: string[];
+      purchaseProof: string;
+    },
+    token: string
+  ) => {
+    try {
+      const response = await api.post("/reviews", reviewData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      console.log("Create review API response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error creating review:", error);
@@ -297,13 +301,11 @@ export const reviewApi = {
 
   getUserReviews: async (userId: string, token: string) => {
     try {
-      console.log("Fetching user reviews for user ID:", userId);
       const response = await api.get(`/reviews/user/${userId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      console.log("User reviews API response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching user reviews:", error);
@@ -311,24 +313,26 @@ export const reviewApi = {
     }
   },
 
-  updateReview: async (reviewId: string, reviewData: {
-    title?: string;
-    comment?: string;
-    rating?: number;
-    dateOfPurchase?: string;
-    orderNumber?: string;
-    attachments?: string[];
-    purchaseProof?: string;
-  }, token: string) => {
+  updateReview: async (
+    reviewId: string,
+    reviewData: {
+      title?: string;
+      comment?: string;
+      rating?: number;
+      dateOfPurchase?: string;
+      orderNumber?: string;
+      attachments?: string[];
+      purchaseProof?: string;
+    },
+    token: string
+  ) => {
     try {
-      console.log("Updating review:", reviewId, reviewData);
       const response = await api.patch(`/reviews/${reviewId}`, reviewData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      console.log("Update review API response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error updating review:", error);
@@ -338,13 +342,11 @@ export const reviewApi = {
 
   deleteReview: async (reviewId: string, token: string) => {
     try {
-      console.log("Deleting review:", reviewId);
       const response = await api.delete(`/reviews/${reviewId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
-      console.log("Delete review API response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error deleting review:", error);
@@ -366,29 +368,31 @@ export const searchApi = {
   }) => {
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append('q', params.q);
-      queryParams.append('limit', (params.limit || 10).toString());
-      queryParams.append('offset', (params.offset || 0).toString());
-      queryParams.append('includeInactive', params.includeInactive ? 'yes' : 'no');
-      queryParams.append('categoryOnly', params.categoryOnly ? 'yes' : 'no');
-      queryParams.append('storeOnly', params.storeOnly ? '1' : '0');
-      queryParams.append('customCategoryOnly', params.customCategoryOnly ? 'yes' : 'no');
-      
-      console.log('Search API request:', `/search?${queryParams.toString()}`);
-      
+      queryParams.append("q", params.q);
+      queryParams.append("limit", (params.limit || 10).toString());
+      queryParams.append("offset", (params.offset || 0).toString());
+      queryParams.append(
+        "includeInactive",
+        params.includeInactive ? "yes" : "no"
+      );
+      queryParams.append("categoryOnly", params.categoryOnly ? "yes" : "no");
+      queryParams.append("storeOnly", params.storeOnly ? "1" : "0");
+      queryParams.append(
+        "customCategoryOnly",
+        params.customCategoryOnly ? "yes" : "no"
+      );
+
       const response = await api.get(`/search?${queryParams.toString()}`);
-      
-      console.log('Search API response:', response.data);
-      
+
       return response.data;
     } catch (error) {
       console.error("Error in search:", error);
-      
+
       // Return empty array on error to avoid .map errors
       if (error instanceof Error) {
         throw new Error(error.message);
       }
-      throw new Error('Search failed');
+      throw new Error("Search failed");
     }
   },
 };

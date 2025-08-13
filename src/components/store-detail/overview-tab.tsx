@@ -227,7 +227,7 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2">
+    <div className="min-h-screen bg-gray-50 md:p-2">
       {/* Top Banner */}
       {/* <div className="bg-gray-100 px-6 py-3 rounded-lg mx-4 mt-4 mb-6">
         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -236,21 +236,21 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
         </div>
       </div> */}
 
-      <div className="flex flex-col lg:flex-row gap-6 px-4">
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:px-4">
         {/* Left Column - Main Content */}
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-4 md:space-y-6">
           {/* Company Details */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-white p-4 md:p-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 md:mb-4">
               Company details
             </h2>
 
             {/* Company Rankings */}
-            <div className="space-y-2 mb-6">
+            <div className="space-y-2 mb-4 md:mb-6">
               {companyRankings.map((ranking, index) => (
                 <div
                   key={index}
-                  className="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium mr-2 mb-2"
+                  className="inline-block bg-blue-50 text-blue-700 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium mr-2 mb-2"
                 >
                   {ranking}
                 </div>
@@ -259,13 +259,13 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
 
             {/* About Company */}
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">
                 About Our Store
               </h3>
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-xs md:text-sm text-gray-500 mb-2 md:mb-3">
                 Written by the company
               </p>
-              <div className="text-gray-700 text-sm leading-relaxed space-y-3">
+              <div className="text-gray-700 text-xs md:text-sm leading-relaxed space-y-2 md:space-y-3">
                 <p>
                   We are a trusted online retailer committed to providing
                   exceptional products and outstanding customer service. Founded
@@ -290,7 +290,7 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
             <div className="text-center">
               <Button
                 variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50 text-sm md:text-base px-3 md:px-4 py-2 md:py-2"
               >
                 See more
               </Button>
@@ -298,50 +298,54 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
           </div>
 
           {/* Contact Info */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <div className="bg-white p-4 md:p-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">
               Contact info
             </h2>
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <MapPin className="w-6 h-6 text-blue-600 mt-1" />
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex items-start gap-3 md:gap-4">
+                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-blue-600 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-base font-medium text-gray-900 mb-1">
+                  <p className="text-sm md:text-base font-medium text-gray-900 mb-1">
                     Address
                   </p>
-                  <p className="text-base text-gray-700">
+                  <p className="text-xs md:text-base text-gray-700">
                     6th Floor, Business Center, 123 Main Street, Suite 100, New
                     York, NY 10001, United States
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <Phone className="w-6 h-6 text-green-600" />
+              <div className="flex items-center gap-3 md:gap-4">
+                <Phone className="w-5 h-5 md:w-6 md:h-6 text-green-600 flex-shrink-0" />
                 <div>
-                  <p className="text-base font-medium text-gray-900 mb-1">
+                  <p className="text-sm md:text-base font-medium text-gray-900 mb-1">
                     Phone
                   </p>
-                  <p className="text-base text-gray-700">+1 (555) 123-4567</p>
+                  <p className="text-xs md:text-base text-gray-700">
+                    +1 (555) 123-4567
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <Mail className="w-6 h-6 text-purple-600" />
+              <div className="flex items-center gap-3 md:gap-4">
+                <Mail className="w-5 h-5 md:w-6 md:h-6 text-purple-600 flex-shrink-0" />
                 <div>
-                  <p className="text-base font-medium text-gray-900 mb-1">
+                  <p className="text-sm md:text-base font-medium text-gray-900 mb-1">
                     Email
                   </p>
-                  <p className="text-base text-gray-700">
+                  <p className="text-xs md:text-base text-gray-700">
                     support@storename.com
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <Globe className="w-6 h-6 text-orange-600" />
+              <div className="flex items-center gap-3 md:gap-4">
+                <Globe className="w-5 h-5 md:w-6 md:h-6 text-orange-600 flex-shrink-0" />
                 <div>
-                  <p className="text-base font-medium text-gray-900 mb-1">
+                  <p className="text-sm md:text-base font-medium text-gray-900 mb-1">
                     Website
                   </p>
-                  <p className="text-base text-gray-700">www.storename.com</p>
+                  <p className="text-xs md:text-base text-gray-700">
+                    www.storename.com
+                  </p>
                 </div>
               </div>
             </div>
@@ -349,35 +353,41 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
         </div>
 
         {/* Right Column - Sidebar with RatingBreakdown */}
-        <div className="lg:w-80 space-y-6">
+        <div className="lg:w-80 space-y-4 md:space-y-6">
           {/* Overall Rating */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="text-center mb-4">
-              <div className="text-4xl font-bold text-gray-900 mb-2">4.8</div>
-              <div className="text-lg font-semibold text-green-600 mb-2">
+          <div className="bg-white p-4 md:p-6">
+            <div className="text-center mb-3 md:mb-4">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                4.8
+              </div>
+              <div className="text-base md:text-lg font-semibold text-green-600 mb-2">
                 Excellent
               </div>
               <div className="flex justify-center gap-1 mb-2">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className="w-5 h-5 text-green-500 fill-current"
+                    className="w-4 h-4 md:w-5 md:h-5 text-green-500 fill-current"
                   />
                 ))}
               </div>
-              <div className="text-sm text-gray-600">17K reviews</div>
+              <div className="text-xs md:text-sm text-gray-600">
+                17K reviews
+              </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {[5, 4, 3, 2, 1].map((stars) => (
-                <div key={stars} className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 min-w-[60px]">
-                    <span className="text-sm text-gray-600">{stars}</span>
-                    <Star className="w-4 h-4 text-gray-400" />
+                <div key={stars} className="flex items-center gap-2 md:gap-3">
+                  <div className="flex items-center gap-1 min-w-[50px] md:min-w-[60px]">
+                    <span className="text-xs md:text-sm text-gray-600">
+                      {stars}
+                    </span>
+                    <Star className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
                   </div>
-                  <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div className="flex-1 bg-gray-200 rounded-full h-1.5 md:h-2">
                     <div
-                      className={`h-2 rounded-full ${
+                      className={`h-1.5 md:h-2 rounded-full ${
                         stars === 5
                           ? "bg-green-500"
                           : stars === 1
@@ -399,7 +409,7 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
                       }}
                     ></div>
                   </div>
-                  <div className="text-sm text-gray-600 min-w-[40px] text-right">
+                  <div className="text-xs md:text-sm text-gray-600 min-w-[35px] md:min-w-[40px] text-right">
                     {stars === 5
                       ? "14.5K"
                       : stars === 4
@@ -416,32 +426,21 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
           </div>
 
           {/* Company Response */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <MessageSquare className="w-6 h-6 text-gray-500" />
+          <div className="bg-white p-4 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3 mb-3">
+              <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-gray-500 flex-shrink-0" />
               <div>
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-xs md:text-sm font-medium text-gray-900">
                   Company Response
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-xs md:text-sm text-gray-600">
                   Replied to 98% of negative reviews
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-xs md:text-sm text-gray-600">
                   Typically replies within 1 week
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* How this company uses Trustpilot */}
-          <div className="text-center">
-            <a
-              href="#"
-              className="text-blue-600 hover:underline text-sm flex items-center justify-center gap-2"
-            >
-              How this company uses Trustpilot
-              <Globe className="w-4 h-4" />
-            </a>
           </div>
         </div>
       </div>

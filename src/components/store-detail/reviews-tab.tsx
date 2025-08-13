@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Star,
   CheckCircle,
@@ -300,63 +300,99 @@ export interface ReviewsTabProps {
 }
 
 export function ReviewsTab({ storeId }: ReviewsTabProps) {
-  const { user, accessToken } = useAuthStore();
+  const { user } = useAuthStore();
   const currentUserId = user?.id;
-
-  const { userReviews, fetchUserReviews } = useReviewStore();
-  const { data: userReviewsData = [] } = userReviews;
 
   const [reviewSort, setReviewSort] = useState("newest");
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviews, setReviews] = useState<ExtendedReview[]>([]);
+  const [reviewSummary, setReviewSummary] = useState<any>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   const { storeDetails } = useStoreDetails();
   const storeName = storeDetails.data?.name;
   const [isWriteReviewOpen, setIsWriteReviewOpen] = useState(false);
 
   useEffect(() => {
-    async function fetchStoreReviews() {
+    async function fetchData() {
       setReviewsLoading(true);
+      setSummaryLoading(true);
+
       try {
-        const data = await reviewApi.getStoreReviews(storeId, accessToken);
-        setReviews(data);
+        // Fetch both reviews and summary in parallel
+        const [reviewsData, summaryData] = await Promise.all([
+          reviewApi.getStoreReviews(storeId),
+          reviewApi.getReviewSummary(storeId),
+        ]);
+
+        setReviews(reviewsData);
+        setReviewSummary(summaryData);
       } catch (err) {
+        console.error("Error fetching review data:", err);
         setReviews([]);
+        setReviewSummary(null);
       } finally {
         setReviewsLoading(false);
+        setSummaryLoading(false);
       }
     }
-    fetchStoreReviews();
-  }, [storeId, accessToken]);
 
-  useEffect(() => {
-    if (currentUserId && accessToken)
-      fetchUserReviews(currentUserId, accessToken);
-  }, [currentUserId, accessToken, fetchUserReviews]);
+    if (storeId) {
+      fetchData();
+    }
+  }, [storeId]);
+
+  // Function to refresh both reviews and summary
+  const refreshReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    setSummaryLoading(true);
+    try {
+      const [reviewsData, summaryData] = await Promise.all([
+        reviewApi.getStoreReviews(storeId),
+        reviewApi.getReviewSummary(storeId),
+      ]);
+      setReviews(reviewsData);
+      setReviewSummary(summaryData);
+    } catch (err) {
+      console.error("Error refreshing reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+      setSummaryLoading(false);
+    }
+  }, [storeId]);
+
+  // Remove the duplicate useEffect that was calling fetchUserReviews
+  // const { userReviews, fetchUserReviews } = useReviewStore();
+  // const { data: userReviewsData = [] } = userReviews;
 
   const allReviews: ExtendedReview[] = useMemo(() => {
-    const storeUserReviews = (userReviewsData || []).filter(
-      (r: BaseReview) => r && r.storeId === storeId
-    ) as ExtendedReview[];
-    const otherReviews = reviews.filter((r) => r && r.userId !== currentUserId);
-    return [...storeUserReviews, ...otherReviews];
-  }, [userReviewsData, reviews, currentUserId, storeId]);
+    // Since we're only using the direct API call, all reviews come from the same source
+    return reviews;
+  }, [reviews]);
 
   const totalReviews = allReviews.length;
   const averageRating = useMemo(() => {
+    // Use summary data if available, otherwise calculate from reviews
+    if (reviewSummary?.overallRating?.rating) {
+      return reviewSummary.overallRating.rating;
+    }
     if (!totalReviews) return 0;
     const sum = allReviews.reduce((acc, r) => acc + (r.rating || 0), 0);
     return sum / totalReviews;
-  }, [allReviews, totalReviews]);
+  }, [reviewSummary, allReviews, totalReviews]);
 
   const ratingBreakdown = useMemo(() => {
+    // Use summary data if available, otherwise calculate from reviews
+    if (reviewSummary?.ratingDistribution) {
+      return reviewSummary.ratingDistribution;
+    }
     const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     for (const review of allReviews) {
       const stars = Math.round(review.rating || 0);
       if (stars >= 1 && stars <= 5) counts[stars] += 1;
     }
     return counts;
-  }, [allReviews]);
+  }, [reviewSummary, allReviews]);
 
   const [selectedStars, setSelectedStars] = useState<number[]>([]);
   function handleToggleStar(star: number) {
@@ -393,7 +429,7 @@ export function ReviewsTab({ storeId }: ReviewsTabProps) {
   const displayedReviews = sortedReviews;
 
   return (
-    <section className="py-2">
+    <section className="py-2 px-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-semibold">See what customers say</h2>
         <div className="flex items-center gap-4">
@@ -432,15 +468,7 @@ export function ReviewsTab({ storeId }: ReviewsTabProps) {
               totalReviews={totalReviews}
               selectedStars={selectedStars}
               onToggleStar={handleToggleStar}
-              categories={[
-                { label: "Salary", score: 3.8 },
-                { label: "Job Security", score: 3.6 },
-                { label: "Company Culture", score: 3.4 },
-                { label: "Work-Life Balance", score: 3.4 },
-                { label: "Skill Development", score: 3.4 },
-                { label: "Work Satisfaction", score: 3.4 },
-                { label: "Promotions", score: 3.1 },
-              ]}
+              reviewSources={reviewSummary?.reviewSources}
             />
 
             <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -513,6 +541,7 @@ export function ReviewsTab({ storeId }: ReviewsTabProps) {
         onClose={() => setIsWriteReviewOpen(false)}
         storeId={storeId}
         storeName={storeName}
+        onRefresh={refreshReviews}
       />
     </section>
   );

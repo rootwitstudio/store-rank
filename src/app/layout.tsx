@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import "./globals.css";
 
-const jost = Jost({ 
+const jost = Jost({
   subsets: ["latin"],
   variable: "--font-jost",
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  display: "swap"
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${jost.variable} font-sans antialiased`}>
-        <main className="min-h-screen bg-background">{children}</main>
+        <main>{children}</main>
       </body>
     </html>
   );
