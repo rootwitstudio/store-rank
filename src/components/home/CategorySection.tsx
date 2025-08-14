@@ -17,26 +17,46 @@ interface CategorySectionProps {
   categoryError: string | null;
 }
 
-export function CategorySection({ categories, loadingCategories, categoryError }: CategorySectionProps) {
+export function CategorySection({
+  categories,
+  loadingCategories,
+  categoryError,
+}: CategorySectionProps) {
   return (
     <section className="py-12 sm:py-16 bg-white">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-8 sm:mb-12 gap-4 sm:gap-0">
           <div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-gray-900">Browse by Category</h2>
-            <p className="text-gray-600 text-lg max-w-2xl">Find stores in your favorite shopping categories</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-gray-900">
+              Browse by Category
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl">
+              Find stores in your favorite shopping categories
+            </p>
           </div>
-          <Link
-            href="/categories"
-            className="text-orange-600 hover:text-orange-700 flex items-center text-sm sm:text-base font-medium group whitespace-nowrap self-start sm:self-auto"
-          >
-            View all
-            <svg className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+          {categories.length > 0 && (
+            <Link
+              href="/categories"
+              className="text-blue-600 hover:text-blue-700 flex items-center text-sm sm:text-base font-medium group whitespace-nowrap self-start sm:self-auto"
+            >
+              View all
+              <svg
+                className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
+          )}
         </div>
-        
+
         {loadingCategories ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {[...Array(10)].map((_, i) => (
@@ -98,4 +118,4 @@ export function CategorySection({ categories, loadingCategories, categoryError }
       </div>
     </section>
   );
-} 
+}

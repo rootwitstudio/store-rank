@@ -10,21 +10,27 @@ interface CustomCategorySectionProps {
   getTrustScoreColor: (score: number | string) => string;
 }
 
-export function CustomCategorySection({ customCategory, getTrustScoreColor }: CustomCategorySectionProps) {
+export function CustomCategorySection({
+  customCategory,
+  getTrustScoreColor,
+}: CustomCategorySectionProps) {
   const [stores, setStores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const Icon = getCategoryIcon(customCategory.icon || 'Store');
+  const Icon = getCategoryIcon(customCategory.icon || "Store");
 
   useEffect(() => {
     const fetchStores = async () => {
       try {
         setLoading(true);
-        const response = await customCategoryApi.getStoresBySlug(customCategory.slug, {
-          page: 1,
-          pageSize: 6
-        });
+        const response = await customCategoryApi.getStoresBySlug(
+          customCategory.slug,
+          {
+            page: 1,
+            pageSize: 6,
+          }
+        );
         setStores(response.stores);
       } catch (err) {
         console.error("Error fetching stores for custom category:", err);
@@ -38,20 +44,27 @@ export function CustomCategorySection({ customCategory, getTrustScoreColor }: Cu
   }, [customCategory.slug]);
 
   // Transform store data to match StoreCard interface
-  const transformedStores = stores.map(store => ({
+  const transformedStores = stores.map((store) => ({
     id: store.id,
     name: store.name,
-    description: store.description || 'No description available',
-    category: store.storeCategories[0]?.category.name || 'General',
+    description: store.description || "No description available",
+    category: store.storeCategories[0]?.category.name || "General",
     rating: store.rating,
     reviewCount: store.totalRatings,
-    trustScore: store.rating >= 4.5 ? 'Excellent' : store.rating >= 4.0 ? 'Great' : store.rating >= 3.5 ? 'Good' : 'Average',
-    link: store.website || '#',
+    trustScore:
+      store.rating >= 4.5
+        ? "Excellent"
+        : store.rating >= 4.0
+        ? "Great"
+        : store.rating >= 3.5
+        ? "Good"
+        : "Average",
+    link: store.website || "#",
     isVerified: store.verified,
     isClaimed: store.claimed,
     getTrustScoreColor,
     avatarGradient: "from-green-100 to-blue-100 text-green-600",
-    monthlyVisitors: undefined
+    monthlyVisitors: undefined,
   }));
 
   return (
@@ -59,9 +72,9 @@ export function CustomCategorySection({ customCategory, getTrustScoreColor }: Cu
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-8 sm:mb-12 gap-4 sm:gap-0">
           <div className="flex items-center gap-3">
-            <div 
+            <div
               className="p-3 rounded-lg"
-              style={{ backgroundColor: customCategory.color || '#3B82F6' }}
+              style={{ backgroundColor: customCategory.color || "#3B82F6" }}
             >
               <Icon className="h-6 w-6 text-white" />
             </div>
@@ -76,17 +89,29 @@ export function CustomCategorySection({ customCategory, getTrustScoreColor }: Cu
               )}
             </div>
           </div>
-          <Link
-            href={`/custom-categories/${customCategory.slug}`}
-            className="text-orange-600 hover:text-orange-700 flex items-center text-sm sm:text-base font-medium group whitespace-nowrap self-start sm:self-auto"
-          >
-            View all
-            <svg className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+          {transformedStores.length > 0 && (
+            <Link
+              href={`/custom-categories/${customCategory.slug}`}
+              className="text-blue-600 hover:text-blue-700 flex items-center text-sm sm:text-base font-medium group whitespace-nowrap self-start sm:self-auto"
+            >
+              View all
+              <svg
+                className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
+          )}
         </div>
-        
+
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
@@ -101,8 +126,12 @@ export function CustomCategorySection({ customCategory, getTrustScoreColor }: Cu
           </div>
         ) : transformedStores.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No stores found in this category.</p>
-            <p className="text-gray-400 text-sm mt-2">This category uses dynamic rules to fetch stores.</p>
+            <p className="text-gray-500 text-lg">
+              No stores found in this category.
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              This category uses dynamic rules to fetch stores.
+            </p>
           </div>
         ) : (
           <>
@@ -116,14 +145,11 @@ export function CustomCategorySection({ customCategory, getTrustScoreColor }: Cu
                 ))}
               </div>
             </div>
-            
+
             {/* Desktop: Grid layout */}
             <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
               {transformedStores.slice(0, 8).map((store) => (
-                <StoreCard 
-                  key={store.id}
-                  {...store}
-                />
+                <StoreCard key={store.id} {...store} />
               ))}
             </div>
           </>
@@ -131,4 +157,4 @@ export function CustomCategorySection({ customCategory, getTrustScoreColor }: Cu
       </div>
     </section>
   );
-} 
+}

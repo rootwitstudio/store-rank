@@ -21,8 +21,9 @@ export interface StoreCardProps {
 // Helper function to extract domain from URL
 function extractDomain(url: string): string {
   try {
-    const domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
-    return domain.replace('www.', '');
+    const domain = new URL(url.startsWith("http") ? url : `https://${url}`)
+      .hostname;
+    return domain.replace("www.", "");
   } catch {
     return url;
   }
@@ -41,111 +42,130 @@ export function StoreCard({
   isClaimed = false,
   getTrustScoreColor,
   avatarGradient = "from-green-100 to-blue-100 text-green-600",
-  monthlyVisitors
+  monthlyVisitors,
 }: StoreCardProps) {
   const domain = extractDomain(link);
-  
+
+  // Function to get text-only colors for trust score
+  const getTrustScoreTextColor = (score: string) => {
+    if (!score) return "text-gray-600";
+
+    const numericScore = parseFloat(score);
+    if (!isNaN(numericScore)) {
+      if (numericScore >= 4.5) return "text-green-600";
+      if (numericScore >= 4.0) return "text-green-500";
+      if (numericScore >= 3.5) return "text-blue-600";
+      if (numericScore >= 3.0) return "text-blue-500";
+      if (numericScore >= 2.5) return "text-yellow-600";
+      if (numericScore >= 2.0) return "text-yellow-500";
+      if (numericScore > 0) return "text-red-600";
+    }
+
+    // Handle text-based scores
+    switch (score) {
+      case "Excellent":
+        return "text-green-600";
+      case "Great":
+        return "text-blue-600";
+      case "Good":
+        return "text-yellow-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg sm:rounded-xl border border-gray-100 p-3 sm:p-5 hover:shadow-lg transition-all duration-300 overflow-hidden h-full flex flex-col">
-      {/* Store Header */}
-      <div className="flex items-start gap-3 mb-2 sm:mb-3">
-        <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${avatarGradient} rounded-lg flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0`}>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-300 overflow-hidden h-full flex flex-col">
+      {/* Top Section: Logo + Store Info */}
+      <div className="flex items-start gap-3 mb-2">
+        {/* Company Logo - Left Side */}
+        <div
+          className={`w-12 h-12 bg-gradient-to-br ${avatarGradient} rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-sm`}
+        >
           {name.charAt(0)}
         </div>
-        <div className="min-w-0 flex-1">
-          <Link href={`/stores/${id}`}>
-            <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1 truncate hover:text-blue-600 transition-colors cursor-pointer">
-              {name}
-            </h3>
-          </Link>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Globe className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-            <a
-              href={link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="truncate font-medium hover:text-blue-600 transition-colors"
-            >
-              {domain}
-            </a>
+
+        {/* Store Info - Right of Logo */}
+        <div className="flex-1 min-w-0">
+          {/* Store Name and Verification */}
+          <div className="flex items-center gap-2 mb-1">
+            <Link href={`/stores/${id}`}>
+              <h3 className="font-bold text-lg text-gray-900 hover:text-blue-600 transition-colors cursor-pointer line-clamp-1">
+                {name}
+              </h3>
+            </Link>
+
+            {/* Verification Tags */}
+            {(isVerified || isClaimed) && (
+              <div className="flex gap-1">
+                {isVerified && <VerifiedTag size="sm" iconType="guard" />}
+                {isClaimed && <ClaimedTag size="sm" />}
+              </div>
+            )}
+          </div>
+
+          {/* Website Domain */}
+          <div className="mb-2">
+            <span className="text-blue-600 text-sm font-medium">{domain}</span>
+          </div>
+
+          {/* Category Tag */}
+          <div className="mb-3">
+            <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
+              {category}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Status Tags */}
-      {(isVerified || isClaimed) && (
-        <div className="flex gap-1 mb-2 sm:mb-3">
-          {isVerified && <VerifiedTag size="sm" iconType="guard" />}
-          {isClaimed && <ClaimedTag size="sm" />}
-        </div>
-      )}
-
-      {/* Rating & Trust Score Row */}
-      <div className="flex items-center justify-between mb-2 sm:mb-3">
+      {/* Rating Section */}
+      <div className="mb-3">
         <div className="flex items-center gap-2">
           <div className="flex items-center">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-3 w-3 sm:h-4 sm:w-4 ${i < rating ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+                className={`h-4 w-4 ${
+                  i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                }`}
               />
             ))}
           </div>
-          <span className="text-sm font-semibold text-gray-900">{rating}</span>
-        </div>
-        {trustScore && (
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(trustScore)}`}>
-            {trustScore}
+          <span className="text-gray-900 font-semibold">{rating}</span>
+          <span className="text-gray-500">
+            ({reviewCount.toLocaleString()} reviews)
           </span>
-        )}
-      </div>
-
-      {/* Reviews & Visitors Row */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <Link 
-          href={`/stores/${id}#reviews`} 
-          className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
-        >
-          <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-          {reviewCount.toLocaleString()} reviews
-        </Link>
-        {monthlyVisitors && (
-          <span className="text-sm text-gray-500 font-medium">{monthlyVisitors} monthly</span>
-        )}
-      </div>
-
-      {/* Category */}
-      <div className="mb-2 sm:mb-3">
-        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-md">
-          {category}
-        </span>
+        </div>
       </div>
 
       {/* Description */}
-      <p className="text-gray-600 text-sm mb-3 sm:mb-4 line-clamp-2 flex-1">{description}</p>
+      <div className="mb-4 flex-1">
+        <p className="text-gray-700 text-sm leading-relaxed line-clamp-2">
+          {description}
+        </p>
+      </div>
 
-      {/* Action Buttons */}
-      <div className="mt-auto pt-2 flex items-center justify-between">
-        <button
-          className="flex items-center gap-1 text-gray-600 hover:text-blue-600 text-sm transition-colors"
-          onClick={() => {
-            // Add to favorites functionality
-            console.log('Add to favorites:', id);
-          }}
-        >
-          <Bookmark className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">Save</span>
-        </button>
-        
-        <Link
-          href={`/stores/${id}`}
-          className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 sm:py-2 px-3 sm:px-4 rounded-lg transition-colors"
-        >
-          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="hidden sm:inline">View Details</span>
-          <span className="sm:hidden">View</span>
-        </Link>
+      {/* Bottom Section: Actions */}
+      <div className="mt-auto flex justify-end">
+        <div className="flex items-center gap-2">
+          {/* <button
+            className="flex items-center gap-1 text-gray-600 hover:text-blue-600 text-sm transition-colors p-2 rounded-lg hover:bg-gray-50"
+            onClick={() => {
+              console.log("Add to favorites:", id);
+            }}
+          >
+            <Bookmark className="h-4 w-4" />
+            <span className="hidden sm:inline">Save</span>
+          </button> */}
+
+          <Link
+            href={`/stores/${id}`}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+          >
+            View Details
+          </Link>
+        </div>
       </div>
     </div>
   );
-} 
+}

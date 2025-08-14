@@ -11,6 +11,7 @@ import { ReviewsTab } from "@/components/store-detail/reviews-tab";
 import { ProductsTab } from "@/components/store-detail/products-tab";
 import { FAQsTab } from "@/components/store-detail/faqs-tab";
 import { PoliciesTab } from "@/components/store-detail/policies-tab";
+import { VerifiedTag, ClaimedTag } from "@/components/ui/tags";
 
 function ensureHttps(url: string) {
   if (!url) return url;
@@ -71,9 +72,29 @@ export default function StoreDetailPage({
                 </div>
 
                 {/* Company Name */}
-                <h1 className="text-lg font-bold text-gray-900 mb-2">
-                  {store?.name}
-                </h1>
+                <div className="flex items-center gap-2 justify-center mb-2">
+                  <h1 className="text-lg font-bold text-gray-900">
+                    {store?.name}
+                  </h1>
+                  {/* Verification Tags */}
+                  {(store?.verified || store?.claimed) && (
+                    <div className="flex gap-1">
+                      {store?.verified && (
+                        <VerifiedTag size="sm" iconType="guard" />
+                      )}
+                      {store?.claimed && <ClaimedTag size="sm" />}
+                    </div>
+                  )}
+                </div>
+
+                {/* Website link if available */}
+                {store?.website && (
+                  <div className="mb-3">
+                    <span className="text-blue-600 text-base font-medium">
+                      {store.website}
+                    </span>
+                  </div>
+                )}
 
                 {/* Rating and Review Count */}
                 <div className="flex items-center justify-center gap-2 text-gray-700 mb-3">
@@ -81,7 +102,7 @@ export default function StoreDetailPage({
                   <span className="font-bold text-gray-900">
                     {(store?.rating || 0).toFixed(1)}
                   </span>
-                  <span className="text-sm text-gray-900">
+                  <span className="text-gray-500">
                     ({(store?.totalRatings || 0).toLocaleString()} reviews)
                   </span>
                 </div>
@@ -109,20 +130,6 @@ export default function StoreDetailPage({
                     ))}
                 </div>
 
-                {/* Website link if available */}
-                {store?.website && (
-                  <div className="mb-3">
-                    <a
-                      href={ensureHttps(store.website)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 underline"
-                    >
-                      {store.website}
-                    </a>
-                  </div>
-                )}
-
                 {/* Description preview */}
                 {store?.description && (
                   <p className="text-xs text-gray-600 mb-4">
@@ -134,14 +141,6 @@ export default function StoreDetailPage({
                 <div className="flex gap-2">
                   <Button className="flex-1 rounded-lg bg-blue-600 hover:bg-blue-700 h-9 px-4 text-white text-sm font-medium">
                     Write a Review
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-lg h-9 px-4 text-sm border-blue-600 text-blue-600 hover:bg-blue-50"
-                    onClick={() => setIsFollowing((v) => !v)}
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Follow ({followersDisplay})
                   </Button>
                 </div>
               </div>
@@ -174,29 +173,41 @@ export default function StoreDetailPage({
                   <div className="flex flex-col gap-2">
                     <div className="flex-1 flex flex-col space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-baseline gap-3">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
-                          {store?.name}
-                        </h1>
-                        <div className="flex items-center gap-1.5 text-gray-700 text-sm sm:text-base leading-tight">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current relative top-[1px]" />
-                          <span className="font-medium">
-                            {(store?.rating || 0).toFixed(1)}
-                          </span>
-                          <span className="text-gray-500">
-                            ({store?.totalRatings || 0} reviews)
-                          </span>
+                        <div className="flex items-center gap-2">
+                          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+                            {store?.name}
+                          </h1>
+                          {/* Verification Tags */}
+                          {(store?.verified || store?.claimed) && (
+                            <div className="flex gap-1">
+                              {store?.verified && (
+                                <VerifiedTag size="sm" iconType="guard" />
+                              )}
+                              {store?.claimed && <ClaimedTag size="sm" />}
+                            </div>
+                          )}
                         </div>
                       </div>
+
                       {store?.website && (
-                        <a
-                          href={ensureHttps(store.website)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-md text-blue-600 hover:underline break-all"
-                        >
-                          {store.website}
-                        </a>
+                        <div>
+                          <span className="text-blue-600 text-base font-medium">
+                            {store.website}
+                          </span>
+                        </div>
                       )}
+
+                      {/* Rating and Review Count */}
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="font-semibold text-gray-900">
+                          {(store?.rating || 0).toFixed(1)}
+                        </span>
+                        <span className="text-gray-500">
+                          ({(store?.totalRatings || 0).toLocaleString()}{" "}
+                          reviews)
+                        </span>
+                      </div>
 
                       {/* Optional description preview */}
                       {store?.description && (
@@ -237,14 +248,14 @@ export default function StoreDetailPage({
                   <Button className="rounded-full bg-blue-600 hover:bg-blue-700 h-9 px-4 text-white text-sm font-semibold">
                     Write a Review
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     className="rounded-full h-9 px-4 text-sm border-blue-600 text-blue-600 hover:bg-blue-50"
                     onClick={() => setIsFollowing((v) => !v)}
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     {isFollowing ? "Following" : `Follow (${followersDisplay})`}
-                  </Button>
+                  </Button> */}
                 </div>
               </div>
             </div>

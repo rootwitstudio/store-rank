@@ -30,6 +30,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RatingBreakdown } from "./RatingBreakdown";
+import { useStoreDetails } from "@/stores/storeDetailsStore";
+import BuyingOptions from "./BuyingOptions";
+import RatingOverview from "./RatingOverview";
 
 interface StorePolicy {
   title: string;
@@ -56,6 +59,9 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ storeId }: OverviewTabProps) {
+  const { storeDetails } = useStoreDetails();
+  const isClaimed = storeDetails.data?.claimed || false;
+
   const storePolicies: StorePolicy[] = [
     {
       title: "Shipping Policy",
@@ -228,16 +234,7 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 md:p-2">
-      {/* Top Banner */}
-      {/* <div className="bg-gray-100 px-6 py-3 rounded-lg mx-4 mt-4 mb-6">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Info className="w-4 h-4 text-blue-500" />
-          <span>We perform checks on reviews</span>
-        </div>
-      </div> */}
-
       <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:px-4">
-        {/* Left Column - Main Content */}
         <div className="flex-1 space-y-4 md:space-y-6">
           {/* Company Details */}
           <div className="bg-white p-4 md:p-6">
@@ -245,26 +242,15 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
               Company details
             </h2>
 
-            {/* Company Rankings */}
-            <div className="space-y-2 mb-4 md:mb-6">
-              {companyRankings.map((ranking, index) => (
-                <div
-                  key={index}
-                  className="inline-block bg-blue-50 text-blue-700 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium mr-2 mb-2"
-                >
-                  {ranking}
-                </div>
-              ))}
-            </div>
-
             {/* About Company */}
             <div className="mb-4">
               <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2">
                 About Our Store
+                <span className="text-xs md:text-sm text-gray-500 ml-2">
+                  (Written by the company)
+                </span>
               </h3>
-              <p className="text-xs md:text-sm text-gray-500 mb-2 md:mb-3">
-                Written by the company
-              </p>
+
               <div className="text-gray-700 text-xs md:text-sm leading-relaxed space-y-2 md:space-y-3">
                 <p>
                   We are a trusted online retailer committed to providing
@@ -295,6 +281,25 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
                 See more
               </Button>
             </div>
+
+            {/* Buying Options */}
+            <BuyingOptions
+              buyingOptions={{
+                appStores: {
+                  appStore: "https://apps.apple.com/app/example",
+                  playStore:
+                    "https://play.google.com/store/apps/details?id=example",
+                },
+                marketplaces: ["Amazon", "Flipkart", "Myntra", "Nykaa"],
+                socialMedia: {
+                  instagram: "https://instagram.com/example",
+                  facebook: "https://facebook.com/example",
+                  twitter: "https://twitter.com/example",
+                  youtube: "https://youtube.com/example",
+                  whatsapp: "https://wa.me/1234567890",
+                },
+              }}
+            />
           </div>
 
           {/* Contact Info */}
@@ -355,77 +360,19 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
         {/* Right Column - Sidebar with RatingBreakdown */}
         <div className="lg:w-80 space-y-4 md:space-y-6">
           {/* Overall Rating */}
-          <div className="bg-white p-4 md:p-6">
-            <div className="text-center mb-3 md:mb-4">
-              <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                4.8
-              </div>
-              <div className="text-base md:text-lg font-semibold text-green-600 mb-2">
-                Excellent
-              </div>
-              <div className="flex justify-center gap-1 mb-2">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-4 h-4 md:w-5 md:h-5 text-green-500 fill-current"
-                  />
-                ))}
-              </div>
-              <div className="text-xs md:text-sm text-gray-600">
-                17K reviews
-              </div>
-            </div>
+          <RatingOverview
+            rating={4.8}
+            totalReviews={17000}
+            ratingBreakdown={{
+              5: 14500,
+              4: 1700,
+              3: 510,
+              2: 170,
+              1: 170,
+            }}
+          />
 
-            <div className="space-y-2 md:space-y-3">
-              {[5, 4, 3, 2, 1].map((stars) => (
-                <div key={stars} className="flex items-center gap-2 md:gap-3">
-                  <div className="flex items-center gap-1 min-w-[50px] md:min-w-[60px]">
-                    <span className="text-xs md:text-sm text-gray-600">
-                      {stars}
-                    </span>
-                    <Star className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
-                  </div>
-                  <div className="flex-1 bg-gray-200 rounded-full h-1.5 md:h-2">
-                    <div
-                      className={`h-1.5 md:h-2 rounded-full ${
-                        stars === 5
-                          ? "bg-green-500"
-                          : stars === 1
-                          ? "bg-red-500"
-                          : "bg-gray-400"
-                      }`}
-                      style={{
-                        width: `${
-                          stars === 5
-                            ? "85"
-                            : stars === 4
-                            ? "10"
-                            : stars === 3
-                            ? "3"
-                            : stars === 2
-                            ? "1"
-                            : "1"
-                        }%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="text-xs md:text-sm text-gray-600 min-w-[35px] md:min-w-[40px] text-right">
-                    {stars === 5
-                      ? "14.5K"
-                      : stars === 4
-                      ? "1.7K"
-                      : stars === 3
-                      ? "510"
-                      : stars === 2
-                      ? "170"
-                      : "170"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Company Response */}
+          {/* Company Response Block - Commented out for now
           <div className="bg-white p-4 md:p-6">
             <div className="flex items-center gap-2 md:gap-3 mb-3">
               <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-gray-500 flex-shrink-0" />
@@ -442,6 +389,50 @@ export function OverviewTab({ storeId }: OverviewTabProps) {
               </div>
             </div>
           </div>
+          */}
+
+          {/* Claim Your Business Block - Conditionally shown based on claimed status */}
+          {!isClaimed ? (
+            <div className="bg-white p-4 md:p-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
+                Is this your business?
+              </h2>
+              <p className="text-gray-600 mb-6 text-sm md:text-base">
+                Claim your listing for free to respond to reviews, update your
+                profile and manage your listing.
+              </p>
+              <Button className="bg-blue-600 hover:bg-blue-700 w-full">
+                Claim your business
+              </Button>
+            </div>
+          ) : (
+            <div className="bg-white p-4 md:p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+                  Claimed Profile
+                </h2>
+              </div>
+              <p className="text-gray-600 mb-4 text-sm md:text-base">
+                This business profile has been claimed and is actively managed
+                by the business owner.
+              </p>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Verified business owner</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Can respond to reviews</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <span>Profile actively managed</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
