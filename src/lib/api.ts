@@ -243,6 +243,25 @@ export const categoryApi = {
 
 // Review API
 export const reviewApi = {
+  getAllReviews: async (params?: {
+    page?: number;
+    pageSize?: number;
+    sortBy?: "createdAt" | "rating" | "title" | "dateOfPurchase";
+    sortOrder?: "asc" | "desc";
+    rating?: number;
+    reviewType?: "ORGANIC" | "VERIFIED" | "INVITED" | "REDIRECTED";
+    storeId?: string;
+    userId?: string;
+  }) => {
+    try {
+      const response = await api.get("/reviews", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all reviews:", error);
+      throw error;
+    }
+  },
+
   getStoreReviews: async (storeId: string, token?: string) => {
     try {
       const headers: any = {};
@@ -393,6 +412,117 @@ export const searchApi = {
         throw new Error(error.message);
       }
       throw new Error("Search failed");
+    }
+  },
+};
+
+// Success Stories API
+export const successStoriesApi = {
+  create: async (data: {
+    name: string;
+    location: string;
+    designation?: string;
+    story: string;
+    outcome: string;
+    avatar?: string;
+    rating?: number;
+  }) => {
+    try {
+      const response = await api.post("/success-stories", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating success story:", error);
+      throw error;
+    }
+  },
+
+  getAll: async (options?: {
+    limit?: number;
+    offset?: number;
+    verified?: boolean;
+    sortBy?: "createdAt" | "date" | "rating";
+    sortOrder?: "asc" | "desc";
+  }) => {
+    try {
+      const params = new URLSearchParams();
+
+      if (options?.limit) params.append("limit", options.limit.toString());
+      if (options?.offset) params.append("offset", options.offset.toString());
+      if (options?.verified !== undefined)
+        params.append("verified", options.verified.toString());
+      if (options?.sortBy) params.append("sortBy", options.sortBy);
+      if (options?.sortOrder) params.append("sortOrder", options.sortOrder);
+
+      const response = await api.get(`/success-stories?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching success stories:", error);
+      throw error;
+    }
+  },
+
+  getFeatured: async (limit: number = 6) => {
+    try {
+      const response = await api.get(
+        `/success-stories/featured?limit=${limit}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching featured success stories:", error);
+      throw error;
+    }
+  },
+
+  getById: async (id: string) => {
+    try {
+      const response = await api.get(`/success-stories/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching success story:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  update: async (
+    id: string,
+    data: Partial<{
+      name: string;
+      location: string;
+      designation?: string;
+      story: string;
+      outcome: string;
+      avatar?: string;
+      rating?: number;
+    }>
+  ) => {
+    try {
+      const response = await api.put(`/success-stories/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating success story:", error);
+      throw error;
+    }
+  },
+
+  delete: async (id: string) => {
+    try {
+      await api.delete(`/success-stories/${id}`);
+    } catch (error) {
+      console.error("Error deleting success story:", error);
+      throw error;
+    }
+  },
+
+  verify: async (id: string) => {
+    try {
+      const response = await api.put(`/success-stories/${id}/verify`);
+      return response.data;
+    } catch (error) {
+      console.error("Error verifying success story:", error);
+      throw error;
     }
   },
 };
