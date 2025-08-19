@@ -38,7 +38,8 @@ export function Header() {
     { code: "AU", name: "Australia", flag: "🇦🇺" },
   ];
 
-  const currentCountry = countries.find(c => c.code === selectedCountry) || countries[0];
+  const currentCountry =
+    countries.find((c) => c.code === selectedCountry) || countries[0];
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
@@ -49,8 +50,16 @@ export function Header() {
             href="/"
             className="flex items-center gap-2 text-lg sm:text-xl lg:text-2xl font-bold tracking-tight hover:opacity-90 transition-opacity flex-shrink-0"
           >
-            <Image src="/images/logo.png" alt="StoreRankly Logo" width={96} height={96} className="h-16 w-16 sm:h-20 sm:w-20 lg:h-20 lg:w-20 rounded-lg" />
-            <span className="xs:inline text-base sm:text-lg lg:text-xl">Trustnbuy</span>
+            <Image
+              src="/images/logo.png"
+              alt="Trustnbuy"
+              width={96}
+              height={96}
+              className="h-16 w-16 sm:h-20 sm:w-20 lg:h-20 lg:w-20 rounded-lg"
+            />
+            <span className="xs:inline text-base sm:text-lg lg:text-xl">
+              Trustnbuy
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -192,9 +201,11 @@ export function Header() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
-                          {user.name || 'User'}
+                          {user.name || "User"}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
 

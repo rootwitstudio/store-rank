@@ -25,7 +25,10 @@ const iconMap: Record<string, React.ElementType> = {
   Store: () => <div className="w-5 h-5 bg-gray-500 rounded" />,
 };
 
-export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectionProps) {
+export function HeroSection({
+  selectedLocation,
+  getTrustScoreColor,
+}: HeroSectionProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -33,22 +36,26 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Use search store
-  const { query, results, loading, error, setQuery, search, clearResults } = useSearch();
+  const { query, results, loading, error, setQuery, search, clearResults } =
+    useSearch();
 
   // Create stable event handlers with useCallback
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setQuery(value);
 
-    // Clear results immediately if less than 3 characters
-    if (value.length < 3) {
-      clearResults();
-      return;
-    }
+      // Clear results immediately if less than 3 characters
+      if (value.length < 3) {
+        clearResults();
+        return;
+      }
 
-    // Trigger search after 3 characters
-    search(value);
-  }, [setQuery, search, clearResults]);
+      // Trigger search after 3 characters
+      search(value);
+    },
+    [setQuery, search, clearResults]
+  );
 
   const handleSearchFocus = useCallback(() => {
     setIsInputFocused(true);
@@ -61,23 +68,29 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
     }
   }, [query]);
 
-  const handleSearchBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    // Only blur if not clicking on dropdown
-    const relatedTarget = e.relatedTarget as HTMLElement;
-    if (
-      !dropdownRef.current?.contains(relatedTarget) &&
-      !inputRef.current?.contains(relatedTarget)
-    ) {
-      setTimeout(() => {
-        setIsInputFocused(false);
-        setShowDropdown(false);
-      }, 150);
-    }
-  }, []);
+  const handleSearchBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      // Only blur if not clicking on dropdown
+      const relatedTarget = e.relatedTarget as HTMLElement;
+      if (
+        !dropdownRef.current?.contains(relatedTarget) &&
+        !inputRef.current?.contains(relatedTarget)
+      ) {
+        setTimeout(() => {
+          setIsInputFocused(false);
+          setShowDropdown(false);
+        }, 150);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowDropdown(false);
         setIsInputFocused(false);
       }
@@ -109,13 +122,18 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
               <span className="text-blue-600">{selectedLocation}</span>
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-6 sm:mb-8">
-              Discover verified e-commerce stores, read authentic customer reviews, and make informed shopping decisions.
-              Join millions of shoppers who trust our platform.
+              Discover verified e-commerce stores, read authentic customer
+              reviews, and make informed shopping decisions. Join millions of
+              shoppers who trust our platform.
             </p>
           </div>
 
           {/* Main Search Input */}
-          <div className={`w-full max-w-2xl relative mb-6 sm:mb-8 ${isSearchModalOpen ? "hidden md:block" : ""}`}>
+          <div
+            className={`w-full max-w-2xl relative mb-6 sm:mb-8 ${
+              isSearchModalOpen ? "hidden md:block" : ""
+            }`}
+          >
             <form
               className="flex items-center relative"
               autoComplete="off"
@@ -171,13 +189,20 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                   </div>
                 )}
 
-                {!loading && !error && results.length === 0 && query.length >= 3 && (
-                  <div className="px-4 py-8 text-center">
-                    <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm text-gray-500">No results found for &quot;{query}&quot;</p>
-                    <p className="text-xs text-gray-400 mt-1">Try searching for a different store or category</p>
-                  </div>
-                )}
+                {!loading &&
+                  !error &&
+                  results.length === 0 &&
+                  query.length >= 3 && (
+                    <div className="px-4 py-8 text-center">
+                      <Search className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <p className="text-sm text-gray-500">
+                        No results found for &quot;{query}&quot;
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Try searching for a different store or category
+                      </p>
+                    </div>
+                  )}
 
                 {!loading && !error && results.length > 0 && (
                   <>
@@ -203,20 +228,30 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                                   {result.name.charAt(0)}
                                 </div>
                                 <div>
-                                  <div className="font-medium">{result.name}</div>
-                                  <div className="text-xs text-gray-500">{result.country}</div>
+                                  <div className="font-medium">
+                                    {result.name}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {result.country}
+                                  </div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
                                 {result.trustScore && (
-                                  <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(result.trustScore)}`}>
+                                  <span
+                                    className={`px-2 py-0.5 text-xs font-semibold rounded ${getTrustScoreColor(
+                                      result.trustScore
+                                    )}`}
+                                  >
                                     {result.trustScore}
                                   </span>
                                 )}
                                 {result.rating && (
                                   <div className="flex items-center">
                                     <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                                    <span className="text-xs ml-1">{result.rating}</span>
+                                    <span className="text-xs ml-1">
+                                      {result.rating}
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -233,7 +268,8 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                         {results
                           .filter((result) => result.type === "category")
                           .map((result) => {
-                            const Icon = iconMap[result.icon || "Store"] || iconMap.Store;
+                            const Icon =
+                              iconMap[result.icon || "Store"] || iconMap.Store;
                             return (
                               <Link
                                 key={result.id}
@@ -249,8 +285,12 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                                     <Icon />
                                   </div>
                                   <div>
-                                    <div className="font-medium">{result.name}</div>
-                                    <div className="text-xs text-gray-500">{result.description}</div>
+                                    <div className="font-medium">
+                                      {result.name}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {result.description}
+                                    </div>
                                   </div>
                                 </div>
                               </Link>
@@ -267,17 +307,20 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
           {/* Quick Action Buttons */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
             <Link href="/categories">
-              <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300"
+              >
                 <Store className="h-4 w-4" />
                 Browse Categories
               </Button>
             </Link>
-            <Link href="/trending">
+            {/* <Link href="/trending">
               <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
                 <TrendingUp className="h-4 w-4" />
                 Trending Stores
               </Button>
-            </Link>
+            </Link> */}
             {/* <Link href="/verified">
               <Button variant="outline" className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300">
                 <Shield className="h-4 w-4" />
@@ -327,7 +370,9 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
               <div className="text-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
                 <p className="text-base text-gray-600">Searching stores...</p>
-                <p className="text-sm text-gray-500 mt-1">Finding the best matches for you</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Finding the best matches for you
+                </p>
               </div>
             )}
 
@@ -343,7 +388,9 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
               <>
                 {results.some((result) => result.type === "store") && (
                   <div className="mb-6">
-                    <div className="text-sm text-gray-500 font-semibold mb-3 px-1">🏪 Companies</div>
+                    <div className="text-sm text-gray-500 font-semibold mb-3 px-1">
+                      🏪 Companies
+                    </div>
                     <div className="space-y-2">
                       {results
                         .filter((result) => result.type === "store")
@@ -359,19 +406,29 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                                 {result.name.charAt(0)}
                               </div>
                               <div className="flex-1">
-                                <div className="font-medium text-gray-800">{result.name}</div>
-                                <div className="text-xs text-gray-500">{result.country}</div>
+                                <div className="font-medium text-gray-800">
+                                  {result.name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {result.country}
+                                </div>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 ml-2">
                               {result.rating && (
                                 <div className="flex items-center">
                                   <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                                  <span className="text-xs ml-1 text-gray-600">{result.rating}</span>
+                                  <span className="text-xs ml-1 text-gray-600">
+                                    {result.rating}
+                                  </span>
                                 </div>
                               )}
                               {result.trustScore && (
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(result.trustScore)}`}>
+                                <span
+                                  className={`px-2 py-1 text-xs font-semibold rounded-full ${getTrustScoreColor(
+                                    result.trustScore
+                                  )}`}
+                                >
                                   {result.trustScore}
                                 </span>
                               )}
@@ -384,12 +441,15 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
 
                 {results.some((result) => result.type === "category") && (
                   <div className="mb-6">
-                    <div className="text-sm text-gray-500 font-semibold mb-3 px-1">🏷️ Categories</div>
+                    <div className="text-sm text-gray-500 font-semibold mb-3 px-1">
+                      🏷️ Categories
+                    </div>
                     <div className="space-y-2">
                       {results
                         .filter((result) => result.type === "category")
                         .map((result) => {
-                          const Icon = iconMap[result.icon || "Store"] || iconMap.Store;
+                          const Icon =
+                            iconMap[result.icon || "Store"] || iconMap.Store;
                           return (
                             <Link
                               key={result.id}
@@ -401,8 +461,12 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
                                 <Icon />
                               </div>
                               <div className="flex-1">
-                                <div className="text-sm font-medium text-gray-800">{result.name}</div>
-                                <div className="text-xs text-gray-500 mt-1">{result.description}</div>
+                                <div className="text-sm font-medium text-gray-800">
+                                  {result.name}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {result.description}
+                                </div>
                               </div>
                             </Link>
                           );
@@ -413,18 +477,25 @@ export function HeroSection({ selectedLocation, getTrustScoreColor }: HeroSectio
               </>
             )}
 
-            {!loading && !error && results.length === 0 && query.length >= 3 && (
-              <div className="text-center py-12">
-                <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
-                  <Search className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                  <p className="text-gray-600 text-lg mb-2">No results found for &quot;{query}&quot;</p>
-                  <p className="text-sm text-gray-500">Try searching for a different store or category</p>
+            {!loading &&
+              !error &&
+              results.length === 0 &&
+              query.length >= 3 && (
+                <div className="text-center py-12">
+                  <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
+                    <Search className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-600 text-lg mb-2">
+                      No results found for &quot;{query}&quot;
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Try searching for a different store or category
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       )}
     </section>
   );
-} 
+}

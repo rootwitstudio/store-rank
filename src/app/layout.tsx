@@ -10,9 +10,9 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "StoreRankly - Trusted E-commerce Store Reviews",
+  title: "Trustnbuy - Trusted E-commerce Store Reviews",
   description:
-    "StoreRankly helps you find and share honest reviews about online stores. Make informed shopping decisions with real customer experiences.",
+    "Trustnbuy helps you find and share honest reviews about online stores. Make informed shopping decisions with real customer experiences.",
 };
 
 export default function RootLayout({

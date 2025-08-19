@@ -18,11 +18,16 @@ export function HowItWorksSection({ steps }: HowItWorksSectionProps) {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex justify-between items-end mb-8 sm:mb-12">
           <div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-gray-900">How StoreRankly Works</h2>
-            <p className="text-gray-600 text-lg max-w-2xl">Making online shopping safer and smarter with verified reviews and trusted store information</p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 text-gray-900">
+              How Trustnbuy Works
+            </h2>
+            <p className="text-gray-600 text-lg max-w-2xl">
+              Making online shopping safer and smarter with verified reviews and
+              trusted store information
+            </p>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step) => {
             const Icon = step.icon;
@@ -45,4 +50,4 @@ export function HowItWorksSection({ steps }: HowItWorksSectionProps) {
       </div>
     </section>
   );
-} 
+}

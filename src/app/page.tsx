@@ -19,7 +19,6 @@ import { Footer } from "@/components/home/Footer";
 
 // Import data
 import {
-  recentReviews,
   howItWorks,
   industryInsights,
   successStories,
@@ -39,12 +38,16 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [categoryError, setCategoryError] = useState<string | null>(null);
-  const [customCategories, setCustomCategories] = useState<CustomCategory[]>([]);
+  const [customCategories, setCustomCategories] = useState<CustomCategory[]>(
+    []
+  );
   const [loadingCustomCategories, setLoadingCustomCategories] = useState(true);
-  const [customCategoryError, setCustomCategoryError] = useState<string | null>(null);
+  const [customCategoryError, setCustomCategoryError] = useState<string | null>(
+    null
+  );
 
   const getTrustScoreColor = useCallback((score: number | string) => {
-    const numericScore = typeof score === 'string' ? parseFloat(score) : score;
+    const numericScore = typeof score === "string" ? parseFloat(score) : score;
 
     if (isNaN(numericScore)) {
       switch (score) {
@@ -58,7 +61,7 @@ export default function HomePage() {
           return "text-gray-600 bg-gray-100";
       }
     }
-    
+
     if (numericScore >= 4.5) return "text-green-600 bg-green-100"; // Excellent
     if (numericScore >= 4.0) return "text-green-500 bg-green-50"; // Great
     if (numericScore >= 3.5) return "text-blue-600 bg-blue-100"; // Good
@@ -95,7 +98,9 @@ export default function HomePage() {
         setCustomCategories(data);
       } catch (error) {
         console.error("Error fetching custom categories:", error);
-        setCustomCategoryError("Failed to load custom categories. Please try again later.");
+        setCustomCategoryError(
+          "Failed to load custom categories. Please try again later."
+        );
       } finally {
         setLoadingCustomCategories(false);
       }
@@ -108,17 +113,17 @@ export default function HomePage() {
     <div className="bg-white min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <HeroSection 
+        <HeroSection
           selectedLocation={selectedLocation}
           getTrustScoreColor={getTrustScoreColor}
         />
-        
-        <CategorySection 
+
+        <CategorySection
           categories={categories}
           loadingCategories={loadingCategories}
           categoryError={categoryError}
         />
-        
+
         {/* Dynamic Custom Category Sections */}
         {loadingCustomCategories ? (
           <div className="py-12 sm:py-16 bg-white">
@@ -148,27 +153,19 @@ export default function HomePage() {
             />
           ))
         )}
-        
-        <RecentReviewsSection 
-          reviews={recentReviews}
-        />
-        
-        <IndustryInsightsSection 
-          insights={industryInsights}
-        />
-        
-        <HowItWorksSection 
-          steps={howItWorks}
-        />
-        
-        <SuccessStoriesSection 
-          stories={successStories}
-        />
-        
+
+        <RecentReviewsSection />
+
+        <IndustryInsightsSection insights={industryInsights} />
+
+        <HowItWorksSection steps={howItWorks} />
+
+        <SuccessStoriesSection stories={successStories} />
+
         <TrustSafetySection />
-        
+
         <TrustedByMillionsSection />
-        
+
         <CTASection />
       </main>
 

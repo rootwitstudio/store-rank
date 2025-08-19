@@ -46,7 +46,7 @@ export default function LoginLinkPage() {
             <div className="relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 shadow-md">
               <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white"/>
             </div>
-            <span className="text-3xl sm:text-4xl font-bold text-gray-900">StoreRankly</span>
+            <span className="text-3xl sm:text-4xl font-bold text-gray-900">Trustnbuy</span>
           </Link>
         </div>
 
