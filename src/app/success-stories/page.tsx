@@ -8,7 +8,8 @@ import {
   SuccessStoriesCTA,
 } from "@/components/success-stories";
 import { Modal } from "@/components/ui/Modal";
-import { SuccessStoriesAPI, SuccessStory } from "@/lib/api/success-stories";
+import { successStoriesApi } from "@/lib/api";
+import { SuccessStory } from "@/types/success-stories";
 
 export default function SuccessStoriesPage() {
   const [stories, setStories] = useState<SuccessStory[]>([]);
@@ -24,7 +25,7 @@ export default function SuccessStoriesPage() {
     const fetchStories = async () => {
       try {
         setIsLoading(true);
-        const response = await SuccessStoriesAPI.getStories({
+        const response = await successStoriesApi.getAll({
           limit: 20,
           offset: (currentPage - 1) * 20,
           sortBy: "createdAt",
@@ -32,13 +33,17 @@ export default function SuccessStoriesPage() {
         });
 
         if (currentPage === 1) {
-          setStories(response.stories);
+          setStories(response.stories || response);
         } else {
-          setStories((prev) => [...prev, ...response.stories]);
+          setStories((prev) => [...prev, ...(response.stories || response)]);
         }
 
-        setHasMore(response.hasMore);
-        setTotalStories(response.total);
+        // Handle pagination - check if we have more data
+        const fetchedStories = response.stories || response;
+        setHasMore(fetchedStories.length === 20); // If we got 20, there might be more
+        setTotalStories(
+          response.total || stories.length + fetchedStories.length
+        );
       } catch (error) {
         console.error("Failed to fetch stories:", error);
         setStories([]);
@@ -59,7 +64,7 @@ export default function SuccessStoriesPage() {
     setIsSubmitting(true);
 
     try {
-      const newStory = await SuccessStoriesAPI.createStory(storyData);
+      const newStory = await successStoriesApi.create(storyData);
       setStories([newStory, ...stories]);
       setTotalStories((prev) => prev + 1);
       setShowForm(false);
@@ -170,7 +175,7 @@ export default function SuccessStoriesPage() {
         </div>
 
         {/* Call to Action */}
-        <SuccessStoriesCTA onShareStory={() => setShowForm(true)} />
+        {/* <SuccessStoriesCTA onShareStory={() => setShowForm(true)} /> */}
       </div>
 
       {/* Success Story Form Modal */}

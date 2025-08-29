@@ -10,23 +10,14 @@ import {
   MessageSquare,
   Briefcase,
 } from "lucide-react";
-
-interface SuccessStory {
-  id: string;
-  name: string;
-  location: string;
-  designation?: string;
-  story: string;
-  outcome: string;
-  avatar: string;
-  verified: boolean;
-  rating?: number;
-  date?: string;
-}
+import { SuccessStory } from "@/types/success-stories";
 
 interface SuccessStoryFormProps {
   onSubmit: (
-    story: Omit<SuccessStory, "id" | "verified" | "date">
+    story: Omit<
+      SuccessStory,
+      "id" | "verified" | "date" | "createdAt" | "updatedAt"
+    >
   ) => Promise<void>;
   onCancel?: () => void;
   showForm: boolean;

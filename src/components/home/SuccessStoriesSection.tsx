@@ -4,7 +4,8 @@ import { CheckCircle, ThumbsUp, Quote, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { SuccessStoryForm } from "../success-stories/SuccessStoryForm";
 import { Modal } from "../ui/Modal";
-import { SuccessStoriesAPI, SuccessStory } from "@/lib/api/success-stories";
+import { successStoriesApi } from "@/lib/api";
+import { SuccessStory } from "@/types/success-stories";
 
 interface SuccessStoriesSectionProps {
   stories?: SuccessStory[]; // Optional prop for initial data
@@ -18,12 +19,12 @@ export function SuccessStoriesSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(!initialStories);
 
-  // Fetch featured stories from API
+  // Fetch featured stories from API only if no initial data provided
   useEffect(() => {
     const fetchStories = async () => {
       try {
         setIsLoading(true);
-        const featuredStories = await SuccessStoriesAPI.getFeaturedStories(6);
+        const featuredStories = await successStoriesApi.getFeatured(6);
         setStories(featuredStories);
       } catch (error) {
         console.error("Failed to fetch stories:", error);
@@ -34,21 +35,27 @@ export function SuccessStoriesSection({
       }
     };
 
-    if (!initialStories) {
+    // Only fetch if no initial stories provided
+    if (!initialStories || initialStories.length === 0) {
       fetchStories();
     }
   }, [initialStories]);
 
+  // Update stories when initialStories prop changes
+  useEffect(() => {
+    if (initialStories && initialStories.length > 0) {
+      setStories(initialStories);
+      setIsLoading(false);
+    }
+  }, [initialStories]);
+
   const handleSubmitStory = async (
-    storyData: Omit<
-      SuccessStory,
-      "id" | "verified" | "date" | "createdAt" | "updatedAt"
-    >
+    storyData: Omit<SuccessStory, "id" | "verified" | "createdAt" | "updatedAt">
   ) => {
     setIsSubmitting(true);
 
     try {
-      const newStory = await SuccessStoriesAPI.createStory(storyData);
+      const newStory = await successStoriesApi.create(storyData);
       setStories([newStory, ...stories]);
       setShowForm(false);
     } catch (error) {
@@ -134,8 +141,26 @@ export function SuccessStoriesSection({
                     className="flex-shrink-0 w-[280px] h-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 flex flex-col"
                   >
                     <div className="flex items-start mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
-                        {story.avatar}
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0 overflow-hidden">
+                        {story.avatar ? (
+                          <img
+                            src={story.avatar}
+                            alt={story.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = "none";
+                              target.nextElementSibling!.style.display = "flex";
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`w-full h-full flex items-center justify-center ${
+                            story.avatar ? "hidden" : ""
+                          }`}
+                        >
+                          {story.name.charAt(0).toUpperCase()}
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center mb-1">
@@ -177,8 +202,26 @@ export function SuccessStoriesSection({
                   className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300 flex flex-col h-full"
                 >
                   <div className="flex items-start mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
-                      {story.avatar}
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0 overflow-hidden">
+                      {story.avatar ? (
+                        <img
+                          src={story.avatar}
+                          alt={story.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                            target.nextElementSibling!.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`w-full h-full flex items-center justify-center ${
+                          story.avatar ? "hidden" : ""
+                        }`}
+                      >
+                        {story.name.charAt(0).toUpperCase()}
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center mb-1">

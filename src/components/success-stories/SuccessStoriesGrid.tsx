@@ -1,18 +1,6 @@
 "use client";
 import { CheckCircle, ThumbsUp, Quote } from "lucide-react";
-
-interface SuccessStory {
-  id: string;
-  name: string;
-  location: string;
-  designation?: string;
-  story: string;
-  outcome: string;
-  avatar: string;
-  verified: boolean;
-  rating?: number;
-  date?: string;
-}
+import { SuccessStory } from "@/types/success-stories";
 
 interface SuccessStoriesGridProps {
   stories: SuccessStory[];
@@ -40,8 +28,26 @@ export function SuccessStoriesGrid({
               className="flex-shrink-0 w-[320px] bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300"
             >
               <div className="flex items-start mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
-                  {story.avatar}
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0 overflow-hidden">
+                  {story.avatar ? (
+                    <img
+                      src={story.avatar}
+                      alt={story.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = "none";
+                        target.nextElementSibling!.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`w-full h-full flex items-center justify-center ${
+                      story.avatar ? "hidden" : ""
+                    }`}
+                  >
+                    {story.name.charAt(0).toUpperCase()}
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center mb-1">
@@ -58,9 +64,11 @@ export function SuccessStoriesGrid({
                       {story.designation}
                     </p>
                   )}
-                  {story.date && (
+                  {(story.date || story.createdAt) && (
                     <p className="text-xs text-gray-400 mt-1">
-                      {new Date(story.date).toLocaleDateString()}
+                      {new Date(
+                        story.date || story.createdAt!
+                      ).toLocaleDateString()}
                     </p>
                   )}
                 </div>
@@ -90,8 +98,26 @@ export function SuccessStoriesGrid({
             className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-lg transition-all duration-300"
           >
             <div className="flex items-start mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0">
-                {story.avatar}
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg mr-4 flex-shrink-0 overflow-hidden">
+                {story.avatar ? (
+                  <img
+                    src={story.avatar}
+                    alt={story.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      target.nextElementSibling!.style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div
+                  className={`w-full h-full flex items-center justify-center ${
+                    story.avatar ? "hidden" : ""
+                  }`}
+                >
+                  {story.name.charAt(0).toUpperCase()}
+                </div>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center mb-1">
@@ -108,9 +134,11 @@ export function SuccessStoriesGrid({
                     {story.designation}
                   </p>
                 )}
-                {story.date && (
+                {(story.date || story.createdAt) && (
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(story.date).toLocaleDateString()}
+                    {new Date(
+                      story.date || story.createdAt!
+                    ).toLocaleDateString()}
                   </p>
                 )}
               </div>

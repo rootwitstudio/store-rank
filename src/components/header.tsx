@@ -71,10 +71,10 @@ export function Header() {
               Categories
             </Link>
             <Link
-              href="/blogs"
+              href="/insights"
               className="relative text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-blue-600 after:transition-all hover:after:w-full"
             >
-              Blogs
+              Blog & News
             </Link>
           </nav>
 
@@ -180,14 +180,14 @@ export function Header() {
               </Link>
 
               <Link
-                href="/blogs"
+                href="/insights"
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors border-b border-gray-100"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                   <Search className="h-4 w-4 text-green-600" />
                 </div>
-                Blogs
+                Blog & News
               </Link>
 
               {/* Auth Section */}

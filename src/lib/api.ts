@@ -526,3 +526,206 @@ export const successStoriesApi = {
     }
   },
 };
+
+// Blog API
+export const blogApi = {
+  getAll: async (options?: {
+    limit?: number;
+    offset?: number;
+    category?: string;
+    search?: string;
+    status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    featured?: boolean;
+    sortBy?: "publishedAt" | "readTime" | "title";
+    sortOrder?: "asc" | "desc";
+  }) => {
+    try {
+      const params = new URLSearchParams();
+
+      if (options?.limit) params.append("take", options.limit.toString());
+      if (options?.offset) params.append("skip", options.offset.toString());
+      if (options?.category) params.append("category", options.category);
+      if (options?.search) params.append("search", options.search);
+      if (options?.status) params.append("status", options.status);
+      if (options?.featured !== undefined)
+        params.append("featured", options.featured.toString());
+      if (options?.sortBy) params.append("sortBy", options.sortBy);
+      if (options?.sortOrder) params.append("sortOrder", options.sortOrder);
+
+      const response = await api.get(`/blogs/posts?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching blog posts:", error);
+      throw error;
+    }
+  },
+
+  getFeatured: async (limit: number = 4) => {
+    try {
+      const response = await api.get(`/blogs/posts/featured?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching featured blog posts:", error);
+      throw error;
+    }
+  },
+
+  getById: async (id: string) => {
+    try {
+      const response = await api.get(`/blogs/posts/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching blog post:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  getBySlug: async (slug: string) => {
+    try {
+      const response = await api.get(`/blogs/posts/slug/${slug}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching blog post by slug:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  getCategories: async () => {
+    try {
+      const response = await api.get("/blogs/categories");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching blog categories:", error);
+      throw error;
+    }
+  },
+};
+
+// Industry Insights API
+export const industryInsightsApi = {
+  create: async (data: {
+    title: string;
+    value: string;
+    description: string;
+    icon: string;
+    trend: string;
+    trendColor: string;
+    category: string;
+    content: string;
+    readTime: number;
+    featured?: boolean;
+    tags?: string[];
+  }) => {
+    try {
+      const response = await api.post("/industry-insights", data);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating industry insight:", error);
+      throw error;
+    }
+  },
+
+  getAll: async (options?: {
+    limit?: number;
+    offset?: number;
+    category?: string;
+    featured?: boolean;
+    sortBy?: "createdAt" | "publishedAt" | "title";
+    sortOrder?: "asc" | "desc";
+    search?: string;
+  }) => {
+    try {
+      const params = new URLSearchParams();
+
+      if (options?.limit) params.append("limit", options.limit.toString());
+      if (options?.offset) params.append("offset", options.offset.toString());
+      if (options?.category) params.append("category", options.category);
+      if (options?.featured !== undefined)
+        params.append("featured", options.featured.toString());
+      if (options?.sortBy) params.append("sortBy", options.sortBy);
+      if (options?.sortOrder) params.append("sortOrder", options.sortOrder);
+      if (options?.search) params.append("search", options.search);
+
+      const response = await api.get(`/industry-insights?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching industry insights:", error);
+      throw error;
+    }
+  },
+
+  getFeatured: async (limit: number = 4) => {
+    try {
+      const response = await api.get(
+        `/industry-insights/featured?limit=${limit}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching featured industry insights:", error);
+      throw error;
+    }
+  },
+
+  getById: async (id: string) => {
+    try {
+      const response = await api.get(`/industry-insights/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching industry insight:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  },
+
+  update: async (
+    id: string,
+    data: Partial<{
+      title: string;
+      value: string;
+      description: string;
+      icon: string;
+      trend: string;
+      trendColor: string;
+      category: string;
+      content: string;
+      readTime: number;
+      featured?: boolean;
+      tags?: string[];
+    }>
+  ) => {
+    try {
+      const response = await api.put(`/industry-insights/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating industry insight:", error);
+      throw error;
+    }
+  },
+
+  delete: async (id: string) => {
+    try {
+      await api.delete(`/industry-insights/${id}`);
+    } catch (error) {
+      console.error("Error deleting industry insight:", error);
+      throw error;
+    }
+  },
+
+  getCategories: async () => {
+    try {
+      const response = await api.get("/industry-insights/categories");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching insight categories:", error);
+      throw error;
+    }
+  },
+};

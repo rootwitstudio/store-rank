@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/header";
-import { categoryApi } from "@/lib/api";
+import { categoryApi, successStoriesApi } from "@/lib/api";
 import { customCategoryApi, CustomCategory } from "@/lib/customCategoryApi";
 
 // Import all the new components
@@ -18,11 +18,8 @@ import { CTASection } from "@/components/home/CTASection";
 import { Footer } from "@/components/home/Footer";
 
 // Import data
-import {
-  howItWorks,
-  industryInsights,
-  successStories,
-} from "@/components/home/data";
+import { howItWorks } from "@/components/home/data";
+import { SuccessStory } from "@/types/success-stories";
 
 interface Category {
   id: string;
@@ -45,6 +42,8 @@ export default function HomePage() {
   const [customCategoryError, setCustomCategoryError] = useState<string | null>(
     null
   );
+  const [successStories, setSuccessStories] = useState<SuccessStory[]>([]);
+  const [loadingSuccessStories, setLoadingSuccessStories] = useState(true);
 
   const getTrustScoreColor = useCallback((score: number | string) => {
     const numericScore = typeof score === "string" ? parseFloat(score) : score;
@@ -109,6 +108,24 @@ export default function HomePage() {
     fetchCustomCategories();
   }, []);
 
+  useEffect(() => {
+    const fetchSuccessStories = async () => {
+      try {
+        setLoadingSuccessStories(true);
+        const data = await successStoriesApi.getFeatured();
+        console.log("Fetched success stories:", data);
+        setSuccessStories(data);
+      } catch (error) {
+        console.error("Error fetching success stories:", error);
+        // setSuccessStoriesError("Failed to load success stories. Please try again later."); // This line was removed from the new_code, so it's removed here.
+      } finally {
+        setLoadingSuccessStories(false);
+      }
+    };
+
+    fetchSuccessStories();
+  }, []);
+
   return (
     <div className="bg-white min-h-screen flex flex-col">
       <Header />
@@ -156,11 +173,26 @@ export default function HomePage() {
 
         <RecentReviewsSection />
 
-        <IndustryInsightsSection insights={industryInsights} />
+        <IndustryInsightsSection />
 
         <HowItWorksSection steps={howItWorks} />
 
-        <SuccessStoriesSection stories={successStories} />
+        {loadingSuccessStories ? (
+          <div className="py-12 sm:py-16 bg-gray-50">
+            <div className="container mx-auto px-4 sm:px-6">
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded mb-4 w-1/3"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="bg-gray-200 rounded-lg h-64"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <SuccessStoriesSection stories={successStories} />
+        )}
 
         <TrustSafetySection />
 

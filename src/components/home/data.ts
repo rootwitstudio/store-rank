@@ -1,4 +1,4 @@
-import { Monitor, Shirt, Award, Activity, Search, Eye, Shield } from "lucide-react";
+import { Search, Eye, Shield } from "lucide-react";
 
 export const featuredStores = [
   {
@@ -81,7 +81,8 @@ export const recentReviews = [
     storeName: "Amazon India",
     storeId: "1",
     rating: 5,
-    review: "Excellent service and lightning-fast delivery to Mumbai. Product quality was exactly as described. Highly recommended!",
+    review:
+      "Excellent service and lightning-fast delivery to Mumbai. Product quality was exactly as described. Highly recommended!",
     reviewer: "Priya S.",
     location: "Mumbai, India",
     date: "2 hours ago",
@@ -94,7 +95,8 @@ export const recentReviews = [
     storeName: "Flipkart",
     storeId: "2",
     rating: 4,
-    review: "Good product quality and packaging. Delivery was on time to Bangalore. Customer service was responsive when I had questions.",
+    review:
+      "Good product quality and packaging. Delivery was on time to Bangalore. Customer service was responsive when I had questions.",
     reviewer: "Rajesh K.",
     location: "Bangalore, India",
     date: "5 hours ago",
@@ -107,7 +109,8 @@ export const recentReviews = [
     storeName: "Myntra",
     storeId: "3",
     rating: 5,
-    review: "Amazing collection of ethnic wear! Found the perfect outfit for Diwali. Quality exceeded expectations and delivery to Delhi was super quick.",
+    review:
+      "Amazing collection of ethnic wear! Found the perfect outfit for Diwali. Quality exceeded expectations and delivery to Delhi was super quick.",
     reviewer: "Anita M.",
     location: "Delhi, India",
     date: "1 day ago",
@@ -120,7 +123,8 @@ export const recentReviews = [
     storeName: "Nykaa",
     storeId: "4",
     rating: 4,
-    review: "Authentic beauty products with great packaging. Love their skincare range. Delivery to Chennai was smooth and products were well-protected.",
+    review:
+      "Authentic beauty products with great packaging. Love their skincare range. Delivery to Chennai was smooth and products were well-protected.",
     reviewer: "Kavya R.",
     location: "Chennai, India",
     date: "1 day ago",
@@ -133,7 +137,8 @@ export const recentReviews = [
     storeName: "Amazon India",
     storeId: "1",
     rating: 5,
-    review: "Best online shopping experience! Their return policy is customer-friendly and delivery to Pune is always on time. Trust them completely.",
+    review:
+      "Best online shopping experience! Their return policy is customer-friendly and delivery to Pune is always on time. Trust them completely.",
     reviewer: "Vikram T.",
     location: "Pune, India",
     date: "2 days ago",
@@ -234,84 +239,22 @@ export const howItWorks = [
   {
     step: 1,
     title: "Search & Discover",
-    description: "Find stores by category, name, or browse our curated lists of verified retailers",
+    description:
+      "Find stores by category, name, or browse our curated lists of verified retailers",
     icon: Search,
   },
   {
     step: 2,
     title: "Read Reviews",
-    description: "Check authentic customer reviews, ratings, and detailed trust scores",
+    description:
+      "Check authentic customer reviews, ratings, and detailed trust scores",
     icon: Eye,
   },
   {
     step: 3,
     title: "Shop Safely",
-    description: "Make informed decisions with verified store information and safety ratings",
+    description:
+      "Make informed decisions with verified store information and safety ratings",
     icon: Shield,
   },
 ];
-
-export const industryInsights = [
-  {
-    title: "Festival Shopping Surge",
-    value: "Electronics up 45%",
-    description: "Diwali season driving massive growth in electronics and home appliances",
-    icon: Monitor,
-    trend: "+45%",
-    trendColor: "text-green-600",
-  },
-  {
-    title: "Most Popular Category",
-    value: "Fashion & Lifestyle",
-    description: "Leading category with 3.2M searches this month across India",
-    icon: Shirt,
-    trend: "3.2M searches",
-    trendColor: "text-blue-600",
-  },
-  {
-    title: "Trust Score Average",
-    value: "4.3/5.0",
-    description: "Indian e-commerce trust rating shows strong consumer confidence",
-    icon: Award,
-    trend: "+0.4 this month",
-    trendColor: "text-green-600",
-  },
-  {
-    title: "Mobile Commerce",
-    value: "78% of users",
-    description: "Mobile-first shopping dominates Indian e-commerce landscape",
-    icon: Activity,
-    trend: "+15% vs last year",
-    trendColor: "text-green-600",
-  },
-];
-
-export const successStories = [
-  {
-    id: "1",
-    name: "Arjun P.",
-    location: "Bangalore, India",
-    story: "StoreRankly helped me identify a fake electronics store that was using stolen product images. The community reviews warned about their poor delivery and fake products. Saved me ₹25,000!",
-    outcome: "Avoided scam",
-    avatar: "A",
-    verified: true,
-  },
-  {
-    id: "2",
-    name: "Sneha M.",
-    location: "Delhi, India",
-    story: "Found an amazing local handicrafts store through StoreRankly's verified listings. The reviews were accurate about their authentic products and fast shipping. Now my go-to for gifts!",
-    outcome: "Found trusted store",
-    avatar: "S",
-    verified: true,
-  },
-  {
-    id: "3",
-    name: "Rohit K.",
-    location: "Mumbai, India",
-    story: "The platform's trust scores helped me choose between similar fashion stores. Went with the higher-rated one and had an excellent experience. The detailed reviews made all the difference.",
-    outcome: "Better shopping decision",
-    avatar: "R",
-    verified: true,
-  },
-]; 

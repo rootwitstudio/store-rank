@@ -72,12 +72,12 @@ export function CustomCategorySection({
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-8 sm:mb-12 gap-4 sm:gap-0">
           <div className="flex items-center gap-3">
-            <div
+            {/* <div
               className="p-3 rounded-lg"
               style={{ backgroundColor: customCategory.color || "#3B82F6" }}
             >
               <Icon className="h-6 w-6 text-white" />
-            </div>
+            </div> */}
             <div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-gray-900">
                 {customCategory.name}
